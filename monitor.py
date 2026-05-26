@@ -1,5 +1,6 @@
 import os
 import re
+import time
 import requests
 from urllib.parse import quote
 
@@ -19,60 +20,61 @@ def monitor_scrapedo():
     chat_id = os.environ.get('CHAT_ID')
     scrape_token = "3a23ea3810a04b16bccfac96a2c3b1af73c97a98ef5"
 
-    try:
-        encoded_url = quote(url_produto)
-        api_url = f"https://api.scrape.do/?token={scrape_token}&url={encoded_url}&render=true"
+    for tentativa in range(1, 4):  # 3 tentativas
+        try:
+            print(f"🔄 Tentativa {tentativa}/3 via Scrape.do...")
 
-        response = requests.get(api_url, timeout=90)
-        
-        if response.status_code != 200:
-            raise Exception(f"Scrape.do retornou {response.status_code}")
+            encoded_url = quote(url_produto)
+            api_url = f"https://api.scrape.do/?token={scrape_token}&url={encoded_url}&render=true"
 
-        html = response.text
+            response = requests.get(api_url, timeout=90)
+            print(f"Status: {response.status_code}")
 
-        # === EXTRAÇÃO MELHORADA ===
-        # Prioriza preços principais (geralmente maiores e com "no Pix" ou sem "x")
-        # Evita preços de parcelamento
+            if response.status_code == 200:
+                html = response.text
+                break
+            elif response.status_code == 502:
+                print("502 detectado, aguardando antes de retry...")
+                time.sleep(8 * tentativa)  # Espera progressiva
+                continue
+            else:
+                raise Exception(f"Scrape.do retornou {response.status_code}")
 
-        # Padrão 1: Preço principal com "no Pix" ou logo após R$
-        match = re.search(r'R\$\s*([\d.,]+).*?(no Pix|à vista|atual)', html, re.I)
-        if match:
-            preco_str = match.group(1)
-        else:
-            # Padrão 2: Maior preço encontrado (geralmente o principal)
-            matches = re.findall(r'R\$\s*([\d.,]+)', html)
-            valid_prices = []
-            for m in matches:
-                try:
-                    limpo = m.replace('.', '').replace(',', '.')
-                    valor = float(limpo)
-                    if 50 < valor < 1000:
-                        valid_prices.append(valor)
-                except:
-                    continue
-            preco = max(valid_prices) if valid_prices else None
+        except Exception as e:
+            if tentativa == 3:
+                raise
+            time.sleep(5)
 
-        # Se encontrou via regex específico
-        if 'preco_str' in locals():
-            limpo = preco_str.replace('.', '').replace(',', '.')
-            preco = float(limpo)
+    # === EXTRAÇÃO INTELIGENTE DO PREÇO ===
+    # Prioriza o preço principal (geralmente o maior + "no Pix")
+    matches = re.findall(r'R\$\s*([\d.,]+)', html)
 
-        if preco is None:
-            raise Exception("Preço não encontrado")
+    preco = None
+    valid_prices = []
+    for m in matches:
+        try:
+            limpo = m.replace('.', '').replace(',', '.')
+            valor = float(limpo)
+            if 50 < valor < 1000:          # faixa realista do agasalho
+                valid_prices.append(valor)
+        except:
+            continue
 
-        print(f"✅ Preço capturado: R$ {preco:.2f}")
+    if valid_prices:
+        # Pega o maior preço (geralmente o preço à vista/principal)
+        preco = max(valid_prices)
 
-        if preco <= alvo:
-            msg = f"🔥 <b>ALERTA CENTAURO!</b>\nPreço baixou para <b>R$ {preco:.2f}</b>\n\n{url_produto}"
-        else:
-            msg = f"✅ Monitor Centauro\nPreço atual: R$ {preco:.2f} (Alvo: R$ {alvo})"
-        
-        enviar_telegram(token, chat_id, msg)
+    if preco is None:
+        raise Exception("Preço não encontrado")
 
-    except Exception as e:
-        erro = str(e)[:350]
-        print(f"❌ Erro: {erro}")
-        enviar_telegram(token, chat_id, f"❌ Erro Scrape.do:\n{erro}")
+    print(f"✅ Preço capturado: R$ {preco:.2f}")
+
+    if preco <= alvo:
+        msg = f"🔥 <b>ALERTA CENTAURO!</b>\nPreço baixou para <b>R$ {preco:.2f}</b>\n\n{url_produto}"
+    else:
+        msg = f"✅ Monitor Centauro\nPreço atual: R$ {preco:.2f} (Alvo: R$ {alvo})"
+    
+    enviar_telegram(token, chat_id, msg)
 
 if __name__ == "__main__":
     monitor_scrapedo()
