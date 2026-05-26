@@ -1,97 +1,162 @@
+"""
+Monitor de Preço - Centauro
+Roteia o request pelo Tor para contornar o bloqueio de IPs do GitHub Actions.
+Nenhuma conta extra necessária — Tor é instalado direto no runner.
+"""
+
 import os
 import re
-import random
+import json
 import requests
-from playwright.sync_api import sync_playwright
+from collections import Counter
 
-def enviar_telegram(token, chat_id, mensagem):
+# ── Configuração ──────────────────────────────────────────────────────────────
+
+PRODUTO_URL    = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
+PRECO_ALVO     = 200.00
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+CHAT_ID        = os.environ.get("CHAT_ID")
+
+# Tor sobe na porta 9050 (SOCKS5)
+TOR_PROXY = {"http": "socks5h://127.0.0.1:9050", "https": "socks5h://127.0.0.1:9050"}
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "pt-BR,pt;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+}
+
+
+# ── Telegram ──────────────────────────────────────────────────────────────────
+
+def enviar_telegram(mensagem: str) -> None:
     try:
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
-        requests.post(url, json=payload, timeout=15)
-    except:
-        pass
+        # Telegram vai direto (não precisa de Tor)
+        r = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
+            json={"chat_id": CHAT_ID, "text": mensagem, "parse_mode": "HTML"},
+            timeout=10,
+        )
+        r.raise_for_status()
+        print("[Telegram] ✅ Mensagem enviada.")
+    except Exception as e:
+        print(f"[Telegram] ❌ Erro: {e}")
 
-# Lista de proxies gratuitos (atualizada manualmente - substitua quando morrerem)
-FREE_PROXIES = [
-    "http://168.205.255.238:80",      # BR
-    "http://177.93.72.82:4153",       # BR
-    "http://201.71.24.65:8082",       # BR
-    # Adicione mais de https://databay.com/free-proxy-list/brazil se quiser
-]
 
-def get_random_proxy():
-    return random.choice(FREE_PROXIES) if FREE_PROXIES else None
+# ── Extração de preço ─────────────────────────────────────────────────────────
 
-def monitor_com_proxy_gratis():
-    url = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
-    alvo = 200.00
-    token = os.environ.get('TELEGRAM_TOKEN')
-    chat_id = os.environ.get('CHAT_ID')
+def extrair_preco(html: str) -> float | None:
 
-    proxy = get_random_proxy()
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, args=['--no-sandbox'])
-
-        context_options = {
-            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-            "viewport": {"width": 1366, "height": 768},
-            "locale": "pt-BR",
-        }
-
-        if proxy:
-            context_options["proxy"] = {"server": proxy}
-
-        context = browser.new_context(**context_options)
-
-        context.add_init_script("""
-            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        """)
-
-        page = context.new_page()
-
+    # 1) window.__STATE__ — JSON da VTEX com sellingPrice em centavos
+    match = re.search(r'window\.__STATE__\s*=\s*(\{.+?\})\s*;?\s*</script', html, re.DOTALL)
+    if match:
         try:
-            print(f"🔄 Usando proxy: {proxy}")
-            page.goto(url, wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_timeout(12000)
-
-            title = page.title()
-            print(f"Título: {title}")
-
-            if "Access Denied" in title or "Cloudflare" in title:
-                raise Exception("Bloqueado pelo Cloudflare")
-
-            # Extrai preço
-            price_texts = page.evaluate('''
-                () => Array.from(document.querySelectorAll('*'))
-                    .map(el => el.textContent.trim())
-                    .filter(t => /R\$\s*\d/.test(t))
-                    .slice(0, 10)
-            ''')
-
-            full_text = " ".join(price_texts)
-            match = re.search(r'R\$\s*([\d.,]+)', full_text)
-
-            if match:
-                limpo = match.group(1).replace('.', '').replace(',', '.')
-                preco = float(limpo)
-                print(f"✅ Preço encontrado: R$ {preco}")
-
-                if preco <= alvo:
-                    msg = f"🔥 <b>ALERTA!</b> Preço baixou para R$ {preco:.2f}\n\n{url}"
-                else:
-                    msg = f"✅ Preço atual: R$ {preco:.2f} (Alvo: R$ {alvo})"
-                enviar_telegram(token, chat_id, msg)
-            else:
-                raise Exception("Preço não encontrado na página")
-
+            state = json.loads(match.group(1))
+            txt   = json.dumps(state)
+            centavos = [int(v) / 100 for v in re.findall(r'"sellingPrice"\s*:\s*(\d+)', txt) if int(v) > 0]
+            reais    = [float(v)     for v in re.findall(r'"spotPrice"\s*:\s*([\d.]+)', txt)  if float(v) > 0]
+            validos  = [v for v in centavos + reais if 10 < v < 100_000]
+            if validos:
+                preco = min(validos)
+                print(f"[extração] via __STATE__: R$ {preco:.2f}")
+                return preco
         except Exception as e:
-            erro = str(e)[:250]
-            print(f"Erro: {erro}")
-            enviar_telegram(token, chat_id, f"❌ Erro com proxy gratuito:\n{erro}\nProxy usado: {proxy}")
-        finally:
-            browser.close()
+            print(f"[extração] __STATE__ erro: {e}")
+
+    # 2) Schema.org / meta tag
+    m = re.search(r'itemprop=["\']price["\'][^>]+content=["\']?([\d.]+)', html, re.IGNORECASE)
+    if m:
+        v = float(m.group(1))
+        if 10 < v < 100_000:
+            print(f"[extração] via meta tag: R$ {v:.2f}")
+            return v
+
+    # 3) Texto "R$ X,XX" mais frequente
+    raws = re.findall(r'R\$\s*([\d]{2,3}(?:[.,]\d{3})*[.,]\d{2})', html)
+    candidatos = []
+    for raw in raws:
+        try:
+            candidatos.append(float(raw.replace(".", "").replace(",", ".")))
+        except ValueError:
+            pass
+    validos = [v for v in candidatos if 10 < v < 100_000]
+    if validos:
+        preco = Counter(validos).most_common(1)[0][0]
+        print(f"[extração] via texto R$: R$ {preco:.2f}")
+        return preco
+
+    return None
+
+
+# ── Requisição via Tor ────────────────────────────────────────────────────────
+
+def buscar_html() -> str | None:
+    session = requests.Session()
+    session.proxies.update(TOR_PROXY)
+
+    try:
+        # Confirma que o Tor está funcionando
+        ip = session.get("https://api.ipify.org", timeout=30).text.strip()
+        print(f"[Tor] IP de saída: {ip}")
+
+        # Visita a home primeiro para gerar cookies de sessão
+        session.get("https://www.centauro.com.br/", headers=HEADERS, timeout=30)
+
+        # Busca o produto
+        r = session.get(PRODUTO_URL, headers=HEADERS, timeout=60)
+        print(f"[Tor] status={r.status_code}  tamanho={len(r.text):,} chars")
+
+        if r.status_code == 200 and len(r.text) > 5_000:
+            return r.text
+
+        print(f"[Tor] Resposta suspeita: {r.text[:300]}")
+    except Exception as e:
+        print(f"[Tor] Erro: {e}")
+
+    return None
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def monitorar() -> None:
+    print(f"Produto: {PRODUTO_URL}")
+    print(f"Alvo:    R$ {PRECO_ALVO:.2f}\n")
+
+    html  = buscar_html()
+    preco = extrair_preco(html) if html else None
+
+    if not preco:
+        msg = (
+            "❌ <b>Preço não capturado</b>\n\n"
+            "Tor carregou a página mas o preço não foi encontrado.\n"
+            "O layout do site pode ter mudado."
+        )
+        enviar_telegram(msg)
+        return
+
+    print(f"\n✅ Preço: R$ {preco:.2f}  |  Alvo: R$ {PRECO_ALVO:.2f}")
+
+    if preco <= PRECO_ALVO:
+        msg = (
+            f"🔥 <b>Alerta de Preço!</b>\n\n"
+            f"💰 Preço atual: <b>R$ {preco:.2f}</b>\n"
+            f"🎯 Seu alvo:    R$ {PRECO_ALVO:.2f}\n\n"
+            f'🔗 <a href="{PRODUTO_URL}">Ver na Centauro</a>'
+        )
+    else:
+        msg = (
+            f"✅ <b>Monitoramento ativo</b>\n\n"
+            f"💰 Preço atual: R$ {preco:.2f}\n"
+            f"🎯 Alvo:        R$ {PRECO_ALVO:.2f}"
+        )
+
+    enviar_telegram(msg)
+
 
 if __name__ == "__main__":
-    monitor_com_proxy_gratis()
+    monitorar()
