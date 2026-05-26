@@ -1,40 +1,28 @@
-name: DEBUG Monitor Centauro
+name: Monitorar Preço Centauro
 
 on:
-  workflow_dispatch:   # só roda manualmente
+  schedule:
+    - cron: '0 */4 * * *'    # A cada 4 horas
+  workflow_dispatch:
 
 jobs:
-  debug:
+  check:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout código
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: Instalar Tor
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -y tor
-          sudo service tor start
-          sleep 20
-          echo "Tor iniciado."
+      - name: Instalar dependências
+        run: pip install requests
 
-      - name: Instalar dependencias
-        run: pip install requests requests[socks]
-
-      - name: Rodar DEBUG
+      - name: Rodar Monitor Scrape.do
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python monitor_debug.py
-
-      - name: Upload HTML capturado
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: centauro-html-debug
-          path: /tmp/centauro_debug.html
-          retention-days: 1
+        run: python monitor.py
