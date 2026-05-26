@@ -1,7 +1,6 @@
 """
-Monitor de Preço - Centauro
-Roteia o request pelo Tor para contornar o bloqueio de IPs do GitHub Actions.
-Nenhuma conta extra necessária — Tor é instalado direto no runner.
+Monitor de Preço - Centauro (modo DEBUG)
+Execute uma vez para ver o que o Tor está retornando da Centauro.
 """
 
 import os
@@ -10,16 +9,8 @@ import json
 import requests
 from collections import Counter
 
-# ── Configuração ──────────────────────────────────────────────────────────────
-
-PRODUTO_URL    = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
-PRECO_ALVO     = 200.00
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-CHAT_ID        = os.environ.get("CHAT_ID")
-
-# Tor sobe na porta 9050 (SOCKS5)
-TOR_PROXY = {"http": "socks5h://127.0.0.1:9050", "https": "socks5h://127.0.0.1:9050"}
-
+PRODUTO_URL = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
+TOR_PROXY   = {"http": "socks5h://127.0.0.1:9050", "https": "socks5h://127.0.0.1:9050"}
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -31,132 +22,98 @@ HEADERS = {
     "Accept-Encoding": "gzip, deflate, br",
 }
 
-
-# ── Telegram ──────────────────────────────────────────────────────────────────
-
-def enviar_telegram(mensagem: str) -> None:
-    try:
-        # Telegram vai direto (não precisa de Tor)
-        r = requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-            json={"chat_id": CHAT_ID, "text": mensagem, "parse_mode": "HTML"},
-            timeout=10,
-        )
-        r.raise_for_status()
-        print("[Telegram] ✅ Mensagem enviada.")
-    except Exception as e:
-        print(f"[Telegram] ❌ Erro: {e}")
-
-
-# ── Extração de preço ─────────────────────────────────────────────────────────
-
-def extrair_preco(html: str) -> float | None:
-
-    # 1) window.__STATE__ — JSON da VTEX com sellingPrice em centavos
-    match = re.search(r'window\.__STATE__\s*=\s*(\{.+?\})\s*;?\s*</script', html, re.DOTALL)
-    if match:
-        try:
-            state = json.loads(match.group(1))
-            txt   = json.dumps(state)
-            centavos = [int(v) / 100 for v in re.findall(r'"sellingPrice"\s*:\s*(\d+)', txt) if int(v) > 0]
-            reais    = [float(v)     for v in re.findall(r'"spotPrice"\s*:\s*([\d.]+)', txt)  if float(v) > 0]
-            validos  = [v for v in centavos + reais if 10 < v < 100_000]
-            if validos:
-                preco = min(validos)
-                print(f"[extração] via __STATE__: R$ {preco:.2f}")
-                return preco
-        except Exception as e:
-            print(f"[extração] __STATE__ erro: {e}")
-
-    # 2) Schema.org / meta tag
-    m = re.search(r'itemprop=["\']price["\'][^>]+content=["\']?([\d.]+)', html, re.IGNORECASE)
-    if m:
-        v = float(m.group(1))
-        if 10 < v < 100_000:
-            print(f"[extração] via meta tag: R$ {v:.2f}")
-            return v
-
-    # 3) Texto "R$ X,XX" mais frequente
-    raws = re.findall(r'R\$\s*([\d]{2,3}(?:[.,]\d{3})*[.,]\d{2})', html)
-    candidatos = []
-    for raw in raws:
-        try:
-            candidatos.append(float(raw.replace(".", "").replace(",", ".")))
-        except ValueError:
-            pass
-    validos = [v for v in candidatos if 10 < v < 100_000]
-    if validos:
-        preco = Counter(validos).most_common(1)[0][0]
-        print(f"[extração] via texto R$: R$ {preco:.2f}")
-        return preco
-
-    return None
-
-
-# ── Requisição via Tor ────────────────────────────────────────────────────────
-
-def buscar_html() -> str | None:
+def debug():
     session = requests.Session()
     session.proxies.update(TOR_PROXY)
 
+    # ── 1. Confirma IP do Tor ─────────────────────────────────────────────────
     try:
-        # Confirma que o Tor está funcionando
         ip = session.get("https://api.ipify.org", timeout=30).text.strip()
-        print(f"[Tor] IP de saída: {ip}")
-
-        # Visita a home primeiro para gerar cookies de sessão
-        session.get("https://www.centauro.com.br/", headers=HEADERS, timeout=30)
-
-        # Busca o produto
-        r = session.get(PRODUTO_URL, headers=HEADERS, timeout=60)
-        print(f"[Tor] status={r.status_code}  tamanho={len(r.text):,} chars")
-
-        if r.status_code == 200 and len(r.text) > 5_000:
-            return r.text
-
-        print(f"[Tor] Resposta suspeita: {r.text[:300]}")
+        print(f"\n{'='*60}")
+        print(f"[TOR] IP de saída: {ip}")
     except Exception as e:
-        print(f"[Tor] Erro: {e}")
-
-    return None
-
-
-# ── Main ──────────────────────────────────────────────────────────────────────
-
-def monitorar() -> None:
-    print(f"Produto: {PRODUTO_URL}")
-    print(f"Alvo:    R$ {PRECO_ALVO:.2f}\n")
-
-    html  = buscar_html()
-    preco = extrair_preco(html) if html else None
-
-    if not preco:
-        msg = (
-            "❌ <b>Preço não capturado</b>\n\n"
-            "Tor carregou a página mas o preço não foi encontrado.\n"
-            "O layout do site pode ter mudado."
-        )
-        enviar_telegram(msg)
+        print(f"[TOR] ERRO ao obter IP — Tor pode não estar rodando: {e}")
         return
 
-    print(f"\n✅ Preço: R$ {preco:.2f}  |  Alvo: R$ {PRECO_ALVO:.2f}")
+    # ── 2. Requisição para a Centauro ─────────────────────────────────────────
+    try:
+        session.get("https://www.centauro.com.br/", headers=HEADERS, timeout=30)
+        r = session.get(PRODUTO_URL, headers=HEADERS, timeout=60)
+    except Exception as e:
+        print(f"[HTTP] ERRO na requisição: {e}")
+        return
 
-    if preco <= PRECO_ALVO:
-        msg = (
-            f"🔥 <b>Alerta de Preço!</b>\n\n"
-            f"💰 Preço atual: <b>R$ {preco:.2f}</b>\n"
-            f"🎯 Seu alvo:    R$ {PRECO_ALVO:.2f}\n\n"
-            f'🔗 <a href="{PRODUTO_URL}">Ver na Centauro</a>'
-        )
+    html = r.text
+    print(f"\n{'='*60}")
+    print(f"[HTTP] Status:  {r.status_code}")
+    print(f"[HTTP] Tamanho: {len(html):,} chars")
+    print(f"[HTTP] Headers: {dict(r.headers)}")
+
+    # ── 3. Primeiros 2000 chars do HTML ──────────────────────────────────────
+    print(f"\n{'='*60}")
+    print("[HTML] Primeiros 2000 chars:")
+    print(html[:2000])
+
+    # ── 4. Últimos 500 chars ──────────────────────────────────────────────────
+    print(f"\n{'='*60}")
+    print("[HTML] Últimos 500 chars:")
+    print(html[-500:])
+
+    # ── 5. Detecta proteção ───────────────────────────────────────────────────
+    print(f"\n{'='*60}")
+    print("[DETECÇÃO] Verificando bloqueios...")
+    checks = {
+        "Cloudflare":  "cloudflare" in html.lower() or "__cf_" in html,
+        "Captcha":     "captcha" in html.lower() or "recaptcha" in html.lower(),
+        "Akamai":      "akamai" in html.lower() or "_abck" in html,
+        "DataDome":    "datadome" in html.lower(),
+        "403/bloqueio": r.status_code == 403,
+        "HTML vazio":  len(html) < 5000,
+    }
+    for nome, detectado in checks.items():
+        status = "⚠️  DETECTADO" if detectado else "✅ ok"
+        print(f"  {nome:20s} {status}")
+
+    # ── 6. Busca por "R$" no HTML ─────────────────────────────────────────────
+    print(f"\n{'='*60}")
+    preco_matches = re.findall(r'R\$\s*[\d.,]+', html)
+    print(f"[PREÇO] Ocorrências de 'R$' no HTML: {len(preco_matches)}")
+    if preco_matches:
+        print("  Primeiras 20:", preco_matches[:20])
     else:
-        msg = (
-            f"✅ <b>Monitoramento ativo</b>\n\n"
-            f"💰 Preço atual: R$ {preco:.2f}\n"
-            f"🎯 Alvo:        R$ {PRECO_ALVO:.2f}"
-        )
+        print("  ⚠️  Nenhuma ocorrência de R$ encontrada")
 
-    enviar_telegram(msg)
+    # ── 7. Verifica __STATE__ ─────────────────────────────────────────────────
+    print(f"\n{'='*60}")
+    state_match = re.search(r'window\.__STATE__\s*=\s*(\{.+?\})\s*;?\s*</script', html, re.DOTALL)
+    if state_match:
+        print(f"[__STATE__] ✅ Encontrado! Tamanho: {len(state_match.group(1)):,} chars")
+        try:
+            state = json.loads(state_match.group(1))
+            txt   = json.dumps(state)
+            centavos = re.findall(r'"sellingPrice"\s*:\s*(\d+)', txt)
+            spot     = re.findall(r'"spotPrice"\s*:\s*([\d.]+)', txt)
+            print(f"  sellingPrice (centavos): {centavos[:10]}")
+            print(f"  spotPrice    (reais):    {spot[:10]}")
+        except Exception as e:
+            print(f"  ⚠️  Erro ao parsear __STATE__: {e}")
+            print(f"  Primeiros 500 chars do __STATE__: {state_match.group(1)[:500]}")
+    else:
+        print("[__STATE__] ⚠️  NÃO encontrado no HTML")
 
+    # ── 8. Scripts presentes na página ───────────────────────────────────────
+    print(f"\n{'='*60}")
+    scripts = re.findall(r'<script[^>]*src=["\']([^"\']+)["\']', html)
+    print(f"[SCRIPTS] {len(scripts)} scripts externos encontrados:")
+    for s in scripts[:15]:
+        print(f"  {s}")
+
+    # ── 9. Salva HTML completo para análise ──────────────────────────────────
+    with open("/tmp/centauro_debug.html", "w", encoding="utf-8") as f:
+        f.write(html)
+    print(f"\n{'='*60}")
+    print("[ARQUIVO] HTML completo salvo em: /tmp/centauro_debug.html")
+    print(f"{'='*60}\n")
 
 if __name__ == "__main__":
-    monitorar()
+    debug()
