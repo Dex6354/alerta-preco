@@ -1,119 +1,71 @@
-"""
-Monitor de Preço - Centauro (modo DEBUG)
-Execute uma vez para ver o que o Tor está retornando da Centauro.
-"""
-
 import os
 import re
-import json
 import requests
-from collections import Counter
+from urllib.parse import quote_plus
 
-PRODUTO_URL = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
-TOR_PROXY   = {"http": "socks5h://127.0.0.1:9050", "https": "socks5h://127.0.0.1:9050"}
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "pt-BR,pt;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-}
-
-def debug():
-    session = requests.Session()
-    session.proxies.update(TOR_PROXY)
-
-    # ── 1. Confirma IP do Tor ─────────────────────────────────────────────────
+def enviar_telegram(token, chat_id, mensagem):
     try:
-        ip = session.get("https://api.ipify.org", timeout=30).text.strip()
-        print(f"\n{'='*60}")
-        print(f"[TOR] IP de saída: {ip}")
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
+        requests.post(url, json=payload, timeout=15)
     except Exception as e:
-        print(f"[TOR] ERRO ao obter IP — Tor pode não estar rodando: {e}")
-        return
+        print(f"Erro Telegram: {e}")
 
-    # ── 2. Requisição para a Centauro ─────────────────────────────────────────
+def monitor_scrapedo():
+    url_produto = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
+    alvo = 200.00
+    
+    token = os.environ.get('TELEGRAM_TOKEN')
+    chat_id = os.environ.get('CHAT_ID')
+    scrape_token = "3a23ea3810a04b16bccfac96a2c3b1af73c97a98ef5"   # Sua chave
+
     try:
-        session.get("https://www.centauro.com.br/", headers=HEADERS, timeout=30)
-        r = session.get(PRODUTO_URL, headers=HEADERS, timeout=60)
+        print("🔄 Buscando via Scrape.do...")
+
+        # Monta a URL da API
+        encoded_url = quote_plus(url_produto)
+        api_url = f"https://api.scrape.do/?token={scrape_token}&url={encoded_url}&render=true&waitUntil=networkidle"
+
+        response = requests.get(api_url, timeout=60)
+        
+        if response.status_code != 200:
+            raise Exception(f"Scrape.do retornou {response.status_code}")
+
+        html = response.text
+
+        # === EXTRAÇÃO DO PREÇO ===
+        # Procura por R$ seguido de número
+        matches = re.findall(r'R\$\s*([\d.,]+)', html)
+        
+        preco = None
+        if matches:
+            # Pega o primeiro preço válido (geralmente o principal)
+            for match in matches:
+                limpo = match.replace('.', '').replace(',', '.')
+                try:
+                    preco_temp = float(limpo)
+                    if preco_temp > 10:  # Evita preços muito baixos (ex: frete)
+                        preco = preco_temp
+                        break
+                except:
+                    continue
+
+        if preco is None:
+            raise Exception("Não foi possível extrair o preço")
+
+        print(f"✅ Preço capturado: R$ {preco:.2f}")
+
+        if preco <= alvo:
+            msg = f"🔥 <b>ALERTA CENTAURO!</b>\nPreço baixou para <b>R$ {preco:.2f}</b>\n\n{url_produto}"
+            enviar_telegram(token, chat_id, msg)
+        else:
+            msg = f"✅ Monitor Centauro\nPreço atual: R$ {preco:.2f} (Alvo: R$ {alvo})"
+            enviar_telegram(token, chat_id, msg)
+
     except Exception as e:
-        print(f"[HTTP] ERRO na requisição: {e}")
-        return
-
-    html = r.text
-    print(f"\n{'='*60}")
-    print(f"[HTTP] Status:  {r.status_code}")
-    print(f"[HTTP] Tamanho: {len(html):,} chars")
-    print(f"[HTTP] Headers: {dict(r.headers)}")
-
-    # ── 3. Primeiros 2000 chars do HTML ──────────────────────────────────────
-    print(f"\n{'='*60}")
-    print("[HTML] Primeiros 2000 chars:")
-    print(html[:2000])
-
-    # ── 4. Últimos 500 chars ──────────────────────────────────────────────────
-    print(f"\n{'='*60}")
-    print("[HTML] Últimos 500 chars:")
-    print(html[-500:])
-
-    # ── 5. Detecta proteção ───────────────────────────────────────────────────
-    print(f"\n{'='*60}")
-    print("[DETECÇÃO] Verificando bloqueios...")
-    checks = {
-        "Cloudflare":  "cloudflare" in html.lower() or "__cf_" in html,
-        "Captcha":     "captcha" in html.lower() or "recaptcha" in html.lower(),
-        "Akamai":      "akamai" in html.lower() or "_abck" in html,
-        "DataDome":    "datadome" in html.lower(),
-        "403/bloqueio": r.status_code == 403,
-        "HTML vazio":  len(html) < 5000,
-    }
-    for nome, detectado in checks.items():
-        status = "⚠️  DETECTADO" if detectado else "✅ ok"
-        print(f"  {nome:20s} {status}")
-
-    # ── 6. Busca por "R$" no HTML ─────────────────────────────────────────────
-    print(f"\n{'='*60}")
-    preco_matches = re.findall(r'R\$\s*[\d.,]+', html)
-    print(f"[PREÇO] Ocorrências de 'R$' no HTML: {len(preco_matches)}")
-    if preco_matches:
-        print("  Primeiras 20:", preco_matches[:20])
-    else:
-        print("  ⚠️  Nenhuma ocorrência de R$ encontrada")
-
-    # ── 7. Verifica __STATE__ ─────────────────────────────────────────────────
-    print(f"\n{'='*60}")
-    state_match = re.search(r'window\.__STATE__\s*=\s*(\{.+?\})\s*;?\s*</script', html, re.DOTALL)
-    if state_match:
-        print(f"[__STATE__] ✅ Encontrado! Tamanho: {len(state_match.group(1)):,} chars")
-        try:
-            state = json.loads(state_match.group(1))
-            txt   = json.dumps(state)
-            centavos = re.findall(r'"sellingPrice"\s*:\s*(\d+)', txt)
-            spot     = re.findall(r'"spotPrice"\s*:\s*([\d.]+)', txt)
-            print(f"  sellingPrice (centavos): {centavos[:10]}")
-            print(f"  spotPrice    (reais):    {spot[:10]}")
-        except Exception as e:
-            print(f"  ⚠️  Erro ao parsear __STATE__: {e}")
-            print(f"  Primeiros 500 chars do __STATE__: {state_match.group(1)[:500]}")
-    else:
-        print("[__STATE__] ⚠️  NÃO encontrado no HTML")
-
-    # ── 8. Scripts presentes na página ───────────────────────────────────────
-    print(f"\n{'='*60}")
-    scripts = re.findall(r'<script[^>]*src=["\']([^"\']+)["\']', html)
-    print(f"[SCRIPTS] {len(scripts)} scripts externos encontrados:")
-    for s in scripts[:15]:
-        print(f"  {s}")
-
-    # ── 9. Salva HTML completo para análise ──────────────────────────────────
-    with open("/tmp/centauro_debug.html", "w", encoding="utf-8") as f:
-        f.write(html)
-    print(f"\n{'='*60}")
-    print("[ARQUIVO] HTML completo salvo em: /tmp/centauro_debug.html")
-    print(f"{'='*60}\n")
+        erro = str(e)[:250]
+        print(f"❌ Erro: {erro}")
+        enviar_telegram(token, chat_id, f"❌ Erro Scrape.do Centauro:\n{erro}")
 
 if __name__ == "__main__":
-    debug()
+    monitor_scrapedo()
