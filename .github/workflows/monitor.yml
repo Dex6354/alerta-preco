@@ -2,8 +2,8 @@ name: Monitorar Preço Centauro
 
 on:
   schedule:
-    - cron: '0 */6 * * *'     # A cada 6 horas
-  workflow_dispatch:          # Permite rodar manualmente
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   check:
@@ -23,13 +23,8 @@ jobs:
           pip install requests playwright
           playwright install chromium --with-deps
 
-      - name: Rodar Monitor de Preço
+      - name: Rodar Monitor Stealth
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python monitor.py
-
-      - name: Mostrar logs (opcional)
-        if: always()
-        run: |
-          echo "Monitoramento finalizado em $(date)"
