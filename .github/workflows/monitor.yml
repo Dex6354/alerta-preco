@@ -1,12 +1,10 @@
-name: Monitorar Preco Centauro
+name: DEBUG Monitor Centauro
 
 on:
-  schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+  workflow_dispatch:   # só roda manualmente
 
 jobs:
-  check:
+  debug:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -21,15 +19,22 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y tor
           sudo service tor start
-          # Aguarda o Tor estabelecer circuito (~15s)
           sleep 20
           echo "Tor iniciado."
 
-      - name: Instalar dependencias Python
+      - name: Instalar dependencias
         run: pip install requests requests[socks]
 
-      - name: Rodar monitor
+      - name: Rodar DEBUG
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python monitor.py
+        run: python monitor_debug.py
+
+      - name: Upload HTML capturado
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: centauro-html-debug
+          path: /tmp/centauro_debug.html
+          retention-days: 1
