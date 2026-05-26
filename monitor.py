@@ -1,6 +1,4 @@
 import os
-import re
-import json
 import requests
 from playwright.sync_api import sync_playwright
 
@@ -8,8 +6,7 @@ def enviar_telegram(token, chat_id, mensagem):
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": mensagem}
-        response = requests.post(url, json=payload, timeout=10)
-        print(f"Status do Telegram: {response.status_code}")
+        requests.post(url, json=payload, timeout=10)
     except Exception as e:
         print(f"Erro ao enviar mensagem para o Telegram: {e}")
 
@@ -19,10 +16,6 @@ def monitorar_preco():
     token = os.environ.get('TELEGRAM_TOKEN')
     chat_id = os.environ.get('CHAT_ID')
 
-    if not token or not chat_id:
-        print("Erro: TELEGRAM_TOKEN ou CHAT_ID não configurados nas Secrets.")
-        return
-
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(
@@ -31,26 +24,24 @@ def monitorar_preco():
         page = context.new_page()
         
         try:
-            # Acessa a página sem esperar scripts pesados anti-bot
-            page.goto(url, wait_until="commit", timeout=60000)
+            # Carrega a página aguardando o HTML principal carregar
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)
             
-            # Busca os dados estruturados (NextJS) para evitar bloqueio visual
-            script_tag = page.locator("script#__NEXT_DATA__")
-            if script_tag.count() > 0:
-                html_content = script_tag.inner_html()
-                dados = json.loads(html_content)
-                produto = dados['props']['pageProps']['initialState']['product']['currentProduct']
-                preco = float(produto['skus'][0]['offers']['lowPrice'])
-            else:
-                # Alternativa via Regex se o script não carregar
-                content = page.content()
-                match = re.search(r'"lowPrice":\s*([0-9.]+)', content)
-                if match:
-                    preco = float(match.group(1))
-                else:
-                    raise Exception("A Centauro bloqueou o acesso ao preço estruturado.")
+            # Alvo exato com base no HTML que você enviou
+            selector = '[data-testid="price-current"]'
+            page.wait_for_selector(selector, timeout=20000)
             
-            print(f"Preço capturado: R$ {preco}")
+            # Captura o texto de dentro da tag (ex: "R$ 189,99 no Pix-5%")
+            texto_completo = page.locator(selector).first.inner_text()
+            
+            # Isola apenas a parte do preço pegando o que vem antes da palavra "no"
+            texto_preco = texto_completo.split("no")[0]
+            
+            # Limpa o texto: remove "R$", pontos e troca vírgula por ponto
+            limpo = texto_preco.replace("R$", "").replace(".", "").replace(",", ".").strip()
+            preco = float(limpo)
+            
+            print(f"Preço capturado com sucesso: R$ {preco}")
             
             if preco <= alvo:
                 msg = f"🔥 Alerta! Preço baixou para R$ {preco:.2f}.\nLink: {url}"
