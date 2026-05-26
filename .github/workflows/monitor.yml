@@ -1,4 +1,4 @@
-name: Monitorar Preço Centauro
+name: Monitorar Preco Centauro
 
 on:
   schedule:
@@ -8,22 +8,27 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
-      - name: Instalar dependências
+      - name: Instalar Tor
         run: |
-          pip install requests playwright
-          playwright install chromium --with-deps
+          sudo apt-get update -q
+          sudo apt-get install -y tor
+          sudo service tor start
+          # Aguarda o Tor estabelecer circuito (~15s)
+          sleep 20
+          echo "Tor iniciado."
 
-      - name: Rodar Monitor Stealth
+      - name: Instalar dependencias Python
+        run: pip install requests requests[socks]
+
+      - name: Rodar monitor
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
