@@ -1,7 +1,7 @@
 import os
 import re
 import requests
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 def enviar_telegram(token, chat_id, mensagem):
     try:
@@ -17,41 +17,57 @@ def monitor_scrapedo():
     
     token = os.environ.get('TELEGRAM_TOKEN')
     chat_id = os.environ.get('CHAT_ID')
-    scrape_token = "3a23ea3810a04b16bccfac96a2c3b1af73c97a98ef5"   # Sua chave
+    scrape_token = "3a23ea3810a04b16bccfac96a2c3b1af73c97a98ef5"
 
     try:
         print("🔄 Buscando via Scrape.do...")
 
-        # Monta a URL da API
-        encoded_url = quote_plus(url_produto)
-        api_url = f"https://api.scrape.do/?token={scrape_token}&url={encoded_url}&render=true&waitUntil=networkidle"
-
-        response = requests.get(api_url, timeout=60)
+        # Encoding correto da URL
+        encoded_url = quote(url_produto)
         
+        # URL da API com parâmetros essenciais
+        api_url = (
+            f"https://api.scrape.do/"
+            f"?token={scrape_token}"
+            f"&url={encoded_url}"
+            f"&render=true"           # Ativa navegador para carregar JS
+            f"&waitUntil=networkidle" # Espera carregar completamente
+            f"&timeout=60000"
+        )
+
+        response = requests.get(api_url, timeout=90)
+        
+        print(f"Status Scrape.do: {response.status_code}")
+
         if response.status_code != 200:
-            raise Exception(f"Scrape.do retornou {response.status_code}")
+            raise Exception(f"Scrape.do retornou {response.status_code} - Verifique o token ou limite de créditos")
 
         html = response.text
 
-        # === EXTRAÇÃO DO PREÇO ===
-        # Procura por R$ seguido de número
+        # Extração melhorada do preço
         matches = re.findall(r'R\$\s*([\d.,]+)', html)
         
         preco = None
         if matches:
-            # Pega o primeiro preço válido (geralmente o principal)
-            for match in matches:
-                limpo = match.replace('.', '').replace(',', '.')
+            for m in matches:
                 try:
-                    preco_temp = float(limpo)
-                    if preco_temp > 10:  # Evita preços muito baixos (ex: frete)
-                        preco = preco_temp
+                    limpo = m.replace('.', '').replace(',', '.')
+                    valor = float(limpo)
+                    if 10 < valor < 10000:   # Preço realista
+                        preco = valor
                         break
                 except:
                     continue
 
         if preco is None:
-            raise Exception("Não foi possível extrair o preço")
+            # Fallback: busca mais ampla
+            matches = re.findall(r'(\d{2,4})[.,](\d{2})', html)
+            if matches:
+                m = matches[0]
+                preco = float(m[0] + '.' + m[1])
+
+        if preco is None:
+            raise Exception("Preço não encontrado na resposta")
 
         print(f"✅ Preço capturado: R$ {preco:.2f}")
 
@@ -63,7 +79,7 @@ def monitor_scrapedo():
             enviar_telegram(token, chat_id, msg)
 
     except Exception as e:
-        erro = str(e)[:250]
+        erro = str(e)[:300]
         print(f"❌ Erro: {erro}")
         enviar_telegram(token, chat_id, f"❌ Erro Scrape.do Centauro:\n{erro}")
 
