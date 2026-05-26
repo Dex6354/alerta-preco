@@ -11,87 +11,98 @@ def enviar_telegram(token, chat_id, mensagem):
     except Exception as e:
         print(f"Erro Telegram: {e}")
 
-def debug_preco():
+def debug_preco_stealth():
     url = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
     token = os.environ.get('TELEGRAM_TOKEN')
     chat_id = os.environ.get('CHAT_ID')
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
+        # === STEALTH CONFIGURAÇÕES ===
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                '--no-sandbox',
+                '--disable-blink-features=AutomationControlled',
+                '--disable-dev-shm-usage',
+                '--disable-infobars',
+                '--disable-extensions',
+                '--disable-gpu',
+            ]
         )
+
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
+            viewport={"width": 1366, "height": 768},
+            locale="pt-BR",
+            timezone_id="America/Sao_Paulo",
+        )
+
+        # Remover flags de automação
+        context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+            Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+            Object.defineProperty(navigator, 'languages', {get: () => ['pt-BR', 'pt']});
+        """)
+
         page = context.new_page()
 
         try:
-            print("🔄 Acessando a página...")
-            page.goto(url, wait_until="networkidle", timeout=60000)
-            page.wait_for_timeout(8000)  # Espera hidratação do React
+            print("🔄 Acessando com Stealth...")
+            page.goto(url, wait_until="networkidle", timeout=90000)
+            page.wait_for_timeout(10000)  # Mais tempo para passar desafio
 
-            print("\n📋 === DEBUGGER - INFORMAÇÕES DA PÁGINA ===")
-
-            # 1. Título da página
+            print("\n📋 === DEBUGGER STEALTH ===")
+            
             title = page.title()
             print(f"Título: {title}")
 
-            # 2. Busca por textos com preço
-            print("\n💰 Textos com R$ encontrados:")
+            # Textos com preço
             price_texts = page.evaluate('''
-                () => {
-                    return Array.from(document.querySelectorAll('*'))
-                        .map(el => el.textContent.trim())
-                        .filter(text => text.includes('R$') && /\d/.test(text))
-                        .slice(0, 15);
-                }
+                () => Array.from(document.querySelectorAll('*'))
+                    .map(el => el.textContent.trim())
+                    .filter(t => /R\$\s*\d/.test(t))
+                    .slice(0, 12)
             ''')
+            
+            print("\n💰 Textos com R$ encontrados:")
             for i, text in enumerate(price_texts, 1):
                 print(f"{i:2d}. {text}")
 
-            # 3. Elementos com "price" no nome da classe ou data-testid
-            print("\n🏷️ Elementos com 'price' ou 'preco' no atributo:")
+            # Elementos price
             elements = page.evaluate('''
                 () => {
-                    const els = document.querySelectorAll('[class*="price"], [class*="Price"], [data-testid*="price"], [data-testid*="Price"]');
-                    return Array.from(els).map(el => ({
+                    const els = document.querySelectorAll('[class*="price"], [class*="Price"], [data-testid*="price"]');
+                    return Array.from(els).slice(0, 10).map(el => ({
                         tag: el.tagName,
-                        class: el.className,
-                        dataTestId: el.getAttribute('data-testid'),
-                        text: el.textContent.trim().substring(0, 80)
+                        class: el.className.substring(0, 100),
+                        text: el.textContent.trim().substring(0, 60)
                     }));
                 }
             ''')
-            for el in elements:
-                print(f"• <{el['tag']}> | class: {el['class'][:80]} | data-testid: {el['dataTestId']} | text: {el['text']}")
 
-            # 4. Tentativa automática de extrair preço
-            print("\n🔍 Tentando extrair preço...")
-            body_text = page.content()
-            matches = re.findall(r'R\$\s*[\d.,]+', body_text)
-            if matches:
-                print(f"✅ Matches encontrados: {matches[:5]}")
-            else:
-                print("❌ Nenhum R$ encontrado no HTML")
+            print(f"\n🏷️ Elementos com 'price': {len(elements)} encontrados")
 
-            # Envia tudo no Telegram para você analisar
+            # Envia relatório
             debug_msg = f"""
-🛠️ <b>DEBUG Centauro</b>
+🛠️ <b>DEBUG STEALTH Centauro</b>
 
 Título: {title}
 
 Preços encontrados:
-{chr(10).join([f"{i}. {t}" for i,t in enumerate(price_texts[:8],1)])}
+{chr(10).join([f"{i}. {t}" for i,t in enumerate(price_texts[:8],1)]) if price_texts else "Nenhum"}
 
-Elementos price: {len(elements)} encontrados
+Elementos price: {len(elements)}
             """.strip()
 
             enviar_telegram(token, chat_id, debug_msg)
-            print("\n✅ Debug enviado para o Telegram!")
+            print("✅ Debug enviado!")
 
         except Exception as e:
-            print(f"Erro: {e}")
-            enviar_telegram(token, chat_id, f"❌ Erro no Debugger:\n{str(e)[:300]}")
+            erro = str(e)[:400]
+            print(f"Erro: {erro}")
+            enviar_telegram(token, chat_id, f"❌ Erro no Stealth Debug:\n{erro}")
         finally:
             browser.close()
 
 if __name__ == "__main__":
-    debug_preco()
+    debug_preco_stealth()
