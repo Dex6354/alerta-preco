@@ -8,10 +8,10 @@ def enviar_telegram(token, chat_id, mensagem):
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
-    except Exception as e:
-        print(f"Erro Telegram: {e}")
+    except:
+        pass
 
-def monitor_scrapedo_simplificado():
+def monitor_scrapedo():
     url_produto = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
     alvo = 200.00
     
@@ -20,39 +20,45 @@ def monitor_scrapedo_simplificado():
     scrape_token = "3a23ea3810a04b16bccfac96a2c3b1af73c97a98ef5"
 
     try:
-        print("🔄 Tentando Scrape.do (simplificado)...")
-
         encoded_url = quote(url_produto)
-        
-        # Versão mais simples - só o essencial
         api_url = f"https://api.scrape.do/?token={scrape_token}&url={encoded_url}&render=true"
 
         response = requests.get(api_url, timeout=90)
         
-        print(f"Status Scrape.do: {response.status_code}")
-
         if response.status_code != 200:
-            raise Exception(f"Scrape.do retornou {response.status_code}. Verifique créditos ou token.")
+            raise Exception(f"Scrape.do retornou {response.status_code}")
 
         html = response.text
 
-        # Extração de preço
-        matches = re.findall(r'R\$\s*([\d.,]+)', html)
-        
-        preco = None
-        if matches:
+        # === EXTRAÇÃO MELHORADA ===
+        # Prioriza preços principais (geralmente maiores e com "no Pix" ou sem "x")
+        # Evita preços de parcelamento
+
+        # Padrão 1: Preço principal com "no Pix" ou logo após R$
+        match = re.search(r'R\$\s*([\d.,]+).*?(no Pix|à vista|atual)', html, re.I)
+        if match:
+            preco_str = match.group(1)
+        else:
+            # Padrão 2: Maior preço encontrado (geralmente o principal)
+            matches = re.findall(r'R\$\s*([\d.,]+)', html)
+            valid_prices = []
             for m in matches:
                 try:
                     limpo = m.replace('.', '').replace(',', '.')
                     valor = float(limpo)
-                    if 50 < valor < 1000:   # faixa realista do produto
-                        preco = valor
-                        break
+                    if 50 < valor < 1000:
+                        valid_prices.append(valor)
                 except:
                     continue
+            preco = max(valid_prices) if valid_prices else None
+
+        # Se encontrou via regex específico
+        if 'preco_str' in locals():
+            limpo = preco_str.replace('.', '').replace(',', '.')
+            preco = float(limpo)
 
         if preco is None:
-            raise Exception("Preço não encontrado no HTML")
+            raise Exception("Preço não encontrado")
 
         print(f"✅ Preço capturado: R$ {preco:.2f}")
 
@@ -64,9 +70,9 @@ def monitor_scrapedo_simplificado():
         enviar_telegram(token, chat_id, msg)
 
     except Exception as e:
-        erro = str(e)[:400]
+        erro = str(e)[:350]
         print(f"❌ Erro: {erro}")
         enviar_telegram(token, chat_id, f"❌ Erro Scrape.do:\n{erro}")
 
 if __name__ == "__main__":
-    monitor_scrapedo_simplificado()
+    monitor_scrapedo()
