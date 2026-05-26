@@ -1,28 +1,35 @@
-name: Monitorar Preco Centauro
+name: Monitorar Preço Centauro
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+    - cron: '0 */6 * * *'     # A cada 6 horas
+  workflow_dispatch:          # Permite rodar manualmente
 
 jobs:
   check:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout código
+        uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Instalar dependencias
-      run: |
-        pip install requests playwright playwright-stealth
-        playwright install chromium
+      - name: Instalar dependências
+        run: |
+          pip install requests playwright
+          playwright install chromium --with-deps
 
-    - name: Rodar script
-      env:
-        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-        CHAT_ID: ${{ secrets.CHAT_ID }}
-      run: python monitor.py
+      - name: Rodar Monitor de Preço
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python monitor.py
+
+      - name: Mostrar logs (opcional)
+        if: always()
+        run: |
+          echo "Monitoramento finalizado em $(date)"
