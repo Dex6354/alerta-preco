@@ -9,23 +9,20 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
 
-      - name: Instalar dependencias Python
-        run: pip install requests playwright
+    - name: Instalar dependencias
+      run: |
+        pip install requests playwright
+        playwright install chromium
 
-      - name: Instalar Playwright + dependencias do sistema
-        run: |
-          playwright install chromium
-          playwright install-deps chromium
-
-      - name: Rodar script
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python monitor.py
+    - name: Rodar script
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        CHAT_ID: ${{ secrets.CHAT_ID }}
+      run: python monitor.py
