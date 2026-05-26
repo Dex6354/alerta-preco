@@ -9,37 +9,20 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
 
-      # Instala o Google Chrome real (necessário para undetected-chromedriver)
-      - name: Instalar Google Chrome
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" \
-            | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update -q
-          sudo apt-get install -y google-chrome-stable
+    - name: Instalar dependencias
+      run: |
+        pip install requests playwright playwright-stealth
+        playwright install chromium
 
-      - name: Instalar dependencias Python
-        run: |
-          pip install requests \
-                      playwright \
-                      playwright-stealth \
-                      undetected-chromedriver \
-                      selenium
-
-      - name: Instalar Playwright Chromium + deps do sistema
-        run: |
-          playwright install chromium
-          playwright install-deps chromium
-
-      - name: Rodar script
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python monitor.py
+    - name: Rodar script
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        CHAT_ID: ${{ secrets.CHAT_ID }}
+      run: python monitor.py
