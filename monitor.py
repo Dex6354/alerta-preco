@@ -1,19 +1,18 @@
 import os
 import re
 import requests
-from playwright.sync_api import sync_playwright, TimeoutError
+from playwright.sync_api import sync_playwright
 
 def enviar_telegram(token, chat_id, mensagem):
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
-        requests.post(url, json=payload, timeout=10)
+        requests.post(url, json=payload, timeout=15)
     except Exception as e:
-        print(f"Erro ao enviar Telegram: {e}")
+        print(f"Erro Telegram: {e}")
 
-def monitorar_preco():
+def debug_preco():
     url = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
-    alvo = 200.00
     token = os.environ.get('TELEGRAM_TOKEN')
     chat_id = os.environ.get('CHAT_ID')
 
@@ -25,86 +24,74 @@ def monitorar_preco():
         page = context.new_page()
 
         try:
-            # === MELHORIAS IMPORTANTES ===
-            page.goto(url, wait_until="networkidle", timeout=60000)  # networkidle é melhor que domcontentloaded
-            page.wait_for_load_state("domcontentloaded")
+            print("🔄 Acessando a página...")
+            page.goto(url, wait_until="networkidle", timeout=60000)
+            page.wait_for_timeout(8000)  # Espera hidratação do React
 
-            # Espera um pouco mais para o React hidratar
-            page.wait_for_timeout(5000)
+            print("\n📋 === DEBUGGER - INFORMAÇÕES DA PÁGINA ===")
 
-            # Múltiplos seletores possíveis (Centauro muda bastante)
-            selectors = [
-                '[data-testid="price-current"]',
-                '[data-testid*="price"]',
-                'span[class*="Price"]',           # comum
-                'div[class*="price"]', 
-                'strong[class*="price"]',
-                '.price__value',                  # classe antiga
-                '.product-price', 
-                'span[class*="current-price"]'
-            ]
+            # 1. Título da página
+            title = page.title()
+            print(f"Título: {title}")
 
-            preco = None
-            texto_completo = None
+            # 2. Busca por textos com preço
+            print("\n💰 Textos com R$ encontrados:")
+            price_texts = page.evaluate('''
+                () => {
+                    return Array.from(document.querySelectorAll('*'))
+                        .map(el => el.textContent.trim())
+                        .filter(text => text.includes('R$') && /\d/.test(text))
+                        .slice(0, 15);
+                }
+            ''')
+            for i, text in enumerate(price_texts, 1):
+                print(f"{i:2d}. {text}")
 
-            for selector in selectors:
-                try:
-                    element = page.locator(selector).first
-                    element.wait_for(timeout=8000)
-                    texto_completo = element.inner_text(timeout=5000)
-                    print(f"✅ Encontrado com selector: {selector}")
-                    break
-                except:
-                    continue
+            # 3. Elementos com "price" no nome da classe ou data-testid
+            print("\n🏷️ Elementos com 'price' ou 'preco' no atributo:")
+            elements = page.evaluate('''
+                () => {
+                    const els = document.querySelectorAll('[class*="price"], [class*="Price"], [data-testid*="price"], [data-testid*="Price"]');
+                    return Array.from(els).map(el => ({
+                        tag: el.tagName,
+                        class: el.className,
+                        dataTestId: el.getAttribute('data-testid'),
+                        text: el.textContent.trim().substring(0, 80)
+                    }));
+                }
+            ''')
+            for el in elements:
+                print(f"• <{el['tag']}> | class: {el['class'][:80]} | data-testid: {el['dataTestId']} | text: {el['text']}")
 
-            if not texto_completo:
-                # Última tentativa: pegar qualquer texto com R$ próximo
-                texto_completo = page.evaluate('''
-                    () => {
-                        const texts = Array.from(document.querySelectorAll('*'))
-                            .map(el => el.textContent)
-                            .filter(t => t && /R\$\s*\d/.test(t));
-                        return texts[0] || '';
-                    }
-                ''')
-                print("⚠️ Usando fallback com evaluate")
-
-            # === EXTRAÇÃO DO PREÇO (melhorada) ===
-            if texto_completo:
-                # Pega o primeiro valor no formato R$ XXX,XX
-                match = re.search(r'R\$\s*([\d.,]+)', texto_completo.replace('\xa0', ' '))
-                if match:
-                    limpo = match.group(1).replace('.', '').replace(',', '.').strip()
-                    preco = float(limpo)
-                else:
-                    # Tenta pegar qualquer número grande (preço)
-                    match = re.search(r'(\d{2,4})[.,](\d{2})', texto_completo)
-                    if match:
-                        limpo = match.group(1) + '.' + match.group(2)
-                        preco = float(limpo)
-
-            if preco is None:
-                raise Exception("Não foi possível encontrar o preço na página.")
-
-            print(f"Preço capturado: R$ {preco:.2f}")
-
-            if preco <= alvo:
-                msg = f"🔥 <b>Alerta Centauro!</b>\nPreço baixou para <b>R$ {preco:.2f}</b>\n\n{url}"
-                enviar_telegram(token, chat_id, msg)
+            # 4. Tentativa automática de extrair preço
+            print("\n🔍 Tentando extrair preço...")
+            body_text = page.content()
+            matches = re.findall(r'R\$\s*[\d.,]+', body_text)
+            if matches:
+                print(f"✅ Matches encontrados: {matches[:5]}")
             else:
-                msg_OK = f"✅ Monitoramento Centauro\nPreço atual: R$ {preco:.2f}\nAlvo: R$ {alvo:.2f}"
-                enviar_telegram(token, chat_id, msg_OK)
+                print("❌ Nenhum R$ encontrado no HTML")
 
-        except TimeoutError:
-            erro_msg = "❌ Timeout ao carregar a página da Centauro (pode estar lenta ou com proteção)"
-            print(erro_msg)
-            enviar_telegram(token, chat_id, erro_msg)
+            # Envia tudo no Telegram para você analisar
+            debug_msg = f"""
+🛠️ <b>DEBUG Centauro</b>
+
+Título: {title}
+
+Preços encontrados:
+{chr(10).join([f"{i}. {t}" for i,t in enumerate(price_texts[:8],1)])}
+
+Elementos price: {len(elements)} encontrados
+            """.strip()
+
+            enviar_telegram(token, chat_id, debug_msg)
+            print("\n✅ Debug enviado para o Telegram!")
+
         except Exception as e:
-            erro_msg = f"❌ Erro na automação Centauro:\n{str(e)[:200]}"
-            print(erro_msg)
-            enviar_telegram(token, chat_id, erro_msg)
+            print(f"Erro: {e}")
+            enviar_telegram(token, chat_id, f"❌ Erro no Debugger:\n{str(e)[:300]}")
         finally:
             browser.close()
 
 if __name__ == "__main__":
-    monitorar_preco()
+    debug_preco()
