@@ -12,7 +12,7 @@ PRODUTOS = [
     {
         "nome": "Conjunto Agasalho Oxer Replayer",
         "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
-        "alvo": 180.00,
+        "alvo": 189.99,
     },
     {
         "nome": "Regata Oxer",
