@@ -1,132 +1,191 @@
 import os
 import re
+import json
 import time
 import requests
 from urllib.parse import quote
 
+# ============================================================
+# PRODUTOS MONITORADOS
+# ============================================================
+PRODUTOS = [
+    {
+        "nome": "Agasalho Oxer Replayer",
+        "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
+        "alvo": 200.00,
+    },
+    {
+        "nome": "Regata Oxer Respirabilidade",
+        "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
+        "alvo": 80.00,
+    },
+]
+# ============================================================
+
+SCRAPE_TOKEN = "3a23ea3810a04b16bccfac96a2c3b1af73c97a98ef5"
+
+
 def enviar_telegram(token, chat_id, mensagem):
     try:
-        if not token or not chat_id:
-            print("⚠️ Token ou Chat ID do Telegram ausentes nas variáveis de ambiente.")
-            return
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram: {e}")
 
-def monitor_scrapedo():
-    url_produto = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
-    alvo = 200.00
-    
-    token = os.environ.get('TELEGRAM_TOKEN')
-    chat_id = os.environ.get('CHAT_ID')
-    scrape_token = "3a23ea3810a04b16bccfac96a2c3b1af73c97a98ef5"
 
-    html = None
+def extrair_preco(html):
+    """
+    Tenta extrair o preço principal em ordem de confiabilidade:
+    1. JSON-LD (dado estruturado — mais confiável)
+    2. Preço próximo à palavra "Pix"
+    3. Heurística: segundo menor preço válido
+    """
+
+    # --- Estratégia 1: JSON-LD ---
+    for script in re.findall(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        html,
+        re.DOTALL | re.IGNORECASE,
+    ):
+        try:
+            data = json.loads(script)
+            if isinstance(data, list):
+                data = data[0]
+            offers = data.get("offers", {})
+            if isinstance(offers, list):
+                offers = offers[0]
+            price = offers.get("price") or offers.get("lowPrice")
+            if price:
+                valor = float(str(price).replace(",", "."))
+                if 10 < valor < 1500:
+                    print(f"   ✅ [JSON-LD] Preço encontrado: R$ {valor:.2f}")
+                    return valor
+        except Exception:
+            continue
+
+    # --- Estratégia 2: Preço próximo à palavra "Pix" ---
+    pix_match = re.search(
+        r'R\$\s*([\d.,]+)(?:[\s\S]{0,200}?)(?:no\s+)?[Pp]ix'
+        r'|(?:no\s+)?[Pp]ix(?:[\s\S]{0,200}?)R\$\s*([\d.,]+)',
+        html,
+    )
+    if pix_match:
+        raw = pix_match.group(1) or pix_match.group(2)
+        try:
+            valor = float(raw.replace(".", "").replace(",", "."))
+            if 10 < valor < 1500:
+                print(f"   ✅ [Pix-regex] Preço encontrado: R$ {valor:.2f}")
+                return valor
+        except Exception:
+            pass
+
+    # --- Estratégia 3: Heurística ---
+    matches = re.findall(r'R\$\s*([\d.,]+)', html)
+    valid_prices = []
+    for m in matches:
+        try:
+            valor = float(m.replace(".", "").replace(",", "."))
+            if 10 < valor < 1500:
+                valid_prices.append(valor)
+        except Exception:
+            continue
+
+    unique_prices = sorted(set(valid_prices))
+    print(f"   ℹ️ [Heurística] Preços válidos: {unique_prices}")
+
+    if not unique_prices:
+        return None
+    if len(unique_prices) == 1:
+        return unique_prices[0]
+
+    preco = unique_prices[1] if len(unique_prices) >= 2 else unique_prices[0]
+    print(f"   ✅ [Heurística] Preço estimado: R$ {preco:.2f}")
+    return preco
+
+
+def buscar_html(url):
+    """Faz a requisição via Scrape.do com até 3 tentativas."""
     for tentativa in range(1, 4):
         try:
-            print(f"🔄 Tentativa {tentativa}/3...")
-            encoded_url = quote(url_produto)
-            api_url = f"https://api.scrape.do/?token={scrape_token}&url={encoded_url}&render=true"
-            
+            print(f"   🔄 Tentativa {tentativa}/3...")
+            encoded_url = quote(url)
+            api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=true"
+
             response = requests.get(api_url, timeout=90)
-            print(f"   Status: {response.status_code}")
+            print(f"      Status HTTP: {response.status_code}")
 
             if response.status_code == 200:
-                html = response.text
-                print(f"   ✅ Página carregada ({len(html):,} chars)")
-                break
+                print(f"      ✅ Página carregada ({len(response.text):,} chars)")
+                return response.text
             elif response.status_code == 502:
+                print("      ⚠️ 502 — aguardando antes de retry...")
                 time.sleep(8 * tentativa)
                 continue
+            else:
+                raise Exception(f"Scrape.do retornou {response.status_code}")
+
         except Exception as e:
-            print(f"   Erro: {e}")
+            print(f"      ❌ Erro: {e}")
             if tentativa == 3:
                 raise
             time.sleep(6)
 
-    if not html:
-        raise Exception("Falha ao carregar página")
+    raise Exception("Falha ao carregar a página após 3 tentativas")
 
-    # === EXTRAÇÃO INTELIGENTE DO PREÇO ===
-    preco_principal = None
 
-    # 1. Tenta extrair da tag meta oficial (Schema/OpenGraph)
-    meta_price = re.search(r'(?:property|itemprop)="?(?:product:)?price:?amount"?\s+content="?([\d.]+)"?', html, re.IGNORECASE)
-    if meta_price:
-        try:
-            preco_principal = float(meta_price.group(1))
-            print("   → Preço encontrado na meta tag.")
-        except:
-            pass
+def monitorar_produto(produto, token, chat_id):
+    nome = produto["nome"]
+    url  = produto["url"]
+    alvo = produto["alvo"]
 
-    # 2. Busca contextual: verifica se a palavra "pix" está próxima do valor
-    if not preco_principal:
-        for match in re.finditer(r'R\$\s*([\d.,]+)', html):
-            fim = match.end()
-            contexto = html[fim:fim+80].lower()
-            if 'pix' in contexto:
-                try:
-                    preco_principal = float(match.group(1).replace('.', '').replace(',', '.'))
-                    print("   → Preço encontrado com contexto 'Pix'.")
-                    break
-                except:
-                    continue
+    print(f"\n{'='*60}")
+    print(f"📦 {nome}")
+    print(f"   Alvo: R$ {alvo:.2f}")
+    print(f"{'='*60}")
 
-    # 3. Busca contextual: preço total antes das parcelas (ex: "ou R$ X em Yx")
-    if not preco_principal:
-        for match in re.finditer(r'R\$\s*([\d.,]+)', html):
-            fim = match.end()
-            contexto = html[fim:fim+80].lower()
-            if 'em ' in contexto and 'x' in contexto:
-                try:
-                    preco_principal = float(match.group(1).replace('.', '').replace(',', '.'))
-                    print("   → Preço encontrado com contexto de parcelamento.")
-                    break
-                except:
-                    continue
+    html = buscar_html(url)
 
-    # 4. Busca em JSON-LD (Schema interno)
-    if not preco_principal:
-        json_match = re.search(r'"price":\s*"?(\d+\.\d{2})"?', html)
-        if json_match:
-            preco_principal = float(json_match.group(1))
-            print("   → Preço encontrado no JSON-LD.")
+    preco = extrair_preco(html)
+    if preco is None:
+        raise Exception(f"Nenhum preço encontrado para: {nome}")
 
-    # 5. Último recurso: filtra extremos (ignora preço original de 299 e parcelas pequenas)
-    if not preco_principal:
-        matches = re.findall(r'R\$\s*([\d.,]+)', html)
-        valid_prices = []
-        for m in matches:
-            try:
-                v = float(m.replace('.', '').replace(',', '.'))
-                if 120 < v < 290:  # Faixa lógica para o preço atual
-                    valid_prices.append(v)
-            except:
-                continue
-        if valid_prices:
-            preco_principal = min(set(valid_prices))
-            print("   → Preço estimado por filtragem lógica.")
+    print(f"\n💰 Preço final: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
 
-    if preco_principal is None:
-        raise Exception("Nenhum preço válido encontrado no HTML.")
-
-    print("\n" + "="*70)
-    print(f"✅ PREÇO FINAL DETECTADO: R$ {preco_principal:.2f}")
-    print("="*70)
-
-    # Mensagem
-    if preco_principal <= alvo:
-        msg = f"🔥 <b>ALERTA CENTAURO!</b>\nPreço baixou para <b>R$ {preco_principal:.2f}</b>\n\n{url_produto}"
+    if preco <= alvo:
+        msg = (
+            f"🔥 <b>ALERTA CENTAURO!</b>\n"
+            f"<b>{nome}</b>\n"
+            f"Preço baixou para <b>R$ {preco:.2f}</b> (alvo: R$ {alvo:.2f})\n\n"
+            f"{url}"
+        )
+        enviar_telegram(token, chat_id, msg)
+        print("📤 Alerta enviado!")
     else:
-        msg = f"✅ Monitor Centauro\nPreço atual: R$ {preco_principal:.2f} (Alvo: R$ {alvo})"
-    
-    enviar_telegram(token, chat_id, msg)
-    print(f"\n📤 Mensagem enviada com sucesso.")
+        print(f"ℹ️ Preço acima do alvo — sem alerta.")
+
+
+def main():
+    token   = os.environ.get("TELEGRAM_TOKEN")
+    chat_id = os.environ.get("CHAT_ID")
+
+    erros = []
+    for produto in PRODUTOS:
+        try:
+            monitorar_produto(produto, token, chat_id)
+        except Exception as e:
+            print(f"\n❌ ERRO em '{produto['nome']}': {e}")
+            erros.append((produto["nome"], str(e)))
+        # Pequena pausa entre requisições para não sobrecarregar a API
+        time.sleep(3)
+
+    if erros:
+        print(f"\n⚠️ {len(erros)} produto(s) com erro:")
+        for nome, err in erros:
+            print(f"   • {nome}: {err}")
+    else:
+        print("\n✅ Monitoramento concluído sem erros.")
+
 
 if __name__ == "__main__":
-    try:
-        monitor_scrapedo()
-    except Exception as e:
-        print(f"\n❌ ERRO: {e}")
+    main()
