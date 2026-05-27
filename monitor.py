@@ -20,6 +20,31 @@ PRODUTOS = [
 
 # Base da API BFF da Centauro
 CENTAURO_API_BASE = "https://apigateway.centauro.com.br/centauro-bff/products"
+CENTAURO_SITE     = "https://www.centauro.com.br"
+
+# Headers idênticos aos que o Chrome envia ao navegar pelo site
+HEADERS_SITE = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;"
+        "q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
+    ),
+    "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+    "Sec-CH-UA": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+    "Sec-CH-UA-Mobile": "?0",
+    "Sec-CH-UA-Platform": '"Windows"',
+}
 
 HEADERS_API = {
     "User-Agent": (
@@ -27,10 +52,18 @@ HEADERS_API = {
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/124.0.0.0 Safari/537.36"
     ),
-    "Accept": "application/json",
-    "Accept-Language": "pt-BR,pt;q=0.9",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
     "Origin": "https://www.centauro.com.br",
     "Referer": "https://www.centauro.com.br/",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-site",
+    "Sec-CH-UA": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+    "Sec-CH-UA-Mobile": "?0",
+    "Sec-CH-UA-Platform": '"Windows"',
 }
 
 
@@ -68,6 +101,32 @@ def extrair_codigo_cor(url_produto):
     return codigo, cor
 
 
+# ─── Sessão compartilhada com warm-up ────────────────────────────────────────
+_session = None
+
+def obter_sessao():
+    """
+    Retorna uma requests.Session já "aquecida":
+    visita o site principal para receber cookies de sessão antes de
+    chamar a API (que valida Origin + cookies via CORS).
+    """
+    global _session
+    if _session is not None:
+        return _session
+
+    print("🔄 Iniciando sessão no site da Centauro (warm-up)...")
+    s = requests.Session()
+    try:
+        resp = s.get(CENTAURO_SITE, headers=HEADERS_SITE, timeout=30)
+        print(f"   Warm-up status: {resp.status_code} | "
+              f"cookies: {list(s.cookies.keys())}")
+    except Exception as e:
+        print(f"   ⚠️ Warm-up falhou (seguindo mesmo assim): {e}")
+
+    _session = s
+    return _session
+
+
 # ─── Consulta à API da Centauro ───────────────────────────────────────────────
 def buscar_preco_api(url_produto, max_tentativas=3):
     """
@@ -87,10 +146,19 @@ def buscar_preco_api(url_produto, max_tentativas=3):
 
     print(f"   🔗 API: {api_url}")
 
+    sessao = obter_sessao()
+
     for tentativa in range(1, max_tentativas + 1):
         try:
-            resp = requests.get(api_url, headers=HEADERS_API, timeout=30)
+            resp = sessao.get(api_url, headers=HEADERS_API, timeout=30)
             print(f"   Status: {resp.status_code}")
+
+            if resp.status_code == 403:
+                # Sessão pode ter expirado — força novo warm-up
+                global _session
+                _session = None
+                sessao = obter_sessao()
+                raise Exception("403 — sessão renovada, tentando novamente")
 
             if resp.status_code != 200:
                 raise Exception(f"API retornou status {resp.status_code}")
