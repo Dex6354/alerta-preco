@@ -81,7 +81,7 @@ SITES = [
             {
                 "nome": "Sorvete Bombom Jundiaí Pote 2L",
                 "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
-                "alvo": 40.00,
+                "alvo": 30.00,
             },
         ],
     },
@@ -182,43 +182,27 @@ def extrair_preco(html):
 # MÉTODO SCRAPE — 1 chamada scrape.do (render=false = 1 crédito)
 #
 # O JSON-LD do produto está no HTML estático da Centauro, então
-# render=false é suficiente. O 502 pode ser instabilidade pontual
-# do scrape.do, por isso há até 2 tentativas — mas só a bem-
-# sucedida consome 1 crédito.
+# render=false é suficiente.
+# 502 = scrape.do não cobrou o crédito → retorna None, sem erro.
 # ------------------------------------------------------------
-def buscar_preco_scrape(produto) -> float:
+def buscar_preco_scrape(produto):
     url = produto["url"]
     encoded_url = quote(url)
     api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=false"
 
-    for tentativa in range(1, 3):
-        print(f"   🔄 scrape.do render=false — tentativa {tentativa}/2 (1 crédito)...")
-        try:
-            response = requests.get(api_url, timeout=90)
-            print(f"   Status HTTP: {response.status_code} | {len(response.text):,} chars")
+    print(f"   🔄 scrape.do render=false (1 crédito)...")
+    response = requests.get(api_url, timeout=90)
+    print(f"   Status HTTP: {response.status_code} | {len(response.text):,} chars")
 
-            if response.status_code == 200:
-                preco = extrair_preco(response.text)
-                if preco is None:
-                    raise Exception("Nenhum preço encontrado no HTML (JSON-LD vazio ou ausente)")
-                return preco
+    if response.status_code == 200:
+        return extrair_preco(response.text)  # pode ser None se JSON-LD não encontrado
 
-            elif response.status_code == 502:
-                if tentativa == 2:
-                    raise Exception("scrape.do retornou 502 nas duas tentativas")
-                print(f"   ⚠️  502 instável — aguardando 8s antes de retry...")
-                time.sleep(8)
+    elif response.status_code == 502:
+        print(f"   ⏭️  502 — sem cobrança, ignorando produto.")
+        return None  # não consome crédito, não é erro
 
-            else:
-                raise Exception(f"scrape.do retornou {response.status_code}")
-
-        except Exception as e:
-            if tentativa == 2:
-                raise
-            print(f"   ⚠️  Erro: {e} — aguardando antes de retry...")
-            time.sleep(6)
-
-    raise Exception("Falha inesperada em buscar_preco_scrape")
+    else:
+        raise Exception(f"scrape.do retornou {response.status_code}")
 
 
 # ------------------------------------------------------------
@@ -286,6 +270,10 @@ def monitorar_produto(produto, titulo_alerta, metodo, token, chat_id):
         preco = buscar_preco_shibata(produto)
     else:
         preco = buscar_preco_scrape(produto)
+
+    if preco is None:
+        print(f"\n⏭️  Preço não encontrado — pulando sem erro.")
+        return
 
     print(f"\n💰 Preço final: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
 
