@@ -79,7 +79,6 @@ def buscar_preco_api(url_produto, max_tentativas=3):
 
             data = resp.json()
             
-            # Correção do mapeamento da raiz do JSON da Centauro
             product_data = data.get("product", {})
             sizes = product_data.get("sizes", [])
             
@@ -140,10 +139,10 @@ def monitor_produto(produto, token, chat_id):
 
     if preco <= alvo:
         msg = (
-            f"🔥 <b>ALERTA CENTAURO!</b>\n"
-            f"<b>{nome}</b>\n"
-            f"Preço baixou para <b>R$ {preco:.2f}</b> (alvo: R$ {alvo:.2f})\n\n"
-            f"{url}"
+            f"🔥 <b>ALERTA CENTAURO!</b>\n\n"
+            f'<a href="{url}">{nome}</a>\n\n'
+            f"Preço: R$ {preco:.2f}\n"
+            f"Alvo: R$ {alvo:.2f}"
         )
         enviar_telegram(token, chat_id, msg)
         print(f"📤 Alerta enviado!")
