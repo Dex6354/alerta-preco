@@ -2,6 +2,8 @@ import os
 import re
 import json
 import time
+import queue
+import threading
 import requests
 from urllib.parse import quote
 
@@ -11,8 +13,8 @@ from urllib.parse import quote
 # JSON-LD é sempre a primeira e única estratégia ativa.
 # Ative os fallbacks abaixo SOMENTE se o JSON-LD falhar no site alvo.
 
-USAR_PIX_REGEX  = False  # Busca preço próximo à palavra "Pix"
-USAR_HEURISTICA = False  # Tenta adivinhar o preço por heurística de valores no HTML
+USAR_PIX_REGEX  = True  # Busca preço próximo à palavra "Pix"
+USAR_HEURISTICA = True  # Tenta adivinhar o preço por heurística de valores no HTML
 # ============================================================
 
 
@@ -49,10 +51,10 @@ SITES = [
 
     # ----------------------------------------------------------
     # 🏪 CENTAURO  (método: scrape.do)
-    # Lógica de retry:
-    #   • Até 3 tentativas com render=false (1 crédito cada)
-    #   • 502 → aguarda 5 s e repete
-    #   • Se as 3 tentativas falharem → ativa render=true (5 créditos)
+    # Lógica de velocidade:
+    #   • 3 requisições render=false disparadas em PARALELO (1 crédito cada)
+    #   • A 1ª que trouxer preço vence — as demais são ignoradas
+    #   • Se todas as 3 falharem → ativa render=true (5 créditos)
     # ----------------------------------------------------------
     {
         "titulo_alerta": "🔥 ALERTA CENTAURO!",
@@ -98,6 +100,14 @@ SITES = [
 ]
 # ============================================================
 
+# Lock global para prints não se misturarem entre threads
+_print_lock = threading.Lock()
+
+def tprint(*args, **kwargs):
+    """Thread-safe print."""
+    with _print_lock:
+        print(*args, **kwargs)
+
 
 # ------------------------------------------------------------
 # TELEGRAM
@@ -108,7 +118,7 @@ def enviar_telegram(token, chat_id, mensagem):
         payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
-        print(f"⚠️ Erro Telegram: {e}")
+        tprint(f"⚠️ Erro Telegram: {e}")
 
 
 # ------------------------------------------------------------
@@ -137,7 +147,6 @@ def extrair_preco(html):
             if price:
                 valor = float(str(price).replace(",", "."))
                 if 10 < valor < 10000:
-                    print(f"   ✅ [JSON-LD] Preço encontrado: R$ {valor:.2f}")
                     return valor
         except Exception:
             continue
@@ -154,12 +163,9 @@ def extrair_preco(html):
             try:
                 valor = float(raw.replace(".", "").replace(",", "."))
                 if 10 < valor < 10000:
-                    print(f"   ✅ [Pix-regex] Preço encontrado: R$ {valor:.2f}")
                     return valor
             except Exception:
                 pass
-    else:
-        print(f"   ⏭️  [Pix-regex] desativado (USAR_PIX_REGEX = False)")
 
     # --- Estratégia 3: Heurística ---
     if USAR_HEURISTICA:
@@ -173,100 +179,92 @@ def extrair_preco(html):
             except Exception:
                 continue
         unique_prices = sorted(set(valid_prices))
-        print(f"   ℹ️  [Heurística] Preços válidos: {unique_prices}")
         if not unique_prices:
             return None
         if len(unique_prices) == 1:
             return unique_prices[0]
-        preco = unique_prices[1] if len(unique_prices) >= 2 else unique_prices[0]
-        print(f"   ✅ [Heurística] Preço estimado: R$ {preco:.2f}")
-        return preco
-    else:
-        print(f"   ⏭️  [Heurística] desativada (USAR_HEURISTICA = False)")
+        return unique_prices[1] if len(unique_prices) >= 2 else unique_prices[0]
 
     return None
 
 
 # ------------------------------------------------------------
-# MÉTODO SCRAPE — lógica de retry com render=false → render=true
+# MÉTODO SCRAPE — paralelo render=false → fallback render=true
 # ------------------------------------------------------------
 def _requisicao_scrape(url: str, render: bool) -> str:
     """
     Faz uma única requisição ao scrape.do.
     render=False → 1 crédito | render=True → 5 créditos
-    Lança exceção em caso de falha.
+    Lança ConnectionError em 502, Exception para outros erros.
     """
     encoded_url = quote(url)
     modo = "render=true" if render else "render=false"
     api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&{modo}"
 
     response = requests.get(api_url, timeout=90)
-    print(f"      Status HTTP: {response.status_code} | render={render} | {len(response.text):,} chars")
 
     if response.status_code == 200:
         return response.text
     elif response.status_code == 502:
-        raise ConnectionError("502")          # identificador especial para 502
+        raise ConnectionError("502")
     else:
         raise Exception(f"scrape.do retornou {response.status_code}")
 
 
 def buscar_html(url: str) -> tuple[str, str]:
     """
-    Estratégia de requisição e economia de créditos:
+    Fase 1 — 3 requisições render=false em PARALELO (threads daemon).
+             A primeira que retornar um preço vence; as demais são ignoradas.
+             Cada thread posta seu resultado numa fila compartilhada.
 
-    • Fase 1 — render=false (1 crédito por tentativa):
-        Até 3 tentativas.
-        - Sucesso com preço → retorna imediatamente.
-        - 502              → aguarda 5 s e repete.
-        - Outro erro       → encerra fase 1 e vai para fase 2.
-        - Sem preço        → vai para fase 2.
-
-    • Fase 2 — render=true (5 créditos):
-        Ativada somente se a fase 1 esgotou as tentativas
-        (seja por 502 repetido, erro ou ausência de preço).
-        Uma única tentativa; lança exceção em caso de falha.
+    Fase 2 — render=true, acionado apenas se TODAS as 3 threads da fase 1
+             falharem (502, erro ou HTML sem preço).
 
     Custo por produto:
-        Melhor caso  →  1 crédito  (render=false resolveu na 1ª)
+        Melhor caso  →  1 crédito  (1 thread venceu, 2 ignoradas*)
         Pior caso    →  8 créditos (3 × render=false + 1 × render=true)
+        * As outras 2 threads continuam até terminar em background,
+          mas o resultado delas é descartado — o programa não espera por elas.
     """
-    MAX_TENTATIVAS_SEM_RENDER = 3
-    ESPERA_502_SEGUNDOS       = 5
+    NUM_THREADS = 3
+    resultado_q = queue.Queue()   # posts: ("ok", html) ou ("err", motivo)
 
-    ultimo_erro_foi_502 = False
-
-    # ── Fase 1: render=false ──────────────────────────────────
-    for tentativa in range(1, MAX_TENTATIVAS_SEM_RENDER + 1):
-        print(f"   🔄 [render=false] Tentativa {tentativa}/{MAX_TENTATIVAS_SEM_RENDER} (1 crédito)...")
+    def worker(idx: int):
+        label = f"T{idx+1}"
         try:
             html = _requisicao_scrape(url, render=False)
-            preco_teste = extrair_preco(html)
-            if preco_teste is not None:
-                print(f"   💚 Preço encontrado sem render! Créditos poupados.")
-                return html, "sem-render"
+            preco = extrair_preco(html)
+            if preco is not None:
+                tprint(f"      [{label}] ✅ Preço encontrado ({preco:.2f}) — vencedor!")
+                resultado_q.put(("ok", html))
             else:
-                print(f"   ⚠️ render=false retornou HTML mas sem preço.")
-                ultimo_erro_foi_502 = False
-                break   # HTML chegou mas sem preço → inútil repetir sem render
-
+                tprint(f"      [{label}] ⚠️  HTML sem preço")
+                resultado_q.put(("err", "sem preço"))
         except ConnectionError:
-            # 502 — aguarda e tenta novamente se ainda há tentativas
-            ultimo_erro_foi_502 = True
-            if tentativa < MAX_TENTATIVAS_SEM_RENDER:
-                print(f"   ⏳ 502 recebido — aguardando {ESPERA_502_SEGUNDOS}s antes de repetir...")
-                time.sleep(ESPERA_502_SEGUNDOS)
-            else:
-                print(f"   ❌ 502 em todas as {MAX_TENTATIVAS_SEM_RENDER} tentativas sem render.")
-
+            tprint(f"      [{label}] ❌ 502")
+            resultado_q.put(("err", "502"))
         except Exception as e:
-            print(f"   ⚠️ Erro inesperado em render=false: {e}")
-            ultimo_erro_foi_502 = False
-            break   # erro diferente de 502 → não faz sentido repetir
+            tprint(f"      [{label}] ❌ Erro: {e}")
+            resultado_q.put(("err", str(e)))
 
-    # ── Fase 2: render=true ───────────────────────────────────
-    motivo = "502 repetido" if ultimo_erro_foi_502 else "sem preço / erro"
-    print(f"   🔄 [render=true] Ativando fallback ({motivo}) — 5 créditos...")
+    # ── Fase 1: disparar todas as threads ao mesmo tempo ─────
+    tprint(f"   🚀 [render=false] Disparando {NUM_THREADS} requisições em paralelo...")
+    for i in range(NUM_THREADS):
+        t = threading.Thread(target=worker, args=(i,), daemon=True)
+        t.start()
+
+    # Coleta respostas na ordem em que chegam
+    falhas = []
+    for _ in range(NUM_THREADS):
+        status, valor = resultado_q.get()
+        if status == "ok":
+            tprint(f"   💚 render=false resolveu! Ignorando threads restantes.")
+            return valor, "sem-render"
+        falhas.append(valor)
+
+    # ── Fase 2: fallback render=true ─────────────────────────
+    motivos = ", ".join(set(falhas))
+    tprint(f"   🔄 [render=true] Todas as {NUM_THREADS} threads falharam ({motivos}) — ativando fallback (5 créditos)...")
     try:
         html = _requisicao_scrape(url, render=True)
         return html, "render"
@@ -283,7 +281,7 @@ def buscar_preco_scrape(produto) -> float:
     if preco is None:
         raise Exception(f"Nenhum preço encontrado no HTML (modo: {modo})")
 
-    print(f"   📊 Modo usado: {modo}")
+    tprint(f"   ✅ [JSON-LD] Preço: R$ {preco:.2f} | Modo: {modo}")
     return preco
 
 
@@ -312,24 +310,23 @@ def buscar_preco_shibata(produto) -> float:
         f"/filial/1/centro_distribuicao/1/loja/buscas/produtos/termo/{termo}?page=1"
     )
 
-    print(f"   🔄 Consultando API Shibata (produto_id={produto_id})...")
+    tprint(f"   🔄 Consultando API Shibata (produto_id={produto_id})...")
     response = requests.get(api_url, headers=SHIBATA_HEADERS, timeout=15)
-    print(f"   Status HTTP: {response.status_code}")
+    tprint(f"   Status HTTP: {response.status_code}")
 
     if response.status_code != 200:
         raise Exception(f"API Shibata retornou {response.status_code}")
 
     produtos = response.json().get("data", {}).get("produtos", [])
-    print(f"   ℹ️  {len(produtos)} produto(s) retornado(s) pela API")
+    tprint(f"   ℹ️  {len(produtos)} produto(s) retornado(s) pela API")
 
     for p in produtos:
-        # A API retorna tanto 'id' quanto 'produto_id'; verifica os dois
         if p.get("produto_id") == produto_id or p.get("id") == produto_id:
             oferta       = p.get("oferta") or {}
             preco_oferta = oferta.get("preco_oferta")
             preco_base   = p.get("preco") or 0
             preco = float(preco_oferta) if (p.get("em_oferta") and preco_oferta) else float(preco_base)
-            print(f"   ✅ [API Shibata] Produto encontrado: R$ {preco:.2f}")
+            tprint(f"   ✅ [API Shibata] Produto encontrado: R$ {preco:.2f}")
             return preco
 
     raise Exception(f"Produto ID {produto_id} não encontrado na resposta da API Shibata")
