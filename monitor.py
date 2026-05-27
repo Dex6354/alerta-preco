@@ -6,12 +6,14 @@ from urllib.parse import quote
 
 def enviar_telegram(token, chat_id, mensagem):
     try:
+        if not token or not chat_id:
+            print("⚠️ Token ou Chat ID do Telegram ausentes nas variáveis de ambiente.")
+            return
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram: {e}")
-
 
 def monitor_scrapedo():
     url_produto = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
@@ -24,7 +26,7 @@ def monitor_scrapedo():
     html = None
     for tentativa in range(1, 4):
         try:
-            print(f"🔄 Tentativa {tentativa}/3 via Scrape.do...")
+            print(f"🔄 Tentativa {tentativa}/3...")
             encoded_url = quote(url_produto)
             api_url = f"https://api.scrape.do/?token={scrape_token}&url={encoded_url}&render=true"
             
@@ -33,15 +35,11 @@ def monitor_scrapedo():
 
             if response.status_code == 200:
                 html = response.text
-                print(f"   ✅ Página carregada ({len(html):,} caracteres)")
+                print(f"   ✅ Página carregada ({len(html):,} chars)")
                 break
             elif response.status_code == 502:
-                print("   502 detectado, aguardando...")
                 time.sleep(8 * tentativa)
                 continue
-            else:
-                print(f"   Status inesperado: {response.status_code}")
-                time.sleep(5)
         except Exception as e:
             print(f"   Erro: {e}")
             if tentativa == 3:
@@ -51,66 +49,72 @@ def monitor_scrapedo():
     if not html:
         raise Exception("Falha ao carregar página")
 
-    # === EXTRAÇÃO MELHORADA DO PREÇO ===
-    # Padrões mais específicos para Centauro
-    matches = re.findall(r'R\$\s*([\d.,]+)', html)
-    
-    valid_prices = []
-    for m in matches:
+    # === EXTRAÇÃO INTELIGENTE DO PREÇO ===
+    preco_principal = None
+
+    # 1. Tenta extrair da tag meta oficial (Schema/OpenGraph)
+    meta_price = re.search(r'(?:property|itemprop)="?(?:product:)?price:?amount"?\s+content="?([\d.]+)"?', html, re.IGNORECASE)
+    if meta_price:
         try:
-            limpo = m.replace('.', '').replace(',', '.')
-            valor = float(limpo)
-            if 50 < valor < 1500:  # faixa realista para esse produto
-                valid_prices.append(valor)
+            preco_principal = float(meta_price.group(1))
+            print("   → Preço encontrado na meta tag.")
         except:
-            continue
+            pass
 
-    unique_prices = sorted(list(set(valid_prices)))
+    # 2. Busca contextual: verifica se a palavra "pix" está próxima do valor
+    if not preco_principal:
+        for match in re.finditer(r'R\$\s*([\d.,]+)', html):
+            fim = match.end()
+            contexto = html[fim:fim+80].lower()
+            if 'pix' in contexto:
+                try:
+                    preco_principal = float(match.group(1).replace('.', '').replace(',', '.'))
+                    print("   → Preço encontrado com contexto 'Pix'.")
+                    break
+                except:
+                    continue
 
-    print("\n" + "="*80)
-    print("💰 TODOS OS PREÇOS ENCONTRADOS:")
-    for i, p in enumerate(unique_prices, 1):
-        print(f"   {i:2d}. R$ {p:8.2f}")
-    print("="*80)
+    # 3. Busca contextual: preço total antes das parcelas (ex: "ou R$ X em Yx")
+    if not preco_principal:
+        for match in re.finditer(r'R\$\s*([\d.,]+)', html):
+            fim = match.end()
+            contexto = html[fim:fim+80].lower()
+            if 'em ' in contexto and 'x' in contexto:
+                try:
+                    preco_principal = float(match.group(1).replace('.', '').replace(',', '.'))
+                    print("   → Preço encontrado com contexto de parcelamento.")
+                    break
+                except:
+                    continue
 
-    if not unique_prices:
-        raise Exception("Nenhum preço encontrado na página")
+    # 4. Busca em JSON-LD (Schema interno)
+    if not preco_principal:
+        json_match = re.search(r'"price":\s*"?(\d+\.\d{2})"?', html)
+        if json_match:
+            preco_principal = float(json_match.group(1))
+            print("   → Preço encontrado no JSON-LD.")
 
-    # LÓGICA DE ESCOLHA DO PREÇO PRINCIPAL (melhorada)
-    if len(unique_prices) >= 2:
-        # Estratégia: 
-        # 1. Procurar preço próximo a "Pix" (geralmente o mais vantajoso)
-        # 2. Senão, pegar o segundo menor (evita preço muito baixo de parcela)
-        # 3. Senão, pegar o menor preço razoável
-        
-        preco_principal = None
-        
-        # Tenta encontrar preço com "Pix" no contexto (melhor chance)
-        pix_match = re.search(r'R\$\s*([\d.,]+).*?Pix|Pix.*?R\$\s*([\d.,]+)', html, re.IGNORECASE | re.DOTALL)
-        if pix_match:
-            for g in pix_match.groups():
-                if g:
-                    try:
-                        valor_pix = float(g.replace('.', '').replace(',', '.'))
-                        if 50 < valor_pix < 1500:
-                            preco_principal = valor_pix
-                            print(f"   ✅ Preço PIX encontrado: R$ {preco_principal:.2f}")
-                            break
-                    except:
-                        continue
-        
-        if not preco_principal:
-            # Se não encontrou PIX, pega o segundo menor preço (evita R$99,99 de parcela)
-            if len(unique_prices) >= 2:
-                preco_principal = unique_prices[1]  # segundo menor
-                print(f"   → Usando segundo menor preço: R$ {preco_principal:.2f}")
-            else:
-                preco_principal = unique_prices[0]
-    else:
-        preco_principal = unique_prices[0]
-        print(f"   → Apenas um preço encontrado: R$ {preco_principal:.2f}")
+    # 5. Último recurso: filtra extremos (ignora preço original de 299 e parcelas pequenas)
+    if not preco_principal:
+        matches = re.findall(r'R\$\s*([\d.,]+)', html)
+        valid_prices = []
+        for m in matches:
+            try:
+                v = float(m.replace('.', '').replace(',', '.'))
+                if 120 < v < 290:  # Faixa lógica para o preço atual
+                    valid_prices.append(v)
+            except:
+                continue
+        if valid_prices:
+            preco_principal = min(set(valid_prices))
+            print("   → Preço estimado por filtragem lógica.")
 
-    print(f"\n🎯 Preço principal definido: R$ {preco_principal:.2f}")
+    if preco_principal is None:
+        raise Exception("Nenhum preço válido encontrado no HTML.")
+
+    print("\n" + "="*70)
+    print(f"✅ PREÇO FINAL DETECTADO: R$ {preco_principal:.2f}")
+    print("="*70)
 
     # Mensagem
     if preco_principal <= alvo:
@@ -119,8 +123,7 @@ def monitor_scrapedo():
         msg = f"✅ Monitor Centauro\nPreço atual: R$ {preco_principal:.2f} (Alvo: R$ {alvo})"
     
     enviar_telegram(token, chat_id, msg)
-    print(f"\n📤 Mensagem enviada com preço: R$ {preco_principal:.2f}")
-
+    print(f"\n📤 Mensagem enviada com sucesso.")
 
 if __name__ == "__main__":
     try:
