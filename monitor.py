@@ -13,6 +13,11 @@ PRODUTOS = [
         "alvo": 200.00,
     },
     {
+        "nome": "Conjunto Agasalho Oxer Replayer",
+        "url": "https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02",
+        "alvo": 200.00,
+    },
+    {
         "nome": "Regata Oxer Respirabilidade",
         "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
         "alvo": 80.00,
