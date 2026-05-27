@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Instalar dependências
-        run: pip install requests
+        run: pip install curl_cffi requests
 
       - name: Rodar Monitor Scrape.do
         env:
