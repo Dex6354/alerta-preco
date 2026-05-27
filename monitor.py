@@ -85,7 +85,7 @@ def extrair_preco(html):
 
 
 def monitor_scrapedo():
-    url_produto = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
+    url_produto = "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83"
     alvo = 200.00
 
     token = os.environ.get('TELEGRAM_TOKEN')
