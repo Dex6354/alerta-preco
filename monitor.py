@@ -183,20 +183,19 @@ def buscar_html(url_produto):
 
     # ── Camada 0: requisição direta ──────────────────────────────────────────
     print("🌐 Camada 0: requisição direta (sem scrape.do)...")
-    for tentativa in range(1, 3):
-        try:
-            resp = requests.get(url_produto, headers=HEADERS_DIRETO, timeout=30)
-            print(f"   Status: {resp.status_code} | {len(resp.text):,} chars")
-            if resp.status_code == 200 and len(resp.text) > 5_000:
-                preco = extrair_preco(resp.text)
-                if preco is not None:
-                    print("   ✅ Preço obtido na camada 0 (gratuita)")
-                    return resp.text, scrape_calls
-                print("   ⚠️ Página carregada mas sem preço — avançando camada")
-                break
-        except Exception as e:
-            print(f"   ❌ Tentativa {tentativa}: {e}")
-            time.sleep(3)
+    try:
+        resp = requests.get(url_produto, headers=HEADERS_DIRETO, timeout=20)
+        print(f"   Status: {resp.status_code} | {len(resp.text):,} chars")
+        if resp.status_code == 403:
+            print("   ⛔ 403 — site bloqueia requisições diretas, pulando para scrape.do")
+        elif resp.status_code == 200 and len(resp.text) > 5_000:
+            preco = extrair_preco(resp.text)
+            if preco is not None:
+                print("   ✅ Preço obtido na camada 0 (gratuita)")
+                return resp.text, scrape_calls
+            print("   ⚠️ Página carregada mas sem preço — avançando camada")
+    except Exception as e:
+        print(f"   ❌ Erro: {e}")
 
     # ── Camada 1: scrape.do sem render ───────────────────────────────────────
     print("\n🔧 Camada 1: scrape.do sem render...")
@@ -216,11 +215,11 @@ def buscar_html(url_produto):
                 print("   ⚠️ Sem preço sem render — avançando camada")
                 break
             elif resp.status_code == 502:
-                print(f"   ⚠️ 502 — aguardando {6 * tentativa}s...")
-                time.sleep(6 * tentativa)
+                print(f"   ⚠️ 502 — aguardando 2s...")
+                time.sleep(2)
         except Exception as e:
             print(f"   ❌ Tentativa {tentativa}: {e}")
-            time.sleep(4)
+            time.sleep(2)
 
     # ── Camada 2: scrape.do com render=true ──────────────────────────────────
     print("\n🚀 Camada 2: scrape.do com render=true...")
@@ -239,14 +238,14 @@ def buscar_html(url_produto):
                 print(f"   ✅ Página renderizada ({len(resp.text):,} chars)")
                 return resp.text, scrape_calls
             elif resp.status_code == 502:
-                print(f"   ⚠️ 502 — aguardando {8 * tentativa}s...")
-                time.sleep(8 * tentativa)
+                print(f"   ⚠️ 502 — aguardando 3s...")
+                time.sleep(3)
             else:
                 raise Exception(f"scrape.do retornou {resp.status_code}")
         except Exception as e:
             print(f"   ❌ Tentativa {tentativa}: {e}")
             if scrape_calls < MAX_SCRAPE_CALLS:
-                time.sleep(6)
+                time.sleep(2)
 
     raise Exception(
         f"Falha ao carregar a página após {scrape_calls} chamada(s) pagas"
