@@ -10,14 +10,14 @@ from urllib.parse import quote
 # ============================================================
 PRODUTOS = [
     {
-        "nome": "Agasalho Oxer Replayer",
+        "nome": "Conjunto Agasalho Oxer Replayer",
         "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
         "alvo": 180.00,
     },
     {
-        "nome": "Regata Oxer Respirabilidade",
+        "nome": "Regata Oxer",
         "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
-        "alvo": 80.00,
+        "alvo": 72.00,
     },
 ]
 # ============================================================
