@@ -187,54 +187,41 @@ def extrair_preco(html):
 # render=true garante que o preço seja encontrado de forma confiável.
 # Em caso de 502 pontual do scrape.do, há 1 retry automático.
 # ------------------------------------------------------------
-# Cabeçalhos que simulam um navegador real para requisição direta
-HEADERS_BROWSER = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "pt-BR,pt;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-}
-
 def buscar_preco_scrape(produto):
     url = produto["url"]
-
-    # --- Passo 1: requisição direta (0 créditos) ---
-    print(f"   🔄 Tentando requisição direta (0 créditos)...")
-    try:
-        resp = requests.get(url, headers=HEADERS_BROWSER, timeout=15)
-        print(f"   Status HTTP direto: {resp.status_code} | {len(resp.text):,} chars")
-        if resp.status_code == 200:
-            preco = extrair_preco(resp.text)
-            if preco is not None:
-                print(f"   💚 JSON-LD encontrado direto — nenhum crédito gasto!")
-                return preco
-            print(f"   ⚠️  Página carregada mas JSON-LD ausente — escalando para scrape.do...")
-        else:
-            print(f"   ⚠️  Status {resp.status_code} na requisição direta — escalando para scrape.do...")
-    except Exception as e:
-        print(f"   ⚠️  Erro na requisição direta: {e} — escalando para scrape.do...")
-
-    # --- Passo 2: fallback scrape.do render=false (1 crédito por sucesso) ---
     encoded_url = quote(url)
-    api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=false"
+
+    # --- render=false (1 crédito) — até 5 tentativas com 5s de intervalo ---
+    api_url_false = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=false"
 
     for tentativa in range(1, 6):
         print(f"   🔄 scrape.do render=false — tentativa {tentativa}/5 (1 crédito)...")
-        response = requests.get(api_url, timeout=90)
+        response = requests.get(api_url_false, timeout=90)
         print(f"   Status HTTP: {response.status_code} | {len(response.text):,} chars")
 
         if response.status_code == 200:
-            return extrair_preco(response.text)  # None se JSON-LD ausente
+            return extrair_preco(response.text)
 
         elif response.status_code == 502:
-            if tentativa == 5:
-                print(f"   ⏭️  502 nas cinco tentativas — ignorando produto.")
-                return None  # sem cobrança, não é erro
-            print(f"   ⚠️  502 pontual — aguardando {6 * tentativa}s antes de retry...")
-            time.sleep(6 * tentativa)
-
+            if tentativa < 5:
+                print(f"   ⚠️  502 — aguardando 5s antes de retry...")
+                time.sleep(5)
         else:
             raise Exception(f"scrape.do retornou {response.status_code}")
+
+    # --- Todas as 5 tentativas falharam com 502: tenta render=true (5 créditos) ---
+    print(f"   🔁 5x 502 com render=false — última tentativa com render=true (5 créditos)...")
+    api_url_true = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=true"
+    response = requests.get(api_url_true, timeout=90)
+    print(f"   Status HTTP: {response.status_code} | {len(response.text):,} chars")
+
+    if response.status_code == 200:
+        return extrair_preco(response.text)
+    elif response.status_code == 502:
+        print(f"   ⏭️  502 também no render=true — ignorando produto.")
+        return None
+    else:
+        raise Exception(f"scrape.do render=true retornou {response.status_code}")
 
 
 # ------------------------------------------------------------
