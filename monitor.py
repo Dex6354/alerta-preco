@@ -188,7 +188,7 @@ def extrair_preco(html):
 def buscar_preco_scrape(produto):
     url = produto["url"]
     encoded_url = quote(url)
-    api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=false"
+    api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=true"
 
     print(f"   🔄 scrape.do render=false (1 crédito)...")
     response = requests.get(api_url, timeout=90)
