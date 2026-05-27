@@ -179,30 +179,36 @@ def extrair_preco(html):
 
 
 # ------------------------------------------------------------
-# MÉTODO SCRAPE — 1 chamada scrape.do (render=false = 1 crédito)
+# MÉTODO SCRAPE — scrape.do com render=true (5 créditos)
 #
-# O JSON-LD do produto está no HTML estático da Centauro, então
-# render=false é suficiente.
-# 502 = scrape.do não cobrou o crédito → retorna None, sem erro.
+# A Centauro exige JavaScript para montar o JSON-LD com o preço.
+# render=false retorna 502 de forma intermitente pois o site não
+# responde corretamente sem renderização completa.
+# render=true garante que o preço seja encontrado de forma confiável.
+# Em caso de 502 pontual do scrape.do, há 1 retry automático.
 # ------------------------------------------------------------
 def buscar_preco_scrape(produto):
     url = produto["url"]
     encoded_url = quote(url)
-    api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=true"
+    api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=false"
 
-    print(f"   🔄 scrape.do render=false (1 crédito)...")
-    response = requests.get(api_url, timeout=90)
-    print(f"   Status HTTP: {response.status_code} | {len(response.text):,} chars")
+    for tentativa in range(1, 4):
+        print(f"   🔄 scrape.do render=false — tentativa {tentativa}/3 (1 crédito)...")
+        response = requests.get(api_url, timeout=90)
+        print(f"   Status HTTP: {response.status_code} | {len(response.text):,} chars")
 
-    if response.status_code == 200:
-        return extrair_preco(response.text)  # pode ser None se JSON-LD não encontrado
+        if response.status_code == 200:
+            return extrair_preco(response.text)  # None se JSON-LD ausente
 
-    elif response.status_code == 502:
-        print(f"   ⏭️  502 — sem cobrança, ignorando produto.")
-        return None  # não consome crédito, não é erro
+        elif response.status_code == 502:
+            if tentativa == 3:
+                print(f"   ⏭️  502 nas três tentativas — ignorando produto.")
+                return None  # sem cobrança, não é erro
+            print(f"   ⚠️  502 pontual — aguardando {6 * tentativa}s antes de retry...")
+            time.sleep(6 * tentativa)
 
-    else:
-        raise Exception(f"scrape.do retornou {response.status_code}")
+        else:
+            raise Exception(f"scrape.do retornou {response.status_code}")
 
 
 # ------------------------------------------------------------
