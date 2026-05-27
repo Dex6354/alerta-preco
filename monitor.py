@@ -35,7 +35,7 @@ def monitor_scrapedo():
                 break
             elif response.status_code == 502:
                 print("502 detectado, aguardando antes de retry...")
-                time.sleep(8 * tentativa)  # Espera progressiva
+                time.sleep(8 * tentativa)
                 continue
             else:
                 raise Exception(f"Scrape.do retornou {response.status_code}")
@@ -45,34 +45,41 @@ def monitor_scrapedo():
                 raise
             time.sleep(5)
 
-    # === EXTRAÇÃO INTELIGENTE DO PREÇO ===
-    # Prioriza o preço principal (geralmente o maior + "no Pix")
+    # === EXTRAÇÃO DE TODOS OS PREÇOS ===
     matches = re.findall(r'R\$\s*([\d.,]+)', html)
 
-    preco = None
     valid_prices = []
     for m in matches:
         try:
             limpo = m.replace('.', '').replace(',', '.')
             valor = float(limpo)
-            if 50 < valor < 1000:          # faixa realista do agasalho
+            if 50 < valor < 1000:  # faixa realista
                 valid_prices.append(valor)
         except:
             continue
 
-    if valid_prices:
-        # Pega o maior preço (geralmente o preço à vista/principal)
-        preco = max(valid_prices)
+    # Remove duplicatas e ordena
+    unique_prices = sorted(list(set(valid_prices)))
 
-    if preco is None:
+    print("\n" + "="*50)
+    print("💰 PREÇOS ENCONTRADOS NA PÁGINA:")
+    if unique_prices:
+        for i, p in enumerate(unique_prices, 1):
+            print(f"   {i}. R$ {p:.2f}")
+        
+        # Preço principal (maior valor)
+        preco_principal = max(unique_prices)
+        print(f"\n✅ Preço principal selecionado: R$ {preco_principal:.2f}")
+    else:
+        print("   Nenhum preço válido encontrado!")
         raise Exception("Preço não encontrado")
 
-    print(f"✅ Preço capturado: R$ {preco:.2f}")
+    print("="*50)
 
-    if preco <= alvo:
-        msg = f"🔥 <b>ALERTA CENTAURO!</b>\nPreço baixou para <b>R$ {preco:.2f}</b>\n\n{url_produto}"
+    if preco_principal <= alvo:
+        msg = f"🔥 <b>ALERTA CENTAURO!</b>\nPreço baixou para <b>R$ {preco_principal:.2f}</b>\n\n{url_produto}"
     else:
-        msg = f"✅ Monitor Centauro\nPreço atual: R$ {preco:.2f} (Alvo: R$ {alvo})"
+        msg = f"✅ Monitor Centauro\nPreço atual: R$ {preco_principal:.2f} (Alvo: R$ {alvo})"
     
     enviar_telegram(token, chat_id, msg)
 
