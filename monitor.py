@@ -57,12 +57,12 @@ SITES = [
             {
                 "nome": "Agasalho Oxer Replayer",
                 "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
-                "alvo": 150.00,
+                "alvo": 190.00,
             },
             {
                 "nome": "Regata Oxer Respirabilidade",
                 "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
-                "alvo": 80.00,
+                "alvo": 50.00,
             },
         ],
     },
