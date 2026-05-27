@@ -1,6 +1,5 @@
 import os
 import re
-import json
 import time
 import requests
 from urllib.parse import quote
@@ -13,81 +12,11 @@ def enviar_telegram(token, chat_id, mensagem):
     except Exception as e:
         print(f"⚠️ Erro Telegram: {e}")
 
-def extrair_preco(html):
-    """
-    Tenta extrair o preço principal em ordem de confiabilidade:
-    1. JSON-LD (dado estruturado — mais confiável)
-    2. Preço próximo à palavra "Pix" (segundo mais confiável)
-    3. Heurística: segundo menor preço válido (ignora fretes/centavos)
-    """
-
-    # --- Estratégia 1: JSON-LD ---
-    for script in re.findall(r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', html, re.DOTALL | re.IGNORECASE):
-        try:
-            data = json.loads(script)
-            # Pode ser uma lista ou um único objeto
-            if isinstance(data, list):
-                data = data[0]
-            offers = data.get("offers", {})
-            if isinstance(offers, list):
-                offers = offers[0]
-            price = offers.get("price") or offers.get("lowPrice")
-            if price:
-                valor = float(str(price).replace(',', '.'))
-                if 50 < valor < 1500:
-                    print(f"   ✅ [JSON-LD] Preço encontrado: R$ {valor:.2f}")
-                    return valor
-        except Exception as e:
-            continue
-
-    # --- Estratégia 2: Preço próximo à palavra "Pix" ---
-    # Captura R$ XXX que aparece perto de "Pix" no HTML (até ~200 chars de distância)
-    pix_match = re.search(
-        r'R\$\s*([\d.,]+)(?:[\s\S]{0,200}?)(?:no\s+)?[Pp]ix|(?:no\s+)?[Pp]ix(?:[\s\S]{0,200}?)R\$\s*([\d.,]+)',
-        html
-    )
-    if pix_match:
-        raw = pix_match.group(1) or pix_match.group(2)
-        try:
-            valor = float(raw.replace('.', '').replace(',', '.'))
-            if 50 < valor < 1500:
-                print(f"   ✅ [Pix-regex] Preço encontrado: R$ {valor:.2f}")
-                return valor
-        except:
-            pass
-
-    # --- Estratégia 3: Heurística com todos os preços da página ---
-    matches = re.findall(r'R\$\s*([\d.,]+)', html)
-    valid_prices = []
-    for m in matches:
-        try:
-            valor = float(m.replace('.', '').replace(',', '.'))
-            if 50 < valor < 1500:
-                valid_prices.append(valor)
-        except:
-            continue
-
-    unique_prices = sorted(set(valid_prices))
-    print(f"   ℹ️ [Heurística] Preços válidos encontrados: {unique_prices}")
-
-    if not unique_prices:
-        return None
-
-    if len(unique_prices) == 1:
-        return unique_prices[0]
-
-    # Ignora o menor (frequentemente frete/acessório barato)
-    # e o maior (frequentemente preço riscado/original)
-    # Pega o segundo menor como preço atual de venda
-    preco = unique_prices[1] if len(unique_prices) >= 2 else unique_prices[0]
-    print(f"   ✅ [Heurística] Preço estimado: R$ {preco:.2f}")
-    return preco
-
 
 def monitor_scrapedo():
-    url_produto = "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83"
+    url_produto = "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
     alvo = 200.00
-
+    
     token = os.environ.get('TELEGRAM_TOKEN')
     chat_id = os.environ.get('CHAT_ID')
     scrape_token = "3a23ea3810a04b16bccfac96a2c3b1af73c97a98ef5"
@@ -95,61 +24,106 @@ def monitor_scrapedo():
     html = None
     for tentativa in range(1, 4):
         try:
-            print(f"🔄 Tentativa {tentativa}/3...")
+            print(f"🔄 Tentativa {tentativa}/3 via Scrape.do...")
             encoded_url = quote(url_produto)
             api_url = f"https://api.scrape.do/?token={scrape_token}&url={encoded_url}&render=true"
-
+            
             response = requests.get(api_url, timeout=90)
-            print(f"   Status HTTP: {response.status_code}")
+            print(f"   Status: {response.status_code}")
 
             if response.status_code == 200:
                 html = response.text
-                print(f"   ✅ Página carregada ({len(html):,} chars)")
+                print(f"   ✅ Página carregada ({len(html):,} caracteres)")
                 break
             elif response.status_code == 502:
-                print("   ⚠️ 502 — aguardando antes de retry...")
+                print("   502 detectado, aguardando...")
                 time.sleep(8 * tentativa)
                 continue
             else:
-                raise Exception(f"Scrape.do retornou {response.status_code}")
-
+                print(f"   Status inesperado: {response.status_code}")
+                time.sleep(5)
         except Exception as e:
-            print(f"   ❌ Erro: {e}")
+            print(f"   Erro: {e}")
             if tentativa == 3:
                 raise
             time.sleep(6)
 
     if not html:
-        raise Exception("Falha ao carregar a página após 3 tentativas")
+        raise Exception("Falha ao carregar página")
 
-    print("\n" + "=" * 60)
-    print("🔍 EXTRAINDO PREÇO...")
-    preco = extrair_preco(html)
-    print("=" * 60)
+    # === EXTRAÇÃO MELHORADA DO PREÇO ===
+    # Padrões mais específicos para Centauro
+    matches = re.findall(r'R\$\s*([\d.,]+)', html)
+    
+    valid_prices = []
+    for m in matches:
+        try:
+            limpo = m.replace('.', '').replace(',', '.')
+            valor = float(limpo)
+            if 50 < valor < 1500:  # faixa realista para esse produto
+                valid_prices.append(valor)
+        except:
+            continue
 
-    if preco is None:
-        raise Exception("Nenhum preço válido encontrado na página")
+    unique_prices = sorted(list(set(valid_prices)))
 
-    print(f"\n💰 Preço final: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+    print("\n" + "="*80)
+    print("💰 TODOS OS PREÇOS ENCONTRADOS:")
+    for i, p in enumerate(unique_prices, 1):
+        print(f"   {i:2d}. R$ {p:8.2f}")
+    print("="*80)
 
-    if preco <= alvo:
-        msg = (
-            f"🔥 <b>ALERTA CENTAURO!</b>\n"
-            f"Preço baixou para <b>R$ {preco:.2f}</b>\n\n"
-            f"{url_produto}"
-        )
+    if not unique_prices:
+        raise Exception("Nenhum preço encontrado na página")
+
+    # LÓGICA DE ESCOLHA DO PREÇO PRINCIPAL (melhorada)
+    if len(unique_prices) >= 2:
+        # Estratégia: 
+        # 1. Procurar preço próximo a "Pix" (geralmente o mais vantajoso)
+        # 2. Senão, pegar o segundo menor (evita preço muito baixo de parcela)
+        # 3. Senão, pegar o menor preço razoável
+        
+        preco_principal = None
+        
+        # Tenta encontrar preço com "Pix" no contexto (melhor chance)
+        pix_match = re.search(r'R\$\s*([\d.,]+).*?Pix|Pix.*?R\$\s*([\d.,]+)', html, re.IGNORECASE | re.DOTALL)
+        if pix_match:
+            for g in pix_match.groups():
+                if g:
+                    try:
+                        valor_pix = float(g.replace('.', '').replace(',', '.'))
+                        if 50 < valor_pix < 1500:
+                            preco_principal = valor_pix
+                            print(f"   ✅ Preço PIX encontrado: R$ {preco_principal:.2f}")
+                            break
+                    except:
+                        continue
+        
+        if not preco_principal:
+            # Se não encontrou PIX, pega o segundo menor preço (evita R$99,99 de parcela)
+            if len(unique_prices) >= 2:
+                preco_principal = unique_prices[1]  # segundo menor
+                print(f"   → Usando segundo menor preço: R$ {preco_principal:.2f}")
+            else:
+                preco_principal = unique_prices[0]
     else:
-        msg = (
-            f"✅ Monitor Centauro\n"
-            f"Preço atual: R$ {preco:.2f} (Alvo: R$ {alvo:.2f})"
-        )
+        preco_principal = unique_prices[0]
+        print(f"   → Apenas um preço encontrado: R$ {preco_principal:.2f}")
 
+    print(f"\n🎯 Preço principal definido: R$ {preco_principal:.2f}")
+
+    # Mensagem
+    if preco_principal <= alvo:
+        msg = f"🔥 <b>ALERTA CENTAURO!</b>\nPreço baixou para <b>R$ {preco_principal:.2f}</b>\n\n{url_produto}"
+    else:
+        msg = f"✅ Monitor Centauro\nPreço atual: R$ {preco_principal:.2f} (Alvo: R$ {alvo})"
+    
     enviar_telegram(token, chat_id, msg)
-    print(f"📤 Mensagem enviada!")
+    print(f"\n📤 Mensagem enviada com preço: R$ {preco_principal:.2f}")
 
 
 if __name__ == "__main__":
     try:
         monitor_scrapedo()
     except Exception as e:
-        print(f"\n❌ ERRO FATAL: {e}")
+        print(f"\n❌ ERRO: {e}")
