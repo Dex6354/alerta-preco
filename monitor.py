@@ -1,7 +1,15 @@
 import os
 import re
 import time
-from curl_cffi import requests
+import sys
+
+# Garante a importação correta da biblioteca necessária para burlar o 403
+try:
+    from curl_cffi import requests
+except ImportError:
+    print("❌ Erro: A biblioteca 'curl_cffi' não está instalada.")
+    print("Execute: pip install curl_cffi")
+    sys.exit(1)
 
 # ─── Produtos monitorados ────────────────────────────────────────────────────
 PRODUTOS = [
@@ -19,7 +27,6 @@ PRODUTOS = [
 
 CENTAURO_API_BASE = "https://apigateway.centauro.com.br/centauro-bff/products"
 
-# Headers idênticos aos enviados pelo navegador fornecido no log
 HEADERS_API = {
     "authority": "apigateway.centauro.com.br",
     "accept": "application/json, text/plain, */*",
@@ -38,11 +45,13 @@ HEADERS_API = {
 # ─── Telegram ────────────────────────────────────────────────────────────────
 def enviar_telegram(token, chat_id, mensagem):
     if not token or not chat_id:
+        print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
-        # Usando requests padrão para o Telegram
+        
+        # Import local para evitar overhead
         import requests as req
         req.post(url, json=payload, timeout=20)
     except Exception as e:
@@ -62,7 +71,7 @@ def extrair_codigo_cor(url_produto):
 
     return codigo, cor
 
-# ─── Consulta à API da Centauro com Simulação de Navegador Real ──────────────
+# ─── Consulta à API da Centauro ───────────────────────────────────────────────
 def buscar_preco_api(url_produto, max_tentativas=3):
     codigo, cor = extrair_codigo_cor(url_produto)
     api_url = f"{CENTAURO_API_BASE}/{codigo}?color={cor}"
@@ -71,14 +80,14 @@ def buscar_preco_api(url_produto, max_tentativas=3):
 
     for tentativa in range(1, max_tentativas + 1):
         try:
-            # curl_cffi imita perfeitamente o TLS/JA3 fingerprint do Chrome para evitar o 403 do Akamai
+            # impersonate="chrome" força o uso de HTTP/2 e as assinaturas TLS corretas contra o Akamai
             s = requests.Session(impersonate="chrome")
             resp = s.get(api_url, headers=HEADERS_API, timeout=30)
             
             print(f"   Status: {resp.status_code}")
 
             if resp.status_code == 403:
-                raise Exception("403 Forbidden — Bloqueado pelo Antivírus de Borda (Akamai)")
+                raise Exception("403 Forbidden (Bloqueio Akamai)")
 
             if resp.status_code != 200:
                 raise Exception(f"API retornou status {resp.status_code}")
@@ -97,6 +106,7 @@ def buscar_preco_api(url_produto, max_tentativas=3):
                 if not sku.get("hasStock", False):
                     continue
 
+                # Lê dinamicamente o tamanho (ex: "43" ou "M")
                 tamanho = sku.get("description", "N/A")
                 pi = sku.get("priceInfos", {})
                 if not pi:
@@ -157,7 +167,7 @@ def monitor_produto(produto, token, chat_id):
         enviar_telegram(token, chat_id, msg)
         print(f"📤 Mensagem de alerta enviada!")
     else:
-        print(f"✅ Preço acima do alvo. Nenhuma mensagem enviada.")
+        print(f"✅ Preço acima do alvo. Alerta não enviado.")
 
 def main():
     token   = os.environ.get('TELEGRAM_TOKEN')
@@ -172,9 +182,14 @@ def main():
             erros.append((produto["nome"], str(e)))
 
     if erros:
-        print(f"\n⚠️ {len(erros)} produto(s) com erro:")
-        for nome, err in erros:
-            print(f"   • {nome}: {err}")
+        print(f"\n⚠️ {len(erros)} produto(s) com erro.")
+        # Se houve falha crítica em todos os produtos, força encerramento controlado
+        if len(erros) == len(PRODUTOS):
+            sys.exit(1)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"💥 Erro fatal não tratado no main: {e}")
+        sys.exit(1)
