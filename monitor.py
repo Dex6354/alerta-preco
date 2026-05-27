@@ -62,7 +62,7 @@ SITES = [
             {
                 "nome": "Regata Oxer Respirabilidade",
                 "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
-                "alvo": 50.00,
+                "alvo": 80.00,
             },
         ],
     },
