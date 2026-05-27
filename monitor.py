@@ -4,10 +4,9 @@ import json
 import time
 import requests
 from urllib.parse import quote
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ─── Grupos de produtos ───────────────────────────────────────────────────────
-# Cada grupo tem um alvo compartilhado entre seus itens.
-# Um único alerta é disparado quando QUALQUER item do grupo atinge o alvo.
 GRUPOS = [
     {
         "alvo": 200.00,
@@ -45,7 +44,7 @@ HEADERS_DIRETO = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-MAX_SCRAPE_CALLS = 5   # limite de chamadas pagas por item
+MAX_SCRAPE_CALLS = 5
 
 
 # ─── Telegram ────────────────────────────────────────────────────────────────
@@ -58,7 +57,7 @@ def enviar_telegram(token, chat_id, mensagem):
         print(f"⚠️ Erro Telegram: {e}")
 
 
-# ─── Verificação de disponibilidade ──────────────────────────────────────────
+# ─── Disponibilidade ─────────────────────────────────────────────────────────
 INDISPONIVEL_PATTERNS = [
     r'produto\s+indispon[íi]vel',
     r'indispon[íi]vel',
@@ -68,11 +67,6 @@ INDISPONIVEL_PATTERNS = [
 ]
 
 def verificar_disponibilidade(html):
-    """
-    Retorna False se a página indicar produto indisponível/esgotado.
-    Verifica primeiro o JSON-LD (mais confiável), depois o texto da página.
-    """
-    # JSON-LD: campo availability
     for script in re.findall(
         r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
         html, re.DOTALL | re.IGNORECASE
@@ -86,31 +80,22 @@ def verificar_disponibilidade(html):
                 offers = offers[0]
             availability = offers.get("availability", "")
             if "OutOfStock" in availability or "Discontinued" in availability:
-                print("   ⚠️ [JSON-LD] Produto indisponível (OutOfStock)")
                 return False
             if availability:
-                print(f"   ✅ [JSON-LD] Disponível ({availability})")
                 return True
         except Exception:
             continue
 
-    # Fallback: busca textual
     for pattern in INDISPONIVEL_PATTERNS:
         if re.search(pattern, html, re.IGNORECASE):
-            print(f"   ⚠️ [Texto] Indisponível — padrão encontrado: '{pattern}'")
             return False
 
-    return True  # nenhum sinal de indisponibilidade
+    return True
 
 
 # ─── Extração de preço ───────────────────────────────────────────────────────
 def extrair_preco(html):
-    """
-    1. JSON-LD  (mais confiável)
-    2. Regex próximo a "Pix"
-    3. Heurística: segundo menor preço válido
-    """
-    # Estratégia 1: JSON-LD
+    # JSON-LD
     for script in re.findall(
         r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
         html, re.DOTALL | re.IGNORECASE
@@ -126,12 +111,11 @@ def extrair_preco(html):
             if price:
                 valor = float(str(price).replace(',', '.'))
                 if 10 < valor < 5000:
-                    print(f"   ✅ [JSON-LD] R$ {valor:.2f}")
                     return valor
         except Exception:
             continue
 
-    # Estratégia 2: Pix
+    # Pix
     pix_match = re.search(
         r'R\$\s*([\d.,]+)(?:[\s\S]{0,200}?)(?:no\s+)?[Pp]ix'
         r'|(?:no\s+)?[Pp]ix(?:[\s\S]{0,200}?)R\$\s*([\d.,]+)',
@@ -142,12 +126,11 @@ def extrair_preco(html):
         try:
             valor = float(raw.replace('.', '').replace(',', '.'))
             if 10 < valor < 5000:
-                print(f"   ✅ [Pix-regex] R$ {valor:.2f}")
                 return valor
         except Exception:
             pass
 
-    # Estratégia 3: Heurística
+    # Heurística
     matches = re.findall(r'R\$\s*([\d.,]+)', html)
     valid_prices = []
     for m in matches:
@@ -159,70 +142,53 @@ def extrair_preco(html):
             continue
 
     unique_prices = sorted(set(valid_prices))
-    print(f"   ℹ️ [Heurística] Preços válidos: {unique_prices}")
-
     if not unique_prices:
         return None
-    if len(unique_prices) == 1:
-        return unique_prices[0]
-
-    preco = unique_prices[1] if len(unique_prices) >= 2 else unique_prices[0]
-    print(f"   ✅ [Heurística] R$ {preco:.2f}")
-    return preco
+    return unique_prices[1] if len(unique_prices) >= 2 else unique_prices[0]
 
 
 # ─── Busca de HTML com fallback em camadas ────────────────────────────────────
-def buscar_html(url_produto):
-    """
-    Camada 0: requisição direta (gratuita, sem scrape.do).
-    Camada 1: scrape.do sem render (barata).
-    Camada 2: scrape.do com render=true (cara).
-    """
+def buscar_html(url_produto, nome):
     encoded_url = quote(url_produto)
     scrape_calls = 0
 
-    # ── Camada 0: requisição direta ──────────────────────────────────────────
-    print("🌐 Camada 0: requisição direta (sem scrape.do)...")
-    try:
-        resp = requests.get(url_produto, headers=HEADERS_DIRETO, timeout=20)
-        print(f"   Status: {resp.status_code} | {len(resp.text):,} chars")
-        if resp.status_code == 403:
-            print("   ⛔ 403 — site bloqueia requisições diretas, pulando para scrape.do")
-        elif resp.status_code == 200 and len(resp.text) > 5_000:
-            preco = extrair_preco(resp.text)
-            if preco is not None:
-                print("   ✅ Preço obtido na camada 0 (gratuita)")
-                return resp.text, scrape_calls
-            print("   ⚠️ Página carregada mas sem preço — avançando camada")
-    except Exception as e:
-        print(f"   ❌ Erro: {e}")
+    def log(msg):
+        print(f"   [{nome}] {msg}")
 
-    # ── Camada 1: scrape.do sem render ───────────────────────────────────────
-    print("\n🔧 Camada 1: scrape.do sem render...")
+    # Camada 0: requisição direta
+    try:
+        resp = requests.get(url_produto, headers=HEADERS_DIRETO, timeout=15)
+        if resp.status_code == 200 and len(resp.text) > 5_000:
+            if extrair_preco(resp.text) is not None:
+                log("✅ Camada 0 (gratuita)")
+                return resp.text, scrape_calls
+        elif resp.status_code == 403:
+            log("⛔ 403 — pulando para scrape.do")
+    except Exception as e:
+        log(f"❌ Camada 0: {e}")
+
+    # Camada 1: scrape.do sem render
     for tentativa in range(1, 3):
         if scrape_calls >= MAX_SCRAPE_CALLS:
             break
         try:
             api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}"
-            resp = requests.get(api_url, timeout=60)
+            resp = requests.get(api_url, timeout=45)
             scrape_calls += 1
-            print(f"   Status: {resp.status_code} | chamadas pagas: {scrape_calls}")
             if resp.status_code == 200 and len(resp.text) > 5_000:
-                preco = extrair_preco(resp.text)
-                if preco is not None:
-                    print("   ✅ Preço obtido na camada 1")
+                if extrair_preco(resp.text) is not None:
+                    log(f"✅ Camada 1 (chamadas pagas: {scrape_calls})")
                     return resp.text, scrape_calls
-                print("   ⚠️ Sem preço sem render — avançando camada")
+                log("⚠️ Sem preço sem render — avançando")
                 break
             elif resp.status_code == 502:
-                print(f"   ⚠️ 502 — aguardando 2s...")
+                log(f"⚠️ 502 tentativa {tentativa}")
                 time.sleep(2)
         except Exception as e:
-            print(f"   ❌ Tentativa {tentativa}: {e}")
+            log(f"❌ Camada 1 tentativa {tentativa}: {e}")
             time.sleep(2)
 
-    # ── Camada 2: scrape.do com render=true ──────────────────────────────────
-    print("\n🚀 Camada 2: scrape.do com render=true...")
+    # Camada 2: scrape.do com render=true
     for tentativa in range(1, MAX_SCRAPE_CALLS + 1):
         if scrape_calls >= MAX_SCRAPE_CALLS:
             break
@@ -231,96 +197,47 @@ def buscar_html(url_produto):
                 f"https://api.scrape.do/?token={SCRAPE_TOKEN}"
                 f"&url={encoded_url}&render=true"
             )
-            resp = requests.get(api_url, timeout=90)
+            resp = requests.get(api_url, timeout=60)
             scrape_calls += 1
-            print(f"   Status: {resp.status_code} | chamadas pagas: {scrape_calls}")
             if resp.status_code == 200:
-                print(f"   ✅ Página renderizada ({len(resp.text):,} chars)")
+                log(f"✅ Camada 2 render ({len(resp.text):,} chars, chamadas pagas: {scrape_calls})")
                 return resp.text, scrape_calls
             elif resp.status_code == 502:
-                print(f"   ⚠️ 502 — aguardando 3s...")
+                log(f"⚠️ 502 tentativa {tentativa}")
                 time.sleep(3)
             else:
                 raise Exception(f"scrape.do retornou {resp.status_code}")
         except Exception as e:
-            print(f"   ❌ Tentativa {tentativa}: {e}")
-            if scrape_calls < MAX_SCRAPE_CALLS:
-                time.sleep(2)
+            log(f"❌ Camada 2 tentativa {tentativa}: {e}")
+            time.sleep(2)
 
-    raise Exception(
-        f"Falha ao carregar a página após {scrape_calls} chamada(s) pagas"
-    )
+    raise Exception(f"Falha após {scrape_calls} chamada(s) pagas")
 
 
-# ─── Monitor de um produto individual ────────────────────────────────────────
-def monitor_produto(produto, alvo):
-    """
-    Busca o HTML, verifica disponibilidade e extrai o preço.
-    Retorna (preco, disponivel) onde disponivel é False se produto esgotado.
-    """
+# ─── Processar um produto (roda em paralelo) ──────────────────────────────────
+def processar_produto(produto, alvo):
+    """Retorna dict com resultado para ser enviado ao Telegram depois."""
     nome = produto["nome"]
     url  = produto["url"]
 
-    print(f"\n{'=' * 60}")
-    print(f"📦 {nome}")
-    print(f"🎯 Alvo do grupo: R$ {alvo:.2f}")
-    print(f"{'=' * 60}")
+    try:
+        html, scrape_calls = buscar_html(url, nome)
 
-    html, scrape_calls = buscar_html(url)
+        disponivel = verificar_disponibilidade(html)
+        if not disponivel:
+            print(f"   [{nome}] ⛔ Indisponível")
+            return {"nome": nome, "url": url, "alvo": alvo, "disponivel": False}
 
-    print(f"\n🔍 VERIFICANDO DISPONIBILIDADE...")
-    disponivel = verificar_disponibilidade(html)
+        preco = extrair_preco(html)
+        if preco is None:
+            raise Exception("Nenhum preço encontrado")
 
-    if not disponivel:
-        print(f"   ⛔ Produto indisponível — preço ignorado")
-        return None, False
+        print(f"   [{nome}] 💰 R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+        return {"nome": nome, "url": url, "alvo": alvo, "disponivel": True, "preco": preco}
 
-    print(f"\n🔍 EXTRAINDO PREÇO... (chamadas pagas usadas: {scrape_calls})")
-    preco = extrair_preco(html)
-
-    if preco is None:
-        raise Exception("Nenhum preço válido encontrado na página")
-
-    print(f"\n💰 Preço: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
-    return preco, True
-
-
-# ─── Monitor de um grupo ─────────────────────────────────────────────────────
-def monitor_grupo(grupo, token, chat_id):
-    alvo     = grupo["alvo"]
-    produtos = grupo["produtos"]
-    erros    = []
-
-    for produto in produtos:
-        try:
-            preco, disponivel = monitor_produto(produto, alvo)
-
-            if not disponivel:
-                msg = (
-                    f"⛔ Monitor Centauro — {produto['nome']}\n"
-                    f"Produto indisponível no momento."
-                )
-            elif preco <= alvo:
-                msg = (
-                    f"🔥 <b>ALERTA CENTAURO!</b>\n"
-                    f"<b>{produto['nome']}</b>\n"
-                    f"Preço baixou para <b>R$ {preco:.2f}</b> (alvo: R$ {alvo:.2f})\n\n"
-                    f"{produto['url']}"
-                )
-            else:
-                msg = (
-                    f"✅ Monitor Centauro — {produto['nome']}\n"
-                    f"Preço atual: R$ {preco:.2f} (Alvo: R$ {alvo:.2f})"
-                )
-
-            enviar_telegram(token, chat_id, msg)
-            print(f"📤 Mensagem enviada!")
-
-        except Exception as e:
-            print(f"\n❌ ERRO em '{produto['nome']}': {e}")
-            erros.append((produto["nome"], str(e)))
-
-    return erros
+    except Exception as e:
+        print(f"   [{nome}] ❌ {e}")
+        return {"nome": nome, "url": url, "alvo": alvo, "erro": str(e)}
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
@@ -328,15 +245,52 @@ def main():
     token   = os.environ.get('TELEGRAM_TOKEN')
     chat_id = os.environ.get('CHAT_ID')
 
-    todos_erros = []
-    for grupo in GRUPOS:
-        erros = monitor_grupo(grupo, token, chat_id)
-        todos_erros.extend(erros)
+    # Achata todos os produtos mantendo o alvo do grupo
+    tarefas = [
+        (produto, grupo["alvo"])
+        for grupo in GRUPOS
+        for produto in grupo["produtos"]
+    ]
 
-    if todos_erros:
-        print(f"\n⚠️ {len(todos_erros)} produto(s) com erro:")
-        for nome, err in todos_erros:
-            print(f"   • {nome}: {err}")
+    print(f"🚀 Iniciando monitoramento paralelo de {len(tarefas)} produto(s)...\n")
+    inicio = time.time()
+
+    resultados = {}
+    with ThreadPoolExecutor(max_workers=len(tarefas)) as executor:
+        futures = {
+            executor.submit(processar_produto, produto, alvo): produto["nome"]
+            for produto, alvo in tarefas
+        }
+        for future in as_completed(futures):
+            resultado = future.result()
+            resultados[resultado["nome"]] = resultado
+
+    print(f"\n⏱️ Busca concluída em {time.time() - inicio:.1f}s\n")
+
+    # Envia mensagens na ordem original
+    for produto, alvo in tarefas:
+        nome = produto["nome"]
+        r = resultados[nome]
+
+        if "erro" in r:
+            msg = f"❌ Monitor Centauro — {nome}\nErro: {r['erro']}"
+        elif not r["disponivel"]:
+            msg = f"⛔ Monitor Centauro — {nome}\nProduto indisponível no momento."
+        elif r["preco"] <= alvo:
+            msg = (
+                f"🔥 <b>ALERTA CENTAURO!</b>\n"
+                f"<b>{nome}</b>\n"
+                f"Preço baixou para <b>R$ {r['preco']:.2f}</b> (alvo: R$ {alvo:.2f})\n\n"
+                f"{produto['url']}"
+            )
+        else:
+            msg = (
+                f"✅ Monitor Centauro — {nome}\n"
+                f"Preço atual: R$ {r['preco']:.2f} (Alvo: R$ {alvo:.2f})"
+            )
+
+        enviar_telegram(token, chat_id, msg)
+        print(f"📤 [{nome}] Mensagem enviada")
 
 
 if __name__ == "__main__":
