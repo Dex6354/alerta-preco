@@ -5,17 +5,31 @@ import time
 import requests
 from urllib.parse import quote
 
-# ─── Produtos monitorados ────────────────────────────────────────────────────
-PRODUTOS = [
+# ─── Grupos de produtos ───────────────────────────────────────────────────────
+# Cada grupo tem um alvo compartilhado entre seus itens.
+# Um único alerta é disparado quando QUALQUER item do grupo atinge o alvo.
+GRUPOS = [
     {
-        "nome": "Conjunto Agasalho Oxer Replayer",
-        "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
         "alvo": 200.00,
+        "produtos": [
+            {
+                "nome": "Conjunto Agasalho Oxer Replayer",
+                "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
+            },
+            {
+                "nome": "Conjunto Agasalho Masculino Asics Interlock",
+                "url": "https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02",
+            },
+        ],
     },
     {
-        "nome": "Regata Oxer Respirabilidade",
-        "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
         "alvo": 80.00,
+        "produtos": [
+            {
+                "nome": "Regata Oxer Respirabilidade",
+                "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
+            },
+        ],
     },
 ]
 
@@ -118,10 +132,6 @@ def buscar_html(url_produto):
     Camada 0: requisição direta (gratuita, sem scrape.do).
     Camada 1: scrape.do sem render (barata).
     Camada 2: scrape.do com render=true (cara).
-
-    Cada camada tenta até 2 vezes antes de avançar.
-    Total máximo de chamadas pagas: MAX_SCRAPE_CALLS.
-    Retorna (html, scrape_calls_usadas) ou lança exceção.
     """
     encoded_url = quote(url_produto)
     scrape_calls = 0
@@ -138,7 +148,7 @@ def buscar_html(url_produto):
                     print("   ✅ Preço obtido na camada 0 (gratuita)")
                     return resp.text, scrape_calls
                 print("   ⚠️ Página carregada mas sem preço — avançando camada")
-                break   # não adianta tentar de novo sem JS
+                break
         except Exception as e:
             print(f"   ❌ Tentativa {tentativa}: {e}")
             time.sleep(3)
@@ -198,15 +208,15 @@ def buscar_html(url_produto):
     )
 
 
-# ─── Monitor principal ────────────────────────────────────────────────────────
-def monitor_produto(produto, token, chat_id):
+# ─── Monitor de um produto individual ────────────────────────────────────────
+def monitor_produto(produto, alvo):
+    """Busca o preço de um produto e retorna (nome, preco, url) ou lança exceção."""
     nome = produto["nome"]
     url  = produto["url"]
-    alvo = produto["alvo"]
 
     print(f"\n{'=' * 60}")
     print(f"📦 {nome}")
-    print(f"🎯 Alvo: R$ {alvo:.2f}")
+    print(f"🎯 Alvo do grupo: R$ {alvo:.2f}")
     print(f"{'=' * 60}")
 
     html, scrape_calls = buscar_html(url)
@@ -217,40 +227,56 @@ def monitor_produto(produto, token, chat_id):
     if preco is None:
         raise Exception("Nenhum preço válido encontrado na página")
 
-    print(f"\n💰 Preço final: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
-
-    if preco <= alvo:
-        msg = (
-            f"🔥 <b>ALERTA CENTAURO!</b>\n"
-            f"<b>{nome}</b>\n"
-            f"Preço baixou para <b>R$ {preco:.2f}</b> (alvo: R$ {alvo:.2f})\n\n"
-            f"{url}"
-        )
-    else:
-        msg = (
-            f"✅ Monitor Centauro — {nome}\n"
-            f"Preço atual: R$ {preco:.2f} (Alvo: R$ {alvo:.2f})"
-        )
-
-    enviar_telegram(token, chat_id, msg)
-    print(f"📤 Mensagem enviada!")
+    print(f"\n💰 Preço: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+    return preco
 
 
-def main():
-    token   = os.environ.get('TELEGRAM_TOKEN')
-    chat_id = os.environ.get('CHAT_ID')
+# ─── Monitor de um grupo ─────────────────────────────────────────────────────
+def monitor_grupo(grupo, token, chat_id):
+    alvo     = grupo["alvo"]
+    produtos = grupo["produtos"]
+    erros    = []
 
-    erros = []
-    for produto in PRODUTOS:
+    for produto in produtos:
         try:
-            monitor_produto(produto, token, chat_id)
+            preco = monitor_produto(produto, alvo)
+
+            if preco <= alvo:
+                msg = (
+                    f"🔥 <b>ALERTA CENTAURO!</b>\n"
+                    f"<b>{produto['nome']}</b>\n"
+                    f"Preço baixou para <b>R$ {preco:.2f}</b> (alvo: R$ {alvo:.2f})\n\n"
+                    f"{produto['url']}"
+                )
+            else:
+                msg = (
+                    f"✅ Monitor Centauro — {produto['nome']}\n"
+                    f"Preço atual: R$ {preco:.2f} (Alvo: R$ {alvo:.2f})"
+                )
+
+            enviar_telegram(token, chat_id, msg)
+            print(f"📤 Mensagem enviada!")
+
         except Exception as e:
             print(f"\n❌ ERRO em '{produto['nome']}': {e}")
             erros.append((produto["nome"], str(e)))
 
-    if erros:
-        print(f"\n⚠️ {len(erros)} produto(s) com erro:")
-        for nome, err in erros:
+    return erros
+
+
+# ─── Main ─────────────────────────────────────────────────────────────────────
+def main():
+    token   = os.environ.get('TELEGRAM_TOKEN')
+    chat_id = os.environ.get('CHAT_ID')
+
+    todos_erros = []
+    for grupo in GRUPOS:
+        erros = monitor_grupo(grupo, token, chat_id)
+        todos_erros.extend(erros)
+
+    if todos_erros:
+        print(f"\n⚠️ {len(todos_erros)} produto(s) com erro:")
+        for nome, err in todos_erros:
             print(f"   • {nome}: {err}")
 
 
