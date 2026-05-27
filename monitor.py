@@ -19,7 +19,7 @@ PRODUTOS = [
     {
         "nome": "Regata",
         "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
-        "alvo": 300.00,
+        "alvo": 80.00,
     },
     {
         "nome": "Conjunto Agasalho Oxer Replayer",
