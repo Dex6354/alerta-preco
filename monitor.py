@@ -81,7 +81,7 @@ SITES = [
             {
                 "nome": "Sorvete Bombom Jundiaí Pote 2L",
                 "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
-                "alvo": 30.00,
+                "alvo": 40.00,
             },
         ],
     },
