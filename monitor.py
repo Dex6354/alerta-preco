@@ -154,10 +154,10 @@ def monitorar_produto(produto, token, chat_id):
 
     if preco <= alvo:
         msg = (
-            f"🔥 <b>ALERTA CENTAURO!</b>\n"
-            f"<b>{nome}</b>\n"
-            f"Preço baixou para <b>R$ {preco:.2f}</b> (alvo: R$ {alvo:.2f})\n\n"
-            f"{url}"
+            f"🔥 <b>ALERTA CENTAURO!</b>\n\n"
+            f'<a href="{url}">{nome}</a>\n\n'
+            f"Preço: <b>R$ {preco:.2f}</b>\n"
+            f"Alvo: <b>R$ {alvo:.2f}</b>"
         )
         enviar_telegram(token, chat_id, msg)
         print("📤 Alerta enviado!")
