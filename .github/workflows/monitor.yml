@@ -2,7 +2,7 @@ name: Monitorar Preço Centauro
 
 on:
   schedule:
-    - cron: '0 */80 * * *'    # A cada 4 horas
+    - cron: '0 */24 * * *'    # A cada 24 horas
   workflow_dispatch:
 
 jobs:
