@@ -3,7 +3,6 @@ import re
 import time
 import sys
 
-# Garante a importação correta da biblioteca necessária para burlar o 403
 try:
     from curl_cffi import requests
 except ImportError:
@@ -11,7 +10,6 @@ except ImportError:
     print("Execute: pip install curl_cffi")
     sys.exit(1)
 
-# ─── Produtos monitorados ────────────────────────────────────────────────────
 PRODUTOS = [
     {
         "nome": "Tênis Masculino Nike Revolution 8",
@@ -42,7 +40,6 @@ HEADERS_API = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
 }
 
-# ─── Telegram ────────────────────────────────────────────────────────────────
 def enviar_telegram(token, chat_id, mensagem):
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
@@ -50,65 +47,55 @@ def enviar_telegram(token, chat_id, mensagem):
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
-        
-        # Import local para evitar overhead
         import requests as req
         req.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram: {e}")
 
-# ─── Extração de código e cor da URL ─────────────────────────────────────────
 def extrair_codigo_cor(url_produto):
     codigo_match = re.search(r'-(\d{6,7})\.html', url_produto)
     if not codigo_match:
-        raise ValueError(f"Código do produto não encontrado na URL: {url_produto}")
-    codigo = codigo_match.group(1)
-
+        raise ValueError(f"Código não encontrado na URL: {url_produto}")
     cor_match = re.search(r'[?&]cor=(\w+)', url_produto)
     if not cor_match:
         raise ValueError(f"Parâmetro 'cor' não encontrado na URL: {url_produto}")
-    cor = cor_match.group(1)
+    return codigo_match.group(1), cor_match.group(1)
 
-    return codigo, cor
-
-# ─── Consulta à API da Centauro ───────────────────────────────────────────────
 def buscar_preco_api(url_produto, max_tentativas=3):
     codigo, cor = extrair_codigo_cor(url_produto)
     api_url = f"{CENTAURO_API_BASE}/{codigo}?color={cor}"
-
     print(f"   🔗 API: {api_url}")
 
     for tentativa in range(1, max_tentativas + 1):
         try:
-            # impersonate="chrome" força o uso de HTTP/2 e as assinaturas TLS corretas contra o Akamai
             s = requests.Session(impersonate="chrome")
             resp = s.get(api_url, headers=HEADERS_API, timeout=30)
-            
             print(f"   Status: {resp.status_code}")
 
             if resp.status_code == 403:
                 raise Exception("403 Forbidden (Bloqueio Akamai)")
-
             if resp.status_code != 200:
                 raise Exception(f"API retornou status {resp.status_code}")
 
             data = resp.json()
+            
+            # Correção do mapeamento da raiz do JSON da Centauro
+            product_data = data.get("product", {})
+            sizes = product_data.get("sizes", [])
+            
+            if not sizes and product_data.get("priceInfos"):
+                sizes = [{"priceInfos": product_data.get("priceInfos"), "hasStock": True, "description": "Único"}]
 
             precos_pix = []
             precos_promo = []
             precos_cheios = []
 
-            skus = data.get("skus", [])
-            if not skus and data.get("priceInfos"):
-                skus = [{"priceInfos": data.get("priceInfos"), "hasStock": True, "description": "Único"}]
-
-            for sku in skus:
-                if not sku.get("hasStock", False):
+            for item in sizes:
+                if not item.get("hasStock", False):
                     continue
 
-                # Lê dinamicamente o tamanho (ex: "43" ou "M")
-                tamanho = sku.get("description", "N/A")
-                pi = sku.get("priceInfos", {})
+                tamanho = item.get("description", "N/A")
+                pi = item.get("priceInfos", {})
                 if not pi:
                     continue
 
@@ -133,7 +120,7 @@ def buscar_preco_api(url_produto, max_tentativas=3):
             if precos_cheios:
                 return min(precos_cheios)
 
-            raise Exception("Nenhum campo de preço encontrado no JSON")
+            raise Exception("Nenhum preço disponível encontrado no JSON")
 
         except Exception as e:
             print(f"   ❌ Tentativa {tentativa}/{max_tentativas}: {e}")
@@ -142,20 +129,14 @@ def buscar_preco_api(url_produto, max_tentativas=3):
 
     raise Exception(f"Falha total após {max_tentativas} tentativa(s)")
 
-# ─── Monitor principal ────────────────────────────────────────────────────────
 def monitor_produto(produto, token, chat_id):
     nome = produto["nome"]
     url  = produto["url"]
     alvo = produto["alvo"]
 
-    print(f"\n{'=' * 60}")
-    print(f"📦 {nome}")
-    print(f"🎯 Alvo: R$ {alvo:.2f}")
-    print(f"{'=' * 60}")
-
+    print(f"\n{'=' * 60}\n📦 {nome}\n🎯 Alvo: R$ {alvo:.2f}\n{'=' * 60}")
     preco = buscar_preco_api(url)
-
-    print(f"\n💰 Preço final encontrado: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+    print(f"\n💰 Preço final encontrado: R$ {preco:.2f}")
 
     if preco <= alvo:
         msg = (
@@ -165,9 +146,9 @@ def monitor_produto(produto, token, chat_id):
             f"{url}"
         )
         enviar_telegram(token, chat_id, msg)
-        print(f"📤 Mensagem de alerta enviada!")
+        print(f"📤 Alerta enviado!")
     else:
-        print(f"✅ Preço acima do alvo. Alerta não enviado.")
+        print(f"✅ Preço acima do alvo.")
 
 def main():
     token   = os.environ.get('TELEGRAM_TOKEN')
@@ -181,15 +162,12 @@ def main():
             print(f"\n❌ ERRO em '{produto['nome']}': {e}")
             erros.append((produto["nome"], str(e)))
 
-    if erros:
-        print(f"\n⚠️ {len(erros)} produto(s) com erro.")
-        # Se houve falha crítica em todos os produtos, força encerramento controlado
-        if len(erros) == len(PRODUTOS):
-            sys.exit(1)
+    if erros and len(erros) == len(PRODUTOS):
+        sys.exit(1)
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"💥 Erro fatal não tratado no main: {e}")
+        print(f"💥 Erro fatal: {e}")
         sys.exit(1)
