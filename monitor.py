@@ -56,7 +56,7 @@ SITES = [
         "produtos": [
             {
                 "nome": "Agasalho Oxer Replayer",
-                "url": "https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02",
+                "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
                 "alvo": 150.00,
             },
             {
@@ -180,29 +180,45 @@ def extrair_preco(html):
 
 # ------------------------------------------------------------
 # MÉTODO SCRAPE — 1 chamada scrape.do (render=false = 1 crédito)
+#
+# O JSON-LD do produto está no HTML estático da Centauro, então
+# render=false é suficiente. O 502 pode ser instabilidade pontual
+# do scrape.do, por isso há até 2 tentativas — mas só a bem-
+# sucedida consome 1 crédito.
 # ------------------------------------------------------------
 def buscar_preco_scrape(produto) -> float:
-    """
-    Faz UMA única requisição ao scrape.do sem render (1 crédito).
-    Extrai o preço via JSON-LD (+ fallbacks se ativados).
-    """
     url = produto["url"]
-
     encoded_url = quote(url)
     api_url = f"https://api.scrape.do/?token={SCRAPE_TOKEN}&url={encoded_url}&render=false"
 
-    print(f"   🔄 Requisitando via scrape.do (render=false, 1 crédito)...")
-    response = requests.get(api_url, timeout=90)
-    print(f"   Status HTTP: {response.status_code} | {len(response.text):,} chars")
+    for tentativa in range(1, 3):
+        print(f"   🔄 scrape.do render=false — tentativa {tentativa}/2 (1 crédito)...")
+        try:
+            response = requests.get(api_url, timeout=90)
+            print(f"   Status HTTP: {response.status_code} | {len(response.text):,} chars")
 
-    if response.status_code != 200:
-        raise Exception(f"scrape.do retornou {response.status_code}")
+            if response.status_code == 200:
+                preco = extrair_preco(response.text)
+                if preco is None:
+                    raise Exception("Nenhum preço encontrado no HTML (JSON-LD vazio ou ausente)")
+                return preco
 
-    preco = extrair_preco(response.text)
-    if preco is None:
-        raise Exception("Nenhum preço encontrado no HTML (JSON-LD vazio ou ausente)")
+            elif response.status_code == 502:
+                if tentativa == 2:
+                    raise Exception("scrape.do retornou 502 nas duas tentativas")
+                print(f"   ⚠️  502 instável — aguardando 8s antes de retry...")
+                time.sleep(8)
 
-    return preco
+            else:
+                raise Exception(f"scrape.do retornou {response.status_code}")
+
+        except Exception as e:
+            if tentativa == 2:
+                raise
+            print(f"   ⚠️  Erro: {e} — aguardando antes de retry...")
+            time.sleep(6)
+
+    raise Exception("Falha inesperada em buscar_preco_scrape")
 
 
 # ------------------------------------------------------------
