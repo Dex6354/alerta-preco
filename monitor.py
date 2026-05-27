@@ -58,6 +58,51 @@ def enviar_telegram(token, chat_id, mensagem):
         print(f"⚠️ Erro Telegram: {e}")
 
 
+# ─── Verificação de disponibilidade ──────────────────────────────────────────
+INDISPONIVEL_PATTERNS = [
+    r'produto\s+indispon[íi]vel',
+    r'indispon[íi]vel',
+    r'fora\s+de\s+estoque',
+    r'out\s+of\s+stock',
+    r'esgotado',
+]
+
+def verificar_disponibilidade(html):
+    """
+    Retorna False se a página indicar produto indisponível/esgotado.
+    Verifica primeiro o JSON-LD (mais confiável), depois o texto da página.
+    """
+    # JSON-LD: campo availability
+    for script in re.findall(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        html, re.DOTALL | re.IGNORECASE
+    ):
+        try:
+            data = json.loads(script)
+            if isinstance(data, list):
+                data = data[0]
+            offers = data.get("offers", {})
+            if isinstance(offers, list):
+                offers = offers[0]
+            availability = offers.get("availability", "")
+            if "OutOfStock" in availability or "Discontinued" in availability:
+                print("   ⚠️ [JSON-LD] Produto indisponível (OutOfStock)")
+                return False
+            if availability:
+                print(f"   ✅ [JSON-LD] Disponível ({availability})")
+                return True
+        except Exception:
+            continue
+
+    # Fallback: busca textual
+    for pattern in INDISPONIVEL_PATTERNS:
+        if re.search(pattern, html, re.IGNORECASE):
+            print(f"   ⚠️ [Texto] Indisponível — padrão encontrado: '{pattern}'")
+            return False
+
+    return True  # nenhum sinal de indisponibilidade
+
+
 # ─── Extração de preço ───────────────────────────────────────────────────────
 def extrair_preco(html):
     """
@@ -210,7 +255,10 @@ def buscar_html(url_produto):
 
 # ─── Monitor de um produto individual ────────────────────────────────────────
 def monitor_produto(produto, alvo):
-    """Busca o preço de um produto e retorna (nome, preco, url) ou lança exceção."""
+    """
+    Busca o HTML, verifica disponibilidade e extrai o preço.
+    Retorna (preco, disponivel) onde disponivel é False se produto esgotado.
+    """
     nome = produto["nome"]
     url  = produto["url"]
 
@@ -221,6 +269,13 @@ def monitor_produto(produto, alvo):
 
     html, scrape_calls = buscar_html(url)
 
+    print(f"\n🔍 VERIFICANDO DISPONIBILIDADE...")
+    disponivel = verificar_disponibilidade(html)
+
+    if not disponivel:
+        print(f"   ⛔ Produto indisponível — preço ignorado")
+        return None, False
+
     print(f"\n🔍 EXTRAINDO PREÇO... (chamadas pagas usadas: {scrape_calls})")
     preco = extrair_preco(html)
 
@@ -228,7 +283,7 @@ def monitor_produto(produto, alvo):
         raise Exception("Nenhum preço válido encontrado na página")
 
     print(f"\n💰 Preço: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
-    return preco
+    return preco, True
 
 
 # ─── Monitor de um grupo ─────────────────────────────────────────────────────
@@ -239,9 +294,14 @@ def monitor_grupo(grupo, token, chat_id):
 
     for produto in produtos:
         try:
-            preco = monitor_produto(produto, alvo)
+            preco, disponivel = monitor_produto(produto, alvo)
 
-            if preco <= alvo:
+            if not disponivel:
+                msg = (
+                    f"⛔ Monitor Centauro — {produto['nome']}\n"
+                    f"Produto indisponível no momento."
+                )
+            elif preco <= alvo:
                 msg = (
                     f"🔥 <b>ALERTA CENTAURO!</b>\n"
                     f"<b>{produto['nome']}</b>\n"
