@@ -6,24 +6,63 @@ import requests
 from urllib.parse import quote
 
 # ============================================================
-# PRODUTOS MONITORADOS
+# CONFIGURAÇÕES DE EXTRAÇÃO DE PREÇO
 # ============================================================
-PRODUTOS = [
+# JSON-LD é sempre a primeira estratégia (mais confiável).
+# Ative as opções abaixo apenas se o JSON-LD falhar no site alvo.
+
+USAR_PIX_REGEX   = False  # Busca preço próximo à palavra "Pix"
+USAR_HEURISTICA  = False  # Tenta adivinhar o preço por heurística de valores no HTML
+# ============================================================
+
+
+# ============================================================
+# SITES MONITORADOS
+# Cada seção é um dicionário com:
+#   "titulo_alerta" → título da mensagem no Telegram
+#   "produtos"      → lista de produtos do site
+# ============================================================
+
+SITES = [
+
+    # ----------------------------------------------------------
+    # 🏪 CENTAURO
+    # ----------------------------------------------------------
     {
-        "nome": "Agasalho Oxer Replayer",
-        "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
-        "alvo": 150.00,
+        "titulo_alerta": "🔥 ALERTA CENTAURO!",
+        "produtos": [
+            {
+                "nome": "Agasalho Oxer Replayer",
+                "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
+                "alvo": 150.00,
+            },
+            {
+                "nome": "Agasalho Asics",
+                "url": "https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02",
+                "alvo": 150.00,
+            },
+            {
+                "nome": "Regata Oxer Respirabilidade",
+                "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
+                "alvo": 80.00,
+            },
+        ],
     },
+
+    # ----------------------------------------------------------
+    # 🏪 SHIBATA
+    # ----------------------------------------------------------
     {
-        "nome": "Agasalho Oxer Replayer",
-        "url": "https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02",
-        "alvo": 150.00,
+        "titulo_alerta": "🔥 ALERTA SHIBATA!",
+        "produtos": [
+            {
+                "nome": "Sorvete Bombom",
+                "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
+                "alvo": 40.00,
+            },
+        ],
     },
-    {
-        "nome": "Regata Oxer Respirabilidade",
-        "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
-        "alvo": 80.00,
-    },
+
 ]
 # ============================================================
 
@@ -41,13 +80,11 @@ def enviar_telegram(token, chat_id, mensagem):
 
 def extrair_preco(html):
     """
-    Tenta extrair o preço principal em ordem de confiabilidade:
-    1. JSON-LD (dado estruturado — mais confiável)
-    2. Preço próximo à palavra "Pix"
-    3. Heurística: segundo menor preço válido
+    Tenta extrair o preço principal em ordem de confiabilidade.
+    As estratégias 2 e 3 são controladas pelas flags no topo do arquivo.
     """
 
-    # --- Estratégia 1: JSON-LD ---
+    # --- Estratégia 1: JSON-LD (sempre ativa) ---
     for script in re.findall(
         r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
         html,
@@ -63,50 +100,58 @@ def extrair_preco(html):
             price = offers.get("price") or offers.get("lowPrice")
             if price:
                 valor = float(str(price).replace(",", "."))
-                if 10 < valor < 1500:
+                if 10 < valor < 10000:
                     print(f"   ✅ [JSON-LD] Preço encontrado: R$ {valor:.2f}")
                     return valor
         except Exception:
             continue
 
     # --- Estratégia 2: Preço próximo à palavra "Pix" ---
-    pix_match = re.search(
-        r'R\$\s*([\d.,]+)(?:[\s\S]{0,200}?)(?:no\s+)?[Pp]ix'
-        r'|(?:no\s+)?[Pp]ix(?:[\s\S]{0,200}?)R\$\s*([\d.,]+)',
-        html,
-    )
-    if pix_match:
-        raw = pix_match.group(1) or pix_match.group(2)
-        try:
-            valor = float(raw.replace(".", "").replace(",", "."))
-            if 10 < valor < 1500:
-                print(f"   ✅ [Pix-regex] Preço encontrado: R$ {valor:.2f}")
-                return valor
-        except Exception:
-            pass
+    if USAR_PIX_REGEX:
+        pix_match = re.search(
+            r'R\$\s*([\d.,]+)(?:[\s\S]{0,200}?)(?:no\s+)?[Pp]ix'
+            r'|(?:no\s+)?[Pp]ix(?:[\s\S]{0,200}?)R\$\s*([\d.,]+)',
+            html,
+        )
+        if pix_match:
+            raw = pix_match.group(1) or pix_match.group(2)
+            try:
+                valor = float(raw.replace(".", "").replace(",", "."))
+                if 10 < valor < 10000:
+                    print(f"   ✅ [Pix-regex] Preço encontrado: R$ {valor:.2f}")
+                    return valor
+            except Exception:
+                pass
+    else:
+        print(f"   ⏭️ [Pix-regex] desativado (USAR_PIX_REGEX = False)")
 
     # --- Estratégia 3: Heurística ---
-    matches = re.findall(r'R\$\s*([\d.,]+)', html)
-    valid_prices = []
-    for m in matches:
-        try:
-            valor = float(m.replace(".", "").replace(",", "."))
-            if 10 < valor < 1500:
-                valid_prices.append(valor)
-        except Exception:
-            continue
+    if USAR_HEURISTICA:
+        matches = re.findall(r'R\$\s*([\d.,]+)', html)
+        valid_prices = []
+        for m in matches:
+            try:
+                valor = float(m.replace(".", "").replace(",", "."))
+                if 10 < valor < 10000:
+                    valid_prices.append(valor)
+            except Exception:
+                continue
 
-    unique_prices = sorted(set(valid_prices))
-    print(f"   ℹ️ [Heurística] Preços válidos: {unique_prices}")
+        unique_prices = sorted(set(valid_prices))
+        print(f"   ℹ️ [Heurística] Preços válidos: {unique_prices}")
 
-    if not unique_prices:
-        return None
-    if len(unique_prices) == 1:
-        return unique_prices[0]
+        if not unique_prices:
+            return None
+        if len(unique_prices) == 1:
+            return unique_prices[0]
 
-    preco = unique_prices[1] if len(unique_prices) >= 2 else unique_prices[0]
-    print(f"   ✅ [Heurística] Preço estimado: R$ {preco:.2f}")
-    return preco
+        preco = unique_prices[1] if len(unique_prices) >= 2 else unique_prices[0]
+        print(f"   ✅ [Heurística] Preço estimado: R$ {preco:.2f}")
+        return preco
+    else:
+        print(f"   ⏭️ [Heurística] desativada (USAR_HEURISTICA = False)")
+
+    return None
 
 
 def _requisicao_scrape(url, render: bool) -> str:
@@ -114,7 +159,6 @@ def _requisicao_scrape(url, render: bool) -> str:
     Faz uma única requisição ao scrape.do.
     render=False  → 1 crédito
     render=True   → 5 créditos
-    Lança exceção em caso de falha.
     """
     encoded_url = quote(url)
     modo = "render=true" if render else "render=false"
@@ -135,18 +179,15 @@ def _requisicao_scrape(url, render: bool) -> str:
 def buscar_html(url) -> tuple[str, str]:
     """
     Estratégia de economia de créditos:
+      1ª tentativa → sem render (1 crédito)
+          Se encontrar preço → economizou.
+          Se não encontrar   → tenta com render.
+      2ª tentativa → com render (5 créditos), até 2 retries em caso de 502.
 
-    1ª tentativa  → sem render (1 crédito)
-        Se encontrar preço → ótimo, economizou.
-        Se não encontrar   → tenta com render.
-
-    2ª tentativa  → com render (5 créditos), até 2 retries em caso de 502.
-
-    Retorna (html, modo_usado) para logging.
     Custo por produto:
-        Melhor caso  → 1 crédito  (sem render resolveu)
-        Pior caso    → 6 créditos (1 sem render + 5 com render)
-        Antes        → 5 créditos (render direto, sempre)
+        Melhor caso → 1 crédito  (sem render resolveu)
+        Pior caso   → 6 créditos (1 sem render + 5 com render)
+        Antes       → 5 créditos (render direto, sempre)
     """
 
     # --- Passo 1: tentar sem render (barato) ---
@@ -178,7 +219,7 @@ def buscar_html(url) -> tuple[str, str]:
     raise Exception("Falha inesperada em buscar_html")
 
 
-def monitorar_produto(produto, token, chat_id):
+def monitorar_produto(produto, titulo_alerta, token, chat_id):
     nome = produto["nome"]
     url  = produto["url"]
     alvo = produto["alvo"]
@@ -198,7 +239,7 @@ def monitorar_produto(produto, token, chat_id):
 
     if preco <= alvo:
         msg = (
-            f"🔥 <b>ALERTA CENTAURO!</b>\n\n"
+            f"<b>{titulo_alerta}</b>\n\n"
             f'<a href="{url}">{nome}</a>\n\n'
             f"Preço: <b>R$ {preco:.2f}</b>\n"
             f"Alvo: <b>R$ {alvo:.2f}</b>"
@@ -214,14 +255,23 @@ def main():
     chat_id = os.environ.get("CHAT_ID")
 
     erros = []
-    for produto in PRODUTOS:
-        try:
-            monitorar_produto(produto, token, chat_id)
-        except Exception as e:
-            print(f"\n❌ ERRO em '{produto['nome']}': {e}")
-            erros.append((produto["nome"], str(e)))
-        # Pequena pausa entre requisições
-        time.sleep(3)
+
+    for site in SITES:
+        titulo_alerta = site["titulo_alerta"]
+        produtos      = site["produtos"]
+
+        print(f"\n{'#'*60}")
+        print(f"# {titulo_alerta}")
+        print(f"{'#'*60}")
+
+        for produto in produtos:
+            try:
+                monitorar_produto(produto, titulo_alerta, token, chat_id)
+            except Exception as e:
+                print(f"\n❌ ERRO em '{produto['nome']}': {e}")
+                erros.append((produto["nome"], str(e)))
+            # Pequena pausa entre requisições
+            time.sleep(3)
 
     if erros:
         print(f"\n⚠️ {len(erros)} produto(s) com erro:")
