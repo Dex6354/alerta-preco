@@ -28,13 +28,13 @@ PRODUTOS = [
         "urls": [
             "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l"
         ],
-        "alvo": 40.00,
+        "alvo": 40.00,  # Aumente aqui para testar o disparo se o preço real for maior
     },
     {
         "nome": "Exemplo Multi-Links (Mesmo Alvo)",
         "urls": [
             "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
-            "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
+            "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l"
         ],
         "alvo": 150.00,
     }
@@ -145,14 +145,15 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 # ------------------------------------------------------------
 # PARSERS E BUSCA SHIBATA
 # ------------------------------------------------------------
-def buscar_preco_shibata(url_produto, nome_produto):
-    match_id = re.search(r'/produto/(\d+)/', url_produto)
-    if not match_id:
-        raise Exception(f"produto_id não encontrado na URL: {url_produto}")
-    produto_id = int(match_id.group(1))
-
-    # Retornado para a lógica original usando a primeira palavra do nome do produto
-    termo = quote(nome_produto.split()[0])
+def buscar_preco_shibata(url_produto):
+    # Extrai o ID do produto da URL
+    match = re.search(r'/produto/(\d+)/([^/?#\s]+)', url_produto)
+    if not match:
+        raise Exception(f"Não foi possível extrair ID/Slug da URL Shibata: {url_produto}")
+    
+    produto_id = int(match.group(1))
+    # Extrai o termo do slug da URL em vez de usar o 'nome' do produto mapeado
+    termo = quote(match.group(2).split('-')[0])
 
     api_url = (
         f"https://services.vipcommerce.com.br/api-admin/v1/org/{SHIBATA_ORG_ID}"
@@ -162,7 +163,7 @@ def buscar_preco_shibata(url_produto, nome_produto):
 
     response = requests.get(api_url, headers=HEADERS_SHIBATA, timeout=15)
     if response.status_code != 200:
-        raise Exception(f"API Shibata retornou {response.status_code}")
+        raise Exception(f"API Shibata retornou status {response.status_code}. Token/Sessão podem ter expirado.")
 
     produtos = response.json().get("data", {}).get("produtos", [])
     for p in produtos:
@@ -172,7 +173,7 @@ def buscar_preco_shibata(url_produto, nome_produto):
             preco_base = p.get("preco") or 0
             return float(preco_oferta) if (p.get("em_oferta") and preco_oferta) else float(preco_base)
 
-    raise Exception(f"Produto ID {produto_id} não encontrado na resposta da API Shibata")
+    raise Exception(f"Produto ID {produto_id} não encontrado na listagem da busca da API Shibata.")
 
 # ------------------------------------------------------------
 # MONITOR FLUXO PRINCIPAL
@@ -183,7 +184,7 @@ def monitorar_url(nome, url, alvo, token, chat_id):
         preco = buscar_preco_centauro(url)
     elif "shibata.com.br" in url:
         loja = "SHIBATA"
-        preco = buscar_preco_shibata(url, nome)
+        preco = buscar_preco_shibata(url)
     else:
         print(f"⚠️ URL não suportada: {url}")
         return
@@ -191,6 +192,7 @@ def monitorar_url(nome, url, alvo, token, chat_id):
     print(f"   💰 Preço atual: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
 
     if preco <= alvo:
+        # Formatação com o link embutido diretamente no nome do item
         msg = (
             f"🔥 <b>ALERTA {loja}!</b>\n\n"
             f'<a href="{url}">{nome}</a>\n\n'
@@ -216,7 +218,7 @@ def main():
 
         for url in urls:
             try:
-                print(f"\n🔍 Verificando link: {url[:60]}...")
+                print(f"\n🔍 Verificando link: {url[:65]}...")
                 monitorar_url(nome, url, alvo, token, chat_id)
             except Exception as e:
                 print(f"   ❌ ERRO: {e}")
