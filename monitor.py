@@ -145,14 +145,14 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 # ------------------------------------------------------------
 # PARSERS E BUSCA SHIBATA
 # ------------------------------------------------------------
-def buscar_preco_shibata(url_produto):
+def buscar_preco_shibata(url_produto, nome_produto):
     match_id = re.search(r'/produto/(\d+)/', url_produto)
     if not match_id:
         raise Exception(f"produto_id não encontrado na URL: {url_produto}")
     produto_id = int(match_id.group(1))
 
-    match_slug = re.search(r'/produto/\d+/(.+)', url_produto)
-    termo = quote(match_slug.group(1).split('-')[0]) if match_slug else "sorvete"
+    # Retornado para a lógica original usando a primeira palavra do nome do produto
+    termo = quote(nome_produto.split()[0])
 
     api_url = (
         f"https://services.vipcommerce.com.br/api-admin/v1/org/{SHIBATA_ORG_ID}"
@@ -183,7 +183,7 @@ def monitorar_url(nome, url, alvo, token, chat_id):
         preco = buscar_preco_centauro(url)
     elif "shibata.com.br" in url:
         loja = "SHIBATA"
-        preco = buscar_preco_shibata(url)
+        preco = buscar_preco_shibata(url, nome)
     else:
         print(f"⚠️ URL não suportada: {url}")
         return
@@ -193,8 +193,7 @@ def monitorar_url(nome, url, alvo, token, chat_id):
     if preco <= alvo:
         msg = (
             f"🔥 <b>ALERTA {loja}!</b>\n\n"
-            f'<b>Item:</b> {nome}\n'
-            f'<b>Link:</b> <a href="{url}">Clique aqui para abrir</a>\n\n'
+            f'<a href="{url}">{nome}</a>\n\n'
             f"Preço: <b>R$ {preco:.2f}</b>\n"
             f"Alvo: <b>R$ {alvo:.2f}</b>"
         )
