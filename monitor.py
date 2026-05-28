@@ -104,7 +104,7 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
         try:
             s = curl_requests.Session(impersonate="chrome")
             resp = s.get(api_url, headers=HEADERS_CENTAURO, timeout=30)
-
+            
             if resp.status_code == 403:
                 raise Exception("403 Forbidden (Bloqueio Akamai)")
             if resp.status_code != 200:
@@ -113,7 +113,7 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
             data = resp.json()
             product_data = data.get("product", {})
             sizes = product_data.get("sizes", [])
-
+            
             if not sizes and product_data.get("priceInfos"):
                 sizes = [{"priceInfos": product_data.get("priceInfos"), "hasStock": True, "description": "Único"}]
 
@@ -144,4 +144,88 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 
 # ------------------------------------------------------------
 # PARSERS E BUSCA SHIBATA
-# -----------------------------------------------------------
+# ------------------------------------------------------------
+def buscar_preco_shibata(url_produto, nome_produto):
+    match_id = re.search(r'/produto/(\d+)/', url_produto)
+    if not match_id:
+        raise Exception(f"produto_id não encontrado na URL: {url_produto}")
+    produto_id = int(match_id.group(1))
+
+    # Retornado para a lógica original usando a primeira palavra do nome do produto
+    termo = quote(nome_produto.split()[0])
+
+    api_url = (
+        f"https://services.vipcommerce.com.br/api-admin/v1/org/{SHIBATA_ORG_ID}"
+        f"/filial/1/centro_distribuicao/1/loja/buscas/produtos/termo/{termo}?page=1"
+    )
+    print(f"   🔗 API Shibata: {api_url} (ID: {produto_id})")
+
+    response = requests.get(api_url, headers=HEADERS_SHIBATA, timeout=15)
+    if response.status_code != 200:
+        raise Exception(f"API Shibata retornou {response.status_code}")
+
+    produtos = response.json().get("data", {}).get("produtos", [])
+    for p in produtos:
+        if p.get("produto_id") == produto_id or p.get("id") == produto_id:
+            oferta = p.get("oferta") or {}
+            preco_oferta = oferta.get("preco_oferta")
+            preco_base = p.get("preco") or 0
+            return float(preco_oferta) if (p.get("em_oferta") and preco_oferta) else float(preco_base)
+
+    raise Exception(f"Produto ID {produto_id} não encontrado na resposta da API Shibata")
+
+# ------------------------------------------------------------
+# MONITOR FLUXO PRINCIPAL
+# ------------------------------------------------------------
+def monitorar_url(nome, url, alvo, token, chat_id):
+    if "centauro.com.br" in url:
+        loja = "CENTAURO"
+        preco = buscar_preco_centauro(url)
+    elif "shibata.com.br" in url:
+        loja = "SHIBATA"
+        preco = buscar_preco_shibata(url, nome)
+    else:
+        print(f"⚠️ URL não suportada: {url}")
+        return
+
+    print(f"   💰 Preço atual: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+
+    if preco <= alvo:
+        msg = (
+            f"🔥 <b>ALERTA {loja}!</b>\n\n"
+            f'<a href="{url}">{nome}</a>\n\n'
+            f"Preço: <b>R$ {preco:.2f}</b>\n"
+            f"Alvo: <b>R$ {alvo:.2f}</b>"
+        )
+        enviar_telegram(token, chat_id, msg)
+        print("   📤 Alerta enviado ao Telegram!")
+    else:
+        print("   ✅ Preço dentro do esperado (acima do alvo).")
+
+def main():
+    token = os.environ.get('TELEGRAM_TOKEN')
+    chat_id = os.environ.get('CHAT_ID')
+    erros = []
+
+    for produto in PRODUTOS:
+        nome = produto["nome"]
+        alvo = produto["alvo"]
+        urls = produto["urls"]
+
+        print(f"\n{'=' * 60}\n📦 {nome}\n🎯 Alvo Geral: R$ {alvo:.2f}\n{'=' * 60}")
+
+        for url in urls:
+            try:
+                print(f"\n🔍 Verificando link: {url[:60]}...")
+                monitorar_url(nome, url, alvo, token, chat_id)
+            except Exception as e:
+                print(f"   ❌ ERRO: {e}")
+                erros.append((nome, url, str(e)))
+            time.sleep(2)
+
+    print(f"\n{'#' * 60}\n🏁 Monitoramento Concluído.")
+    if erros:
+        print(f"⚠️ Houve falha em {len(erros)} link(s).")
+
+if __name__ == "__main__":
+    main()
