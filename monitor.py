@@ -28,13 +28,13 @@ PRODUTOS = [
         "urls": [
             "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l"
         ],
-        "alvo": 40.00,  # Aumente aqui para testar o disparo se o preço real for maior
+        "alvo": 40.00,
     },
     {
         "nome": "Exemplo Multi-Links (Mesmo Alvo)",
         "urls": [
             "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
-            "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l"
+            "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"
         ],
         "alvo": 150.00,
     }
@@ -104,7 +104,7 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
         try:
             s = curl_requests.Session(impersonate="chrome")
             resp = s.get(api_url, headers=HEADERS_CENTAURO, timeout=30)
-            
+
             if resp.status_code == 403:
                 raise Exception("403 Forbidden (Bloqueio Akamai)")
             if resp.status_code != 200:
@@ -113,7 +113,7 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
             data = resp.json()
             product_data = data.get("product", {})
             sizes = product_data.get("sizes", [])
-            
+
             if not sizes and product_data.get("priceInfos"):
                 sizes = [{"priceInfos": product_data.get("priceInfos"), "hasStock": True, "description": "Único"}]
 
@@ -144,90 +144,4 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 
 # ------------------------------------------------------------
 # PARSERS E BUSCA SHIBATA
-# ------------------------------------------------------------
-def buscar_preco_shibata(url_produto):
-    # Extrai o ID do produto da URL
-    match = re.search(r'/produto/(\d+)/([^/?#\s]+)', url_produto)
-    if not match:
-        raise Exception(f"Não foi possível extrair ID/Slug da URL Shibata: {url_produto}")
-    
-    produto_id = int(match.group(1))
-    # Extrai o termo do slug da URL em vez de usar o 'nome' do produto mapeado
-    termo = quote(match.group(2).split('-')[0])
-
-    api_url = (
-        f"https://services.vipcommerce.com.br/api-admin/v1/org/{SHIBATA_ORG_ID}"
-        f"/filial/1/centro_distribuicao/1/loja/buscas/produtos/termo/{termo}?page=1"
-    )
-    print(f"   🔗 API Shibata: {api_url} (ID: {produto_id})")
-
-    response = requests.get(api_url, headers=HEADERS_SHIBATA, timeout=15)
-    if response.status_code != 200:
-        raise Exception(f"API Shibata retornou status {response.status_code}. Token/Sessão podem ter expirado.")
-
-    produtos = response.json().get("data", {}).get("produtos", [])
-    for p in produtos:
-        if p.get("produto_id") == produto_id or p.get("id") == produto_id:
-            oferta = p.get("oferta") or {}
-            preco_oferta = oferta.get("preco_oferta")
-            preco_base = p.get("preco") or 0
-            return float(preco_oferta) if (p.get("em_oferta") and preco_oferta) else float(preco_base)
-
-    raise Exception(f"Produto ID {produto_id} não encontrado na listagem da busca da API Shibata.")
-
-# ------------------------------------------------------------
-# MONITOR FLUXO PRINCIPAL
-# ------------------------------------------------------------
-def monitorar_url(nome, url, alvo, token, chat_id):
-    if "centauro.com.br" in url:
-        loja = "CENTAURO"
-        preco = buscar_preco_centauro(url)
-    elif "shibata.com.br" in url:
-        loja = "SHIBATA"
-        preco = buscar_preco_shibata(url)
-    else:
-        print(f"⚠️ URL não suportada: {url}")
-        return
-
-    print(f"   💰 Preço atual: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
-
-    if preco <= alvo:
-        # Formatação com o link embutido diretamente no nome do item
-        msg = (
-            f"🔥 <b>ALERTA {loja}!</b>\n\n"
-            f'<a href="{url}">{nome}</a>\n\n'
-            f"Preço: <b>R$ {preco:.2f}</b>\n"
-            f"Alvo: <b>R$ {alvo:.2f}</b>"
-        )
-        enviar_telegram(token, chat_id, msg)
-        print("   📤 Alerta enviado ao Telegram!")
-    else:
-        print("   ✅ Preço dentro do esperado (acima do alvo).")
-
-def main():
-    token = os.environ.get('TELEGRAM_TOKEN')
-    chat_id = os.environ.get('CHAT_ID')
-    erros = []
-
-    for produto in PRODUTOS:
-        nome = produto["nome"]
-        alvo = produto["alvo"]
-        urls = produto["urls"]
-
-        print(f"\n{'=' * 60}\n📦 {nome}\n🎯 Alvo Geral: R$ {alvo:.2f}\n{'=' * 60}")
-
-        for url in urls:
-            try:
-                print(f"\n🔍 Verificando link: {url[:65]}...")
-                monitorar_url(nome, url, alvo, token, chat_id)
-            except Exception as e:
-                print(f"   ❌ ERRO: {e}")
-                erros.append((nome, url, str(e)))
-            time.sleep(2)
-
-    print(f"\n{'#' * 60}\n🏁 Monitoramento Concluído.")
-    if erros:
-        print(f"⚠️ Houve falha em {len(erros)} link(s).")
-
-if __name__ == "__main__":
-    main()
+# -----------------------------------------------------------
