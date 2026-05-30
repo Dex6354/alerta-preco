@@ -2,7 +2,6 @@ import os
 import re
 import time
 import sys
-from urllib.parse import quote
 
 try:
     from curl_cffi import requests as curl_requests
@@ -47,6 +46,11 @@ CENTAURO_HEADERS = {
 
 # ============================================================
 # SITES MONITORADOS
+#
+# Cada produto pode ter:
+#   • "url"  (string) → link único, alvo individual
+#   • "urls" (lista)  → vários links com alvo compartilhado;
+#                       alerta único se QUALQUER um atingir o alvo
 # ============================================================
 SITES = [
     {
@@ -75,9 +79,28 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA SHIBATA!",
         "produtos": [
             {
-                "nome": "Leite",
-                "url": "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l",
+                "nome": "Sorvete Bombom Jundiaí Pote 2L",
+                "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
                 "alvo": 40.00,
+            },
+            {
+                # Alvo compartilhado: dispara se QUALQUER leite atingir R$ 5,00
+                "nome": "Leite UHT 1L",
+                "alvo": 5.00,
+                "urls": [
+                    {
+                        "nome": "Leite UHT Integral Jussara c/ Tampa 1L",
+                        "url": "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
+                    },
+                    {
+                        "nome": "Leite Longa Vida Batavo Integral c/ Tampa 1L",
+                        "url": "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
+                    },
+                    {
+                        "nome": "Leite UHT Integral Parmalat c/ Tampa 1L",
+                        "url": "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l",
+                    },
+                ],
             },
         ],
     },
@@ -125,21 +148,20 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
             if resp.status_code != 200:
                 raise Exception(f"API retornou status {resp.status_code}")
 
-            data = resp.json()
+            data         = resp.json()
             product_data = data.get("product", {})
-            sizes = product_data.get("sizes", [])
+            sizes        = product_data.get("sizes", [])
 
             if not sizes and product_data.get("priceInfos"):
                 sizes = [{"priceInfos": product_data.get("priceInfos"), "hasStock": True, "description": "Único"}]
 
-            precos_pix   = []
-            precos_promo = []
+            precos_pix    = []
+            precos_promo  = []
             precos_cheios = []
 
             for item in sizes:
                 if not item.get("hasStock", False):
                     continue
-
                 tamanho = item.get("description", "N/A")
                 pi = item.get("priceInfos", {})
                 if not pi:
@@ -178,19 +200,15 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 # ============================================================
 # SHIBATA — busca de preço via API
 # ============================================================
-def buscar_preco_shibata(produto) -> float:
-    url_produto = produto["url"]
-    nome        = produto["nome"]
-
-    match_id = re.search(r'/produto/(\d+)/', url_produto)
+def buscar_preco_shibata(nome, url) -> float:
+    match_id = re.search(r'/produto/(\d+)/', url)
     if not match_id:
-        raise Exception(f"produto_id não encontrado na URL: {url_produto}")
-    produto_id = int(match_id.group(1))
+        raise Exception(f"produto_id não encontrado na URL: {url}")
+    produto_id = match_id.group(1)
 
-    termo = quote(nome.split()[0])
     api_url = (
         f"https://services.vipcommerce.com.br/api-admin/v1/org/{SHIBATA_ORG_ID}"
-        f"/filial/1/centro_distribuicao/1/loja/buscas/produtos/termo/{termo}?page=1"
+        f"/filial/1/centro_distribuicao/1/loja/produtos/{produto_id}/detalhes"
     )
 
     print(f"   🔄 Consultando API Shibata (produto_id={produto_id})...")
@@ -200,40 +218,39 @@ def buscar_preco_shibata(produto) -> float:
     if response.status_code != 200:
         raise Exception(f"API Shibata retornou {response.status_code}")
 
-    produtos = response.json().get("data", {}).get("produtos", [])
-    print(f"   ℹ️  {len(produtos)} produto(s) retornado(s) pela API")
+    produto = response.json().get("data", {}).get("produto", {})
+    if not produto:
+        raise Exception(f"Produto ID {produto_id} não encontrado na API Shibata")
 
-    for p in produtos:
-        if p.get("produto_id") == produto_id or p.get("id") == produto_id:
-            oferta       = p.get("oferta") or {}
-            preco_oferta = oferta.get("preco_oferta")
-            preco_base   = p.get("preco") or 0
-            preco = float(preco_oferta) if (p.get("em_oferta") and preco_oferta) else float(preco_base)
-            print(f"   ✅ [API Shibata] Produto encontrado: R$ {preco:.2f}")
-            return preco
-
-    raise Exception(f"Produto ID {produto_id} não encontrado na resposta da API Shibata")
+    preco = float(produto.get("preco") or 0)
+    print(f"   ✅ Encontrado: R$ {preco:.2f}")
+    return preco
 
 # ============================================================
-# MONITOR UNIFICADO
+# BUSCA DE PREÇO — roteador por loja
 # ============================================================
-def monitorar_produto(produto, loja, titulo_alerta, token, chat_id):
-    nome = produto["nome"]
-    url  = produto["url"]
-    alvo = produto["alvo"]
+def buscar_preco(loja, nome, url):
+    if loja == "centauro":
+        return buscar_preco_centauro(url)
+    elif loja == "shibata":
+        return buscar_preco_shibata(nome, url)
+    else:
+        raise Exception(f"Loja desconhecida: '{loja}'")
+
+# ============================================================
+# MONITOR — produto com URL única
+# ============================================================
+def monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id):
+    nome = entrada["nome"]
+    url  = entrada["url"]
+    alvo = entrada["alvo"]
 
     print(f"\n{'='*60}")
     print(f"📦 {nome}")
     print(f"   Alvo: R$ {alvo:.2f} | Loja: {loja.upper()}")
     print(f"{'='*60}")
 
-    if loja == "centauro":
-        preco = buscar_preco_centauro(url)
-    elif loja == "shibata":
-        preco = buscar_preco_shibata(produto)
-    else:
-        raise Exception(f"Loja desconhecida: '{loja}'")
-
+    preco = buscar_preco(loja, nome, url)
     print(f"\n💰 Preço final: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
 
     if preco <= alvo:
@@ -248,6 +265,58 @@ def monitorar_produto(produto, loja, titulo_alerta, token, chat_id):
     else:
         print("ℹ️  Preço acima do alvo — sem alerta.")
 
+# ============================================================
+# MONITOR — grupo de URLs com alvo compartilhado
+# ============================================================
+def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
+    nome_grupo = entrada["nome"]
+    alvo       = entrada["alvo"]
+    urls       = entrada["urls"]
+
+    print(f"\n{'='*60}")
+    print(f"📦 GRUPO: {nome_grupo}  |  Alvo compartilhado: R$ {alvo:.2f} | Loja: {loja.upper()}")
+    print(f"{'='*60}")
+
+    atingiram = []
+    erros     = []
+
+    for item in urls:
+        nome = item["nome"]
+        url  = item["url"]
+        print(f"\n   🔍 {nome}")
+        try:
+            preco = buscar_preco(loja, nome, url)
+            print(f"   💰 Preço: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+            if preco <= alvo:
+                atingiram.append({"nome": nome, "url": url, "preco": preco})
+                print("   ✅ Abaixo do alvo!")
+            else:
+                print("   ℹ️  Acima do alvo.")
+        except Exception as e:
+            print(f"   ❌ Erro: {e}")
+            erros.append((nome, str(e)))
+        time.sleep(2)
+
+    if atingiram:
+        linhas = "\n".join(
+            f'• <a href="{p["url"]}">{p["nome"]}</a> — <b>R$ {p["preco"]:.2f}</b>'
+            for p in atingiram
+        )
+        msg = (
+            f"<b>{titulo_alerta}</b>\n"
+            f"Grupo: <b>{nome_grupo}</b> | Alvo: <b>R$ {alvo:.2f}</b>\n\n"
+            f"{linhas}"
+        )
+        enviar_telegram(token, chat_id, msg)
+        print(f"\n📤 Alerta do grupo '{nome_grupo}' enviado ({len(atingiram)} produto(s) abaixo do alvo)!")
+    else:
+        print(f"\nℹ️  Nenhum produto do grupo '{nome_grupo}' atingiu o alvo.")
+
+    return erros
+
+# ============================================================
+# MAIN
+# ============================================================
 def main():
     token   = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("CHAT_ID")
@@ -257,18 +326,25 @@ def main():
     for site in SITES:
         loja          = site["loja"]
         titulo_alerta = site["titulo_alerta"]
-        produtos      = site["produtos"]
 
         print(f"\n{'#'*60}")
         print(f"# {titulo_alerta}")
         print(f"{'#'*60}")
 
-        for produto in produtos:
+        for entrada in site["produtos"]:
             try:
-                monitorar_produto(produto, loja, titulo_alerta, token, chat_id)
+                if "url" in entrada:
+                    # Produto com link único
+                    monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id)
+                elif "urls" in entrada:
+                    # Grupo de links com alvo compartilhado
+                    erros_grupo = monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id)
+                    erros.extend(erros_grupo)
+                else:
+                    raise Exception(f"Entrada sem 'url' nem 'urls': {entrada.get('nome', '?')}")
             except Exception as e:
-                print(f"\n❌ ERRO em '{produto['nome']}': {e}")
-                erros.append((produto["nome"], str(e)))
+                print(f"\n❌ ERRO em '{entrada.get('nome', '?')}': {e}")
+                erros.append((entrada.get("nome", "?"), str(e)))
             time.sleep(2)
 
     if erros:
@@ -278,8 +354,12 @@ def main():
     else:
         print("\n✅ Monitoramento concluído sem erros.")
 
-    total_produtos = sum(len(s["produtos"]) for s in SITES)
-    if erros and len(erros) == total_produtos:
+    # Conta todos os links monitorados
+    total_links = sum(
+        1 if "url" in e else len(e.get("urls", []))
+        for s in SITES for e in s["produtos"]
+    )
+    if erros and len(erros) == total_links:
         sys.exit(1)
 
 if __name__ == "__main__":
