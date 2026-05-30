@@ -58,17 +58,14 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA CENTAURO!",
         "produtos": [
             {
-                "nome": "Tênis Masculino Nike Revolution 8",
                 "url": "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31",
                 "alvo": 300.00,
             },
             {
-                "nome": "Regata",
                 "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
                 "alvo": 70.00,
             },
             {
-                "nome": "Conjunto Agasalho Oxer Replayer",
                 "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
                 "alvo": 200.00,
             },
@@ -79,7 +76,7 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA SHIBATA!",
         "produtos": [
             {
-                "nome": "Sorvete Bombom",
+                "nome": "Sorvete Bombom Jundiaí Pote 2L",
                 "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
                 "alvo": 40.00,
             },
@@ -147,6 +144,7 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 
             data         = resp.json()
             product_data = data.get("product", {})
+            nome_api     = product_data.get("name", "Produto desconhecido")
             sizes        = product_data.get("sizes", [])
 
             if not sizes and product_data.get("priceInfos"):
@@ -179,11 +177,11 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
                     precos_cheios.append(float(cheio))
 
             if precos_pix:
-                return min(precos_pix)
+                return min(precos_pix), nome_api
             if precos_promo:
-                return min(precos_promo)
+                return min(precos_promo), nome_api
             if precos_cheios:
-                return min(precos_cheios)
+                return min(precos_cheios), nome_api
 
             raise Exception("Nenhum preço disponível encontrado no JSON")
 
@@ -229,7 +227,7 @@ def buscar_preco_shibata(nome, url) -> float:
 # ============================================================
 def buscar_preco(loja, nome, url):
     if loja == "centauro":
-        return buscar_preco_centauro(url), nome
+        return buscar_preco_centauro(url)   # retorna (preco, nome_api)
     elif loja == "shibata":
         return buscar_preco_shibata(nome, url)  # retorna (preco, descricao)
     else:
