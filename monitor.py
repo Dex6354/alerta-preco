@@ -79,7 +79,7 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA SHIBATA!",
         "produtos": [
             {
-                "nome": "Sorvete Bombom Jundiaí Pote 2L",
+                "nome": "Sorvete Bombom",
                 "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
                 "alvo": 40.00,
             },
@@ -89,15 +89,12 @@ SITES = [
                 "alvo": 5.00,
                 "urls": [
                     {
-                        "nome": "Leite UHT Integral Jussara c/ Tampa 1L",
                         "url": "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
                     },
                     {
-                        "nome": "Leite Longa Vida Batavo Integral c/ Tampa 1L",
                         "url": "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
                     },
                     {
-                        "nome": "Leite UHT Integral Parmalat c/ Tampa 1L",
                         "url": "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l",
                     },
                 ],
@@ -150,6 +147,7 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 
             data         = resp.json()
             product_data = data.get("product", {})
+
             sizes        = product_data.get("sizes", [])
 
             if not sizes and product_data.get("priceInfos"):
@@ -222,18 +220,19 @@ def buscar_preco_shibata(nome, url) -> float:
     if not produto:
         raise Exception(f"Produto ID {produto_id} não encontrado na API Shibata")
 
-    preco = float(produto.get("preco") or 0)
-    print(f"   ✅ Encontrado: R$ {preco:.2f}")
-    return preco
+    preco    = float(produto.get("preco") or 0)
+    descricao = produto.get("descricao") or f"Produto {produto_id}"
+    print(f"   ✅ {descricao} — R$ {preco:.2f}")
+    return preco, descricao
 
 # ============================================================
 # BUSCA DE PREÇO — roteador por loja
 # ============================================================
 def buscar_preco(loja, nome, url):
     if loja == "centauro":
-        return buscar_preco_centauro(url)
+        return buscar_preco_centauro(url), nome
     elif loja == "shibata":
-        return buscar_preco_shibata(nome, url)
+        return buscar_preco_shibata(nome, url)  # retorna (preco, descricao)
     else:
         raise Exception(f"Loja desconhecida: '{loja}'")
 
@@ -250,13 +249,13 @@ def monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id):
     print(f"   Alvo: R$ {alvo:.2f} | Loja: {loja.upper()}")
     print(f"{'='*60}")
 
-    preco = buscar_preco(loja, nome, url)
-    print(f"\n💰 Preço final: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+    preco, nome_real = buscar_preco(loja, nome, url)
+    print(f"\n💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
 
     if preco <= alvo:
         msg = (
             f"<b>{titulo_alerta}</b>\n\n"
-            f'<a href="{url}">{nome}</a>\n\n'
+            f'<a href="{url}">{nome_real}</a>\n\n'
             f"Preço: <b>R$ {preco:.2f}</b>\n"
             f"Alvo:  <b>R$ {alvo:.2f}</b>"
         )
@@ -281,14 +280,14 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
     erros     = []
 
     for item in urls:
-        nome = item["nome"]
         url  = item["url"]
-        print(f"\n   🔍 {nome}")
+        nome = item.get("nome", url)  # fallback para a URL se nome não existir
+        print(f"\n   🔍 {url}")
         try:
-            preco = buscar_preco(loja, nome, url)
-            print(f"   💰 Preço: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+            preco, nome_real = buscar_preco(loja, nome, url)
+            print(f"   💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
             if preco <= alvo:
-                atingiram.append({"nome": nome, "url": url, "preco": preco})
+                atingiram.append({"nome": nome_real, "url": url, "preco": preco})
                 print("   ✅ Abaixo do alvo!")
             else:
                 print("   ℹ️  Acima do alvo.")
