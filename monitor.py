@@ -25,6 +25,8 @@ SHIBATA_HEADERS = {
     "User-Agent": "Mozilla/5.0",
 }
 
+SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
+
 # ============================================================
 # HEADERS CENTAURO
 # ============================================================
@@ -52,8 +54,8 @@ CENTAURO_HEADERS = {
 #   • "urls" (lista)  → vários links com alvo compartilhado;
 #                       alerta único se QUALQUER um atingir o alvo
 #
-# Para a Centauro, o campo "nome" é usado apenas como rótulo
-# no log — o nome exibido no alerta vem de product.name da API.
+# Para a Centauro, "nome" é rótulo de log — o nome real vem de product.name da API.
+# Para o Shibata, a imagem é buscada automaticamente via data.produto.imagem.
 # ============================================================
 SITES = [
     {
@@ -61,7 +63,7 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA CENTAURO!",
         "produtos": [
             {
-                "nome": "Tênis",
+                "nome": "Tênis Masculino Nike Revolution 8",
                 "url": "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31",
                 "alvo": 300.00,
             },
@@ -71,7 +73,7 @@ SITES = [
                 "alvo": 70.00,
             },
             {
-                "nome": "Conjunto Agasalho",
+                "nome": "Conjunto Agasalho Oxer Replayer",
                 "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
                 "alvo": 200.00,
             },
@@ -110,6 +112,7 @@ SITES = [
 # TELEGRAM
 # ============================================================
 def enviar_telegram(token, chat_id, mensagem):
+    """Envia mensagem de texto simples."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
@@ -118,10 +121,31 @@ def enviar_telegram(token, chat_id, mensagem):
         payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
-        print(f"⚠️ Erro Telegram: {e}")
+        print(f"⚠️ Erro Telegram (texto): {e}")
+
+def enviar_telegram_foto(token, chat_id, foto_url, caption):
+    """Envia foto com legenda. Faz fallback para texto se falhar."""
+    if not token or not chat_id:
+        print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
+        return
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendPhoto"
+        payload = {
+            "chat_id": chat_id,
+            "photo": foto_url,
+            "caption": caption,
+            "parse_mode": "HTML",
+        }
+        resp = requests.post(url, json=payload, timeout=20)
+        if not resp.ok:
+            raise Exception(f"sendPhoto retornou {resp.status_code}: {resp.text}")
+    except Exception as e:
+        print(f"⚠️ Erro Telegram (foto): {e} — tentando enviar só o texto.")
+        enviar_telegram(token, chat_id, caption)
 
 # ============================================================
 # CENTAURO — busca de preço via API
+# retorna: (preco: float, nome: str, imagem_url: None)
 # ============================================================
 def extrair_codigo_cor(url_produto):
     codigo_match = re.search(r'-(\d{6,7})\.html', url_produto)
@@ -151,7 +175,7 @@ def buscar_preco_centauro(url_produto, nome_fallback="Produto", max_tentativas=3
             data         = resp.json()
             product_data = data.get("product", {})
 
-            # ── Nome vindo da API (product.name) ──────────────────────
+            # Nome vindo da API (product.name)
             nome_api = product_data.get("name") or nome_fallback
 
             sizes = product_data.get("sizes", [])
@@ -186,11 +210,11 @@ def buscar_preco_centauro(url_produto, nome_fallback="Produto", max_tentativas=3
                     precos_cheios.append(float(cheio))
 
             if precos_pix:
-                return min(precos_pix), nome_api
+                return min(precos_pix), nome_api, None
             if precos_promo:
-                return min(precos_promo), nome_api
+                return min(precos_promo), nome_api, None
             if precos_cheios:
-                return min(precos_cheios), nome_api
+                return min(precos_cheios), nome_api, None
 
             raise Exception("Nenhum preço disponível encontrado no JSON")
 
@@ -203,8 +227,9 @@ def buscar_preco_centauro(url_produto, nome_fallback="Produto", max_tentativas=3
 
 # ============================================================
 # SHIBATA — busca de preço via API
+# retorna: (preco: float, descricao: str, imagem_url: str | None)
 # ============================================================
-def buscar_preco_shibata(nome, url) -> float:
+def buscar_preco_shibata(nome, url):
     match_id = re.search(r'/produto/(\d+)/', url)
     if not match_id:
         raise Exception(f"produto_id não encontrado na URL: {url}")
@@ -226,17 +251,25 @@ def buscar_preco_shibata(nome, url) -> float:
     if not produto:
         raise Exception(f"Produto ID {produto_id} não encontrado na API Shibata")
 
-    preco    = float(produto.get("preco") or 0)
+    preco     = float(produto.get("preco") or 0)
     descricao = produto.get("descricao") or f"Produto {produto_id}"
+
+    # Monta URL da imagem a partir de data.produto.imagem
+    imagem_arquivo = produto.get("imagem")
+    imagem_url = f"{SHIBATA_IMG_BASE}/{imagem_arquivo}" if imagem_arquivo else None
+
     print(f"   ✅ {descricao} — R$ {preco:.2f}")
-    return preco, descricao
+    if imagem_url:
+        print(f"   🖼️  Imagem: {imagem_url}")
+
+    return preco, descricao, imagem_url
 
 # ============================================================
 # BUSCA DE PREÇO — roteador por loja
+# Sempre retorna: (preco: float, nome: str, imagem_url: str | None)
 # ============================================================
 def buscar_preco(loja, nome, url):
     if loja == "centauro":
-        # nome é passado apenas como fallback caso a API não retorne product.name
         return buscar_preco_centauro(url, nome_fallback=nome)
     elif loja == "shibata":
         return buscar_preco_shibata(nome, url)
@@ -256,17 +289,20 @@ def monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id):
     print(f"   Alvo: R$ {alvo:.2f} | Loja: {loja.upper()}")
     print(f"{'='*60}")
 
-    preco, nome_real = buscar_preco(loja, nome, url)
+    preco, nome_real, imagem_url = buscar_preco(loja, nome, url)
     print(f"\n💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
 
     if preco <= alvo:
-        msg = (
+        caption = (
             f"<b>{titulo_alerta}</b>\n\n"
             f'<a href="{url}">{nome_real}</a>\n\n'
             f"Preço: <b>R$ {preco:.2f}</b>\n"
             f"Alvo:  <b>R$ {alvo:.2f}</b>"
         )
-        enviar_telegram(token, chat_id, msg)
+        if imagem_url:
+            enviar_telegram_foto(token, chat_id, imagem_url, caption)
+        else:
+            enviar_telegram(token, chat_id, caption)
         print("📤 Alerta enviado!")
     else:
         print("ℹ️  Preço acima do alvo — sem alerta.")
@@ -288,13 +324,13 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
 
     for item in urls:
         url  = item["url"]
-        nome = item.get("nome", url)  # fallback para a URL se nome não existir
+        nome = item.get("nome", url)
         print(f"\n   🔍 {url}")
         try:
-            preco, nome_real = buscar_preco(loja, nome, url)
+            preco, nome_real, imagem_url = buscar_preco(loja, nome, url)
             print(f"   💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
             if preco <= alvo:
-                atingiram.append({"nome": nome_real, "url": url, "preco": preco})
+                atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url})
                 print("   ✅ Abaixo do alvo!")
             else:
                 print("   ℹ️  Acima do alvo.")
@@ -304,16 +340,19 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
         time.sleep(2)
 
     if atingiram:
-        linhas = "\n".join(
-            f'• <a href="{p["url"]}">{p["nome"]}</a> — <b>R$ {p["preco"]:.2f}</b>'
-            for p in atingiram
-        )
-        msg = (
-            f"<b>{titulo_alerta}</b>\n"
-            f"Grupo: <b>{nome_grupo}</b> | Alvo: <b>R$ {alvo:.2f}</b>\n\n"
-            f"{linhas}"
-        )
-        enviar_telegram(token, chat_id, msg)
+        # Envia um alerta individual por produto (com foto) ou um resumo em texto
+        for p in atingiram:
+            caption = (
+                f"<b>{titulo_alerta}</b>\n"
+                f"Grupo: <b>{nome_grupo}</b> | Alvo: <b>R$ {alvo:.2f}</b>\n\n"
+                f'<a href="{p["url"]}">{p["nome"]}</a>\n'
+                f"Preço: <b>R$ {p['preco']:.2f}</b>"
+            )
+            if p["imagem_url"]:
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption)
+            else:
+                enviar_telegram(token, chat_id, caption)
+
         print(f"\n📤 Alerta do grupo '{nome_grupo}' enviado ({len(atingiram)} produto(s) abaixo do alvo)!")
     else:
         print(f"\nℹ️  Nenhum produto do grupo '{nome_grupo}' atingiu o alvo.")
@@ -340,10 +379,8 @@ def main():
         for entrada in site["produtos"]:
             try:
                 if "url" in entrada:
-                    # Produto com link único
                     monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id)
                 elif "urls" in entrada:
-                    # Grupo de links com alvo compartilhado
                     erros_grupo = monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id)
                     erros.extend(erros_grupo)
                 else:
