@@ -80,6 +80,28 @@ SITES = [
                 "alvo": 40.00,
             },
         ],
+        # Grupos: alvo compartilhado entre vários produtos.
+        # Alerta disparado se QUALQUER produto do grupo atingir o alvo.
+        "grupos": [
+            {
+                "nome_grupo": "Leite UHT 1L",
+                "alvo": 5.00,
+                "produtos": [
+                    {
+                        "nome": "Leite UHT Integral Jussara c/ Tampa 1L",
+                        "url": "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
+                    },
+                    {
+                        "nome": "Leite Longa Vida Batavo Integral c/ Tampa 1L",
+                        "url": "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
+                    },
+                    {
+                        "nome": "Leite UHT Integral Parmalat c/ Tampa 1L",
+                        "url": "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l",
+                    },
+                ],
+            },
+        ],
     },
 ]
 
@@ -215,6 +237,60 @@ def buscar_preco_shibata(produto) -> float:
     raise Exception(f"Produto ID {produto_id} não encontrado na resposta da API Shibata")
 
 # ============================================================
+# MONITOR DE GRUPO — alvo compartilhado entre vários produtos
+# ============================================================
+def monitorar_grupo(grupo, loja, titulo_alerta, token, chat_id):
+    nome_grupo = grupo["nome_grupo"]
+    alvo       = grupo["alvo"]
+    produtos   = grupo["produtos"]
+
+    print(f"\n{'='*60}")
+    print(f"📦 GRUPO: {nome_grupo}  |  Alvo compartilhado: R$ {alvo:.2f}")
+    print(f"{'='*60}")
+
+    atingiram   = []  # produtos que bateram o alvo
+    erros_grupo = []
+
+    for produto in produtos:
+        nome = produto["nome"]
+        url  = produto["url"]
+        print(f"\n   🔍 {nome}")
+        try:
+            if loja == "shibata":
+                preco = buscar_preco_shibata(produto)
+            else:
+                raise Exception(f"Grupos não suportados para loja '{loja}'")
+
+            print(f"   💰 Preço: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+
+            if preco <= alvo:
+                atingiram.append({"nome": nome, "url": url, "preco": preco})
+                print(f"   ✅ Abaixo do alvo!")
+            else:
+                print(f"   ℹ️  Acima do alvo.")
+        except Exception as e:
+            print(f"   ❌ Erro: {e}")
+            erros_grupo.append((nome, str(e)))
+        time.sleep(2)
+
+    if atingiram:
+        linhas = "\n".join(
+            f'• <a href="{p["url"]}">{p["nome"]}</a> — R$ {p["preco"]:.2f}'
+            for p in atingiram
+        )
+        msg = (
+            f"<b>{titulo_alerta}</b>\n"
+            f"<b>Grupo:</b> {nome_grupo} | <b>Alvo:</b> R$ {alvo:.2f}\n\n"
+            f"{linhas}"
+        )
+        enviar_telegram(token, chat_id, msg)
+        print(f"\n📤 Alerta do grupo '{nome_grupo}' enviado ({len(atingiram)} produto(s))!")
+    else:
+        print(f"\nℹ️  Nenhum produto do grupo '{nome_grupo}' atingiu o alvo.")
+
+    return erros_grupo
+
+# ============================================================
 # MONITOR UNIFICADO
 # ============================================================
 def monitorar_produto(produto, loja, titulo_alerta, token, chat_id):
@@ -271,6 +347,10 @@ def main():
                 erros.append((produto["nome"], str(e)))
             time.sleep(2)
 
+        for grupo in site.get("grupos", []):
+            erros_grupo = monitorar_grupo(grupo, loja, titulo_alerta, token, chat_id)
+            erros.extend(erros_grupo)
+
     if erros:
         print(f"\n⚠️ {len(erros)} produto(s) com erro:")
         for nome, err in erros:
@@ -278,7 +358,9 @@ def main():
     else:
         print("\n✅ Monitoramento concluído sem erros.")
 
-    total_produtos = sum(len(s["produtos"]) for s in SITES)
+    total_produtos = sum(len(s["produtos"]) for s in SITES) + sum(
+        len(g["produtos"]) for s in SITES for g in s.get("grupos", [])
+    )
     if erros and len(erros) == total_produtos:
         sys.exit(1)
 
