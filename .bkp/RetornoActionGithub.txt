@@ -1,0 +1,93 @@
+############################################################
+# 🔥 ALERTA CENTAURO!
+############################################################
+
+============================================================
+📦 Tênis Masculino Nike Revolution 8
+   Alvo: R$ 300.00 | Loja: CENTAURO
+============================================================
+   🔗 API: https://apigateway.centauro.com.br/centauro-bff/products/995996?color=31
+   Status: 200
+   [Disponível] Tam: 37 | Pix: R$ 299.99
+   [Disponível] Tam: 38 | Pix: R$ 299.99
+   [Disponível] Tam: 39 | Pix: R$ 299.99
+   [Disponível] Tam: 40 | Pix: R$ 299.99
+   [Disponível] Tam: 41 | Pix: R$ 299.99
+   [Disponível] Tam: 42 | Pix: R$ 299.99
+   [Disponível] Tam: 43 | Pix: R$ 299.99
+   [Disponível] Tam: 44 | Pix: R$ 299.99
+
+💰 Preço final: R$ 299.99 | Alvo: R$ 300.00
+📤 Alerta enviado!
+
+============================================================
+📦 Regata
+   Alvo: R$ 70.00 | Loja: CENTAURO
+============================================================
+   🔗 API: https://apigateway.centauro.com.br/centauro-bff/products/984829?color=83
+   Status: 200
+   [Disponível] Tam: P | Pix: R$ 71.99
+   [Disponível] Tam: M | Pix: R$ 71.99
+   [Disponível] Tam: G | Pix: R$ 71.99
+   [Disponível] Tam: GG | Pix: R$ 71.99
+
+💰 Preço final: R$ 71.99 | Alvo: R$ 70.00
+ℹ️  Preço acima do alvo — sem alerta.
+
+============================================================
+📦 Conjunto Agasalho Oxer Replayer
+   Alvo: R$ 200.00 | Loja: CENTAURO
+============================================================
+   🔗 API: https://apigateway.centauro.com.br/centauro-bff/products/981478?color=05
+   Status: 200
+   [Disponível] Tam: P | Pix: R$ 189.99
+   [Disponível] Tam: M | Pix: R$ 189.99
+   [Disponível] Tam: G | Pix: R$ 189.99
+   [Disponível] Tam: GG | Pix: R$ 189.99
+
+💰 Preço final: R$ 189.99 | Alvo: R$ 200.00
+📤 Alerta enviado!
+
+############################################################
+# 🔥 ALERTA SHIBATA!
+############################################################
+
+============================================================
+📦 Sorvete Bombom Jundiaí Pote 2L
+   Alvo: R$ 40.00 | Loja: SHIBATA
+============================================================
+   🔄 Consultando API Shibata (produto_id=15500)...
+   Status HTTP: 200
+   ℹ️  40 produto(s) retornado(s) pela API
+
+❌ ERRO em 'Sorvete Bombom Jundiaí Pote 2L': Produto ID 15500 não encontrado na resposta da API Shibata
+
+============================================================
+📦 Leite Jussara Integral 1L
+   Alvo: R$ 5.00 | Loja: SHIBATA
+============================================================
+   🔄 Consultando API Shibata (produto_id=15500)...
+   Status HTTP: 200
+   ℹ️  40 produto(s) retornado(s) pela API
+
+❌ ERRO em 'Leite Jussara Integral 1L': Produto ID 15500 não encontrado na resposta da API Shibata
+
+============================================================
+📦 Leite Batavo Integral 1L
+   Alvo: R$ 5.00 | Loja: SHIBATA
+============================================================
+   🔄 Consultando API Shibata (produto_id=12987)...
+   Status HTTP: 200
+   ℹ️  40 produto(s) retornado(s) pela API
+
+❌ ERRO em 'Leite Batavo Integral 1L': Produto ID 12987 não encontrado na resposta da API Shibata
+
+============================================================
+📦 Leite Parmalat Integral 1L
+   Alvo: R$ 5.00 | Loja: SHIBATA
+============================================================
+   🔄 Consultando API Shibata (produto_id=11158)...
+   Status HTTP: 200
+   ℹ️  40 produto(s) retornado(s) pela API
+
+❌ ERRO em 'Leite Parmalat Integral 1L': Produto ID 11158 não encontrado na resposta da API Shibata
