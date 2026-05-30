@@ -71,7 +71,7 @@ SITES = [
                 "alvo": 70.00,
             },
             {
-                "nome": "Conjunto Agasalho Oxer Replayer",
+                "nome": "Conjunto Agasalho",
                 "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
                 "alvo": 200.00,
             },
