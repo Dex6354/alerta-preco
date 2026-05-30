@@ -76,7 +76,7 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA SHIBATA!",
         "produtos": [
             {
-                "nome": "Sorvete Bombom Jundiaí Pote 2L",
+                "nome": "Sorvete",
                 "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
                 "alvo": 40.00,
             },
