@@ -51,6 +51,9 @@ CENTAURO_HEADERS = {
 #   • "url"  (string) → link único, alvo individual
 #   • "urls" (lista)  → vários links com alvo compartilhado;
 #                       alerta único se QUALQUER um atingir o alvo
+#
+# Para a Centauro, o campo "nome" é usado apenas como rótulo
+# no log — o nome exibido no alerta vem de product.name da API.
 # ============================================================
 SITES = [
     {
@@ -129,7 +132,7 @@ def extrair_codigo_cor(url_produto):
         raise ValueError(f"Parâmetro 'cor' não encontrado na URL: {url_produto}")
     return codigo_match.group(1), cor_match.group(1)
 
-def buscar_preco_centauro(url_produto, max_tentativas=3):
+def buscar_preco_centauro(url_produto, nome_fallback="Produto", max_tentativas=3):
     codigo, cor = extrair_codigo_cor(url_produto)
     api_url = f"{CENTAURO_API_BASE}/{codigo}?color={cor}"
     print(f"   🔗 API: {api_url}")
@@ -148,7 +151,10 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
             data         = resp.json()
             product_data = data.get("product", {})
 
-            sizes        = product_data.get("sizes", [])
+            # ── Nome vindo da API (product.name) ──────────────────────
+            nome_api = product_data.get("name") or nome_fallback
+
+            sizes = product_data.get("sizes", [])
 
             if not sizes and product_data.get("priceInfos"):
                 sizes = [{"priceInfos": product_data.get("priceInfos"), "hasStock": True, "description": "Único"}]
@@ -180,11 +186,11 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
                     precos_cheios.append(float(cheio))
 
             if precos_pix:
-                return min(precos_pix)
+                return min(precos_pix), nome_api
             if precos_promo:
-                return min(precos_promo)
+                return min(precos_promo), nome_api
             if precos_cheios:
-                return min(precos_cheios)
+                return min(precos_cheios), nome_api
 
             raise Exception("Nenhum preço disponível encontrado no JSON")
 
@@ -230,9 +236,10 @@ def buscar_preco_shibata(nome, url) -> float:
 # ============================================================
 def buscar_preco(loja, nome, url):
     if loja == "centauro":
-        return buscar_preco_centauro(url), nome
+        # nome é passado apenas como fallback caso a API não retorne product.name
+        return buscar_preco_centauro(url, nome_fallback=nome)
     elif loja == "shibata":
-        return buscar_preco_shibata(nome, url)  # retorna (preco, descricao)
+        return buscar_preco_shibata(nome, url)
     else:
         raise Exception(f"Loja desconhecida: '{loja}'")
 
