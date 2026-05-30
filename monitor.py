@@ -61,7 +61,7 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA CENTAURO!",
         "produtos": [
             {
-                "nome": "Tênis Masculino Nike Revolution 8",
+                "nome": "Tênis",
                 "url": "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31",
                 "alvo": 300.00,
             },
