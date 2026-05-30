@@ -1,1 +1,85 @@
 https://services.vipcommerce.com.br/api-admin/v1/org/161/filial/1/centro_distribuicao/1/loja/produtos/11158/detalhes
+
+
+{
+  "success": true,
+  "data": {
+    "produto": {
+      "produto_id": 11158,
+      "posicao_busca": null,
+      "classificacao_mercadologica_id": 138,
+      "marca_id": 1092,
+      "descricao": "Leite UHT com Tampa Integral Parmalat Caixa - 1L",
+      "imagem": "2ae08e88-37a2-4750-affd-ff7df3199f15.jpg",
+      "disponivel": true,
+      "preco": "4.89",
+      "priorizado": false,
+      "quantidade_minima": "1",
+      "quantidade_maxima": "120",
+      "bebida_alcoolica": false,
+      "link": "leite-uht-com-tampa-integral-parmalat-caixa-1l",
+      "codigo_barras": "7896034610017",
+      "sku": "A1-02B96",
+      "codigo_erp": 12586,
+      "quantidade_vendida": 140035,
+      "em_oferta": true,
+      "oferta": {
+        "oferta_id": 10539739,
+        "oferta_item_id": "c71aa631-6015-496d-850e-adf84682f116",
+        "categoria": "G",
+        "tipo_oferta_id": 1,
+        "nome": "Ofertas",
+        "tag": "ofertas",
+        "classe_oferta": "preco-vip",
+        "preco_antigo": "5.19",
+        "preco_oferta": "4.89",
+        "quantidade_minima": 1,
+        "quantidade_maxima": 24,
+        "quantidade_pagar": 1,
+        "quantidade_oferta": 1,
+        "faixas_precos": null,
+        "exibe_preco_original": false,
+        "preco_original": 0,
+        "familia": false,
+        "menor_preco": "4.890",
+        "preco_oferta_fracao": null,
+        "preco_antigo_fracao": null
+      },
+      "quantidade_unidade_diferente": 1,
+      "exibe_preco_original": false,
+      "preco_original": 0,
+      "unidade_sigla": "CA",
+      "possui_unidade_diferente": false,
+      "permitir_observacao_na_compra": false,
+      "habilitar_seletor_unidade_peso": false,
+      "observacao": null,
+      "unidade_fracao": null,
+      "secao_id": 138,
+      "busca_item": null,
+      "volume_principal": null,
+      "anunciado": false,
+      "posicao": null,
+      "urls_eventos_ads": null,
+      "tags": null,
+      "id": "155396"
+    },
+    "subtitulo": "Imagem meramente ilustrativa / Produto sujeito a disponibilidade de estoque.",
+    "informacoes": "Não é Light / Não é Diet / É Integral / Com Adição de Açúcar / Não é Zero Calorias / Não é Semidesnatado/Parcialmente Desnatado / É Desnatado / Não é Vegetariano /   ALERGICOS: Não Contém / Não Contém Aromatizante / Contém Lactose / Contém Leite.    Ingredientes: Leite integral e estabilizantes citrato trissódico, trifosfato pentassódico, difosfato dissódico e di-hidrogenofosfato de sódio.   Advertência: Este produto não deve ser usado para alimentar crianças menores de 1 (um) ano de idade, a não ser por indicação expressa de médico ou nutricionista.  O aleitamento materno evita infecções e alergias e deve ser mantido até a criança completar 2 (dois) anos de idade ou mais.",
+    "classificacao_mercadologica_id": 138,
+    "possui_combo": false,
+    "imagens": [
+      {
+        "filename": "2ae08e88-37a2-4750-affd-ff7df3199f15.jpg",
+        "principal": true,
+        "desativado": false,
+        "id": 69269,
+        "created": "2025-10-14 09:03:27",
+        "modified": "2025-10-14 09:03:27"
+      }
+    ],
+    "videos": [],
+    "tabela_nutricional": null,
+    "familia": [],
+    "tags": []
+  }
+}
