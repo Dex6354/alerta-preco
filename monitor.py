@@ -58,14 +58,17 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA CENTAURO!",
         "produtos": [
             {
+                "nome": "Tênis Masculino Nike Revolution 8",
                 "url": "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31",
                 "alvo": 300.00,
             },
             {
+                "nome": "Regata",
                 "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
                 "alvo": 70.00,
             },
             {
+                "nome": "Conjunto Agasalho Oxer Replayer",
                 "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
                 "alvo": 200.00,
             },
@@ -76,7 +79,7 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA SHIBATA!",
         "produtos": [
             {
-                "nome": "Sorvete",
+                "nome": "Sorvete Bombom Jundiaí Pote 2L",
                 "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
                 "alvo": 40.00,
             },
@@ -86,12 +89,15 @@ SITES = [
                 "alvo": 5.00,
                 "urls": [
                     {
+                        "nome": "Leite UHT Integral Jussara c/ Tampa 1L",
                         "url": "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
                     },
                     {
+                        "nome": "Leite Longa Vida Batavo Integral c/ Tampa 1L",
                         "url": "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
                     },
                     {
+                        "nome": "Leite UHT Integral Parmalat c/ Tampa 1L",
                         "url": "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l",
                     },
                 ],
@@ -144,7 +150,6 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 
             data         = resp.json()
             product_data = data.get("product", {})
-            nome_api     = product_data.get("name", "Produto desconhecido")
             sizes        = product_data.get("sizes", [])
 
             if not sizes and product_data.get("priceInfos"):
@@ -177,11 +182,11 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
                     precos_cheios.append(float(cheio))
 
             if precos_pix:
-                return min(precos_pix), nome_api
+                return min(precos_pix)
             if precos_promo:
-                return min(precos_promo), nome_api
+                return min(precos_promo)
             if precos_cheios:
-                return min(precos_cheios), nome_api
+                return min(precos_cheios)
 
             raise Exception("Nenhum preço disponível encontrado no JSON")
 
@@ -217,19 +222,18 @@ def buscar_preco_shibata(nome, url) -> float:
     if not produto:
         raise Exception(f"Produto ID {produto_id} não encontrado na API Shibata")
 
-    preco    = float(produto.get("preco") or 0)
-    descricao = produto.get("descricao") or f"Produto {produto_id}"
-    print(f"   ✅ {descricao} — R$ {preco:.2f}")
-    return preco, descricao
+    preco = float(produto.get("preco") or 0)
+    print(f"   ✅ Encontrado: R$ {preco:.2f}")
+    return preco
 
 # ============================================================
 # BUSCA DE PREÇO — roteador por loja
 # ============================================================
 def buscar_preco(loja, nome, url):
     if loja == "centauro":
-        return buscar_preco_centauro(url)   # retorna (preco, nome_api)
+        return buscar_preco_centauro(url)
     elif loja == "shibata":
-        return buscar_preco_shibata(nome, url)  # retorna (preco, descricao)
+        return buscar_preco_shibata(nome, url)
     else:
         raise Exception(f"Loja desconhecida: '{loja}'")
 
@@ -246,13 +250,13 @@ def monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id):
     print(f"   Alvo: R$ {alvo:.2f} | Loja: {loja.upper()}")
     print(f"{'='*60}")
 
-    preco, nome_real = buscar_preco(loja, nome, url)
-    print(f"\n💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+    preco = buscar_preco(loja, nome, url)
+    print(f"\n💰 Preço final: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
 
     if preco <= alvo:
         msg = (
             f"<b>{titulo_alerta}</b>\n\n"
-            f'<a href="{url}">{nome_real}</a>\n\n'
+            f'<a href="{url}">{nome}</a>\n\n'
             f"Preço: <b>R$ {preco:.2f}</b>\n"
             f"Alvo:  <b>R$ {alvo:.2f}</b>"
         )
@@ -277,14 +281,14 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
     erros     = []
 
     for item in urls:
+        nome = item["nome"]
         url  = item["url"]
-        nome = item.get("nome", url)  # fallback para a URL se nome não existir
-        print(f"\n   🔍 {url}")
+        print(f"\n   🔍 {nome}")
         try:
-            preco, nome_real = buscar_preco(loja, nome, url)
-            print(f"   💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
+            preco = buscar_preco(loja, nome, url)
+            print(f"   💰 Preço: R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
             if preco <= alvo:
-                atingiram.append({"nome": nome_real, "url": url, "preco": preco})
+                atingiram.append({"nome": nome, "url": url, "preco": preco})
                 print("   ✅ Abaixo do alvo!")
             else:
                 print("   ℹ️  Acima do alvo.")
