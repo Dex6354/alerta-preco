@@ -75,28 +75,10 @@ SITES = [
         "titulo_alerta": "🔥 ALERTA SHIBATA!",
         "produtos": [
             {
-                "nome": "Sorvete Bombom Jundiaí Pote 2L",
-                "url": "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
+                "nome": "Leite",
+                "url": "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l",
                 "alvo": 40.00,
             },
-            {
-                "grupo": "Leites Integrais",
-                "alvo": 5.00,
-                "itens": [
-                    {
-                        "nome": "Leite Jussara Integral 1L",
-                        "url": "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l"
-                    },
-                    {
-                        "nome": "Leite Batavo Integral 1L",
-                        "url": "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l"
-                    },
-                    {
-                        "nome": "Leite Parmalat Integral 1L",
-                        "url": "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l"
-                    }
-                ]
-            }
         ],
     },
 ]
@@ -275,26 +257,13 @@ def main():
     for site in SITES:
         loja          = site["loja"]
         titulo_alerta = site["titulo_alerta"]
-        produtos_brutos = site["produtos"]
+        produtos      = site["produtos"]
 
         print(f"\n{'#'*60}")
         print(f"# {titulo_alerta}")
         print(f"{'#'*60}")
 
-        # Achata a lista para lidar com grupos de produtos
-        produtos_flat = []
-        for p in produtos_brutos:
-            if "grupo" in p:
-                for item in p["itens"]:
-                    produtos_flat.append({
-                        "nome": item["nome"],
-                        "url": item["url"],
-                        "alvo": p["alvo"]
-                    })
-            else:
-                produtos_flat.append(p)
-
-        for produto in produtos_flat:
+        for produto in produtos:
             try:
                 monitorar_produto(produto, loja, titulo_alerta, token, chat_id)
             except Exception as e:
@@ -309,15 +278,7 @@ def main():
     else:
         print("\n✅ Monitoramento concluído sem erros.")
 
-    # Calcula o total de produtos reais para o exit code
-    total_produtos = 0
-    for s in SITES:
-        for p in s["produtos"]:
-            if "grupo" in p:
-                total_produtos += len(p["itens"])
-            else:
-                total_produtos += 1
-
+    total_produtos = sum(len(s["produtos"]) for s in SITES)
     if erros and len(erros) == total_produtos:
         sys.exit(1)
 
