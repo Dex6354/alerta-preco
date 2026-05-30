@@ -25,7 +25,7 @@ SHIBATA_HEADERS = {
     "User-Agent": "Mozilla/5.0",
 }
 
-SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
+SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/250x250"
 
 # ============================================================
 # HEADERS CENTAURO
