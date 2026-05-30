@@ -1,0 +1,139 @@
+https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html
+
+https://www.nagumo.com.br/on/demandware.store/Sites-Nagumo-Site/pt_BR/Product-Variation?pid=13772
+
+"flagtypes": [
+      {
+        "flagType": "NGM_22_M",
+        "valueFlagType": "R$ 9,98",
+        "valueFlag": 9.98,
+        "unitValueFlagType": "R$ 1,80"
+      }
+
+
+- Cookies para fixar loja Calmon
+    
+cookie
+dwanonymous_5d818dfb70ce6548e4c78478fa83ac5f=ab7abcVmvLsEJiuABYP06N9A4M; dw_consent=tracking=false; dw_store=22; sid=S-h108GhdfQ5H24RdWCMaFaaKAaen9M-P2s; __cq_dnt=1; dw_dnt=1; dwsid=R2ly69pL6UBsa4yWHN6m8lobLz6FdU-Kah_mnp3xWIBIBD8o2t5TYYMN_UpOxaG8HEE4Glirino7ZPKIMABxoA==
+
+
+
+
+
+{
+    "action": "Product-Variation",
+    "queryString": "pid=13772",
+    "locale": "pt_BR",
+    "product": {
+        "id": "13772",
+        "productName": "Cenoura",
+        "brand": "HORTIFRUTI",
+        "shortDescription": {},
+        "longDescription": {},
+        "productAdditionalInfo": null,
+        "availability": {
+            "messages": [
+                "Em estoque"
+            ],
+            "inStockDate": null
+        },
+        "available": true,
+        "images": {
+            "large": [
+                {
+                    "alt": "https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp",
+                    "url": "/on/demandware.static/-/Sites-storefront-catalog-ngm/pt_BR/v1780176633370/https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp",
+                    "index": "0",
+                    "title": "Cenoura",
+                    "absURL": "https://www.nagumo.com.br/on/demandware.static/-/Sites-storefront-catalog-ngm/pt_BR/v1780176633370/https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp",
+                    "src": {
+                        "disUrl": "https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp"
+                    }
+                }
+            ],
+            "medium": [
+                {
+                    "alt": "https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp",
+                    "url": "/on/demandware.static/-/Sites-storefront-catalog-ngm/pt_BR/v1780176633370/https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp",
+                    "index": "0",
+                    "title": "Cenoura",
+                    "absURL": "https://www.nagumo.com.br/on/demandware.static/-/Sites-storefront-catalog-ngm/pt_BR/v1780176633370/https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp",
+                    "src": {
+                        "disUrl": "https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp"
+                    }
+                }
+            ],
+            "small": [
+                {
+                    "alt": "https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp",
+                    "url": "/on/demandware.static/-/Sites-storefront-catalog-ngm/pt_BR/v1780176633370/https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp",
+                    "index": "0",
+                    "title": "Cenoura",
+                    "absURL": "https://www.nagumo.com.br/on/demandware.static/-/Sites-storefront-catalog-ngm/pt_BR/v1780176633370/https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp",
+                    "src": {
+                        "disUrl": "https://assetsmn.s3.us-east-1.amazonaws.com/assets/ofertas-ecommerce/13772.webp"
+                    }
+                }
+            ]
+        },
+        "price": {
+            "sales": {
+                "value": 10.98,
+                "currency": "BRL",
+                "formatted": "R$ 10,98",
+                "decimalPrice": "10.98"
+            },
+            "list": null,
+            "priceDiff": {
+                "value": 0,
+                "currency": "BRL",
+                "formatted": "R$ 0,00",
+                "decimalPrice": "0.00"
+            },
+            "quantityValue": 1.98,
+            "quantityValueFormatted": "R$ 1,98",
+            "html": "    \r\n        <div class=\"productPrice\">\r\n    <div class=\"productPrice__priceContainer\">\r\n\r\n        \r\n            \r\n            <span class=\"productPrice__price\">\r\n                \r\n                    R$ 10,98\r\n                \r\n            </span>\r\n        \r\n\r\n        \r\n        \r\n    </div>\r\n\r\n    \r\n    \r\n\r\n</div>\r\n    \r\n\r\n\r\n\r\n"
+        },
+        "tags": [],
+        "flagtypes": [
+            {
+                "flagType": "NGM_22_M",
+                "valueFlagType": "R$ 9,98",
+                "valueFlag": 9.98,
+                "unitValueFlagType": "R$ 1,80"
+            }
+        ],
+        "isAccelerator": null,
+        "acceleratorRule": null,
+        "acceleratorBgColor": "#fada28",
+        "acceleratorTextColor": "#002777",
+        "flagImage": "https://www.nagumo.com.br/on/demandware.static/-/Sites/default/dw0eeff146/meunagumo.png",
+        "productShowQuickView": "https://www.nagumo.com.br/on/demandware.store/Sites-Nagumo-Site/pt_BR/Product-ShowQuickView?pid=13772",
+        "productShowFullUrl": "https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html",
+        "productMeasureValue": "unity",
+        "isPerpetual": true,
+        "ATSInGenerealStock": 0,
+        "currentDevice": "mobile",
+        "promotionDiscount": null,
+        "customAttributes": {},
+        "isWishlisted": false,
+        "productObs": null,
+        "weighable": true,
+        "averageWeight": "0,180",
+        "averageWeightDisplay": "180g",
+        "averageWeightNumber": 0.18,
+        "datasheet": null,
+        "averageWeightFormatted": "180g",
+        "reorderProductModel": false,
+        "imageDescription": null,
+        "ATS": 9999999,
+        "addToCartMaxQtd": null,
+        "attributesHtml": "",
+        "promotionsHtml": "",
+        "optionsHtml": "    "
+    },
+    "resources": {
+        "info_selectforstock": "Selecione Estilos para Disponibilidade",
+        "assistiveSelectedText": "selecionado"
+    }
+}
