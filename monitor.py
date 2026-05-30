@@ -76,7 +76,7 @@ SITES = [
         "produtos": [
             {
                 "nome": "Sorvete Bombom Jundiaí Pote 2L",
-                "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
+                "url": "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
                 "alvo": 40.00,
             },
             {
