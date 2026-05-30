@@ -25,7 +25,8 @@ SHIBATA_HEADERS = {
     "User-Agent": "Mozilla/5.0",
 }
 
-SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/250x250"
+# URL original restaurada (sem alteração de tamanho)
+SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 
 # ============================================================
 # HEADERS CENTAURO
@@ -115,30 +116,23 @@ def enviar_telegram(token, chat_id, mensagem):
         print(f"⚠️ Erro Telegram (texto): {e}")
 
 def enviar_telegram_foto(token, chat_id, foto_url, caption):
-    """Envia texto embutindo a foto ocultamente como miniatura pequena na lateral."""
+    """Envia a imagem como documento para forçar um layout de anexo lateral pequeno."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        
-        # Truque: caractere invisível (&#8203;) ancorando a foto para forçar o embed oculto
-        texto_com_embed = f'<a href="{foto_url}">&#8203;</a>{caption}'
-        
+        url = f"https://api.telegram.org/bot{token}/sendDocument"
         payload = {
             "chat_id": chat_id,
-            "text": texto_com_embed,
-            "parse_mode": "HTML",
-            "link_preview_options": {
-                "prefer_small_media": True,  # Força imagem pequena (estilo thumbnail)
-                "show_above_text": False     # Garante que fique alinhado abaixo/ao lado do texto
-            }
+            "document": foto_url,
+            "caption": caption,
+            "parse_mode": "HTML"
         }
         resp = requests.post(url, json=payload, timeout=20)
         if not resp.ok:
-            raise Exception(f"sendMessage (embed) retornou {resp.status_code}: {resp.text}")
+            raise Exception(f"sendDocument retornou {resp.status_code}: {resp.text}")
     except Exception as e:
-        print(f"⚠️ Erro Telegram (embed): {e} — tentando enviar só o texto.")
+        print(f"⚠️ Erro Telegram (documento): {e} — tentando enviar só o texto.")
         enviar_telegram(token, chat_id, caption)
 
 # ============================================================
