@@ -25,7 +25,6 @@ SHIBATA_HEADERS = {
     "User-Agent": "Mozilla/5.0",
 }
 
-# URL original restaurada (sem alteração de tamanho)
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 
 # ============================================================
@@ -116,23 +115,29 @@ def enviar_telegram(token, chat_id, mensagem):
         print(f"⚠️ Erro Telegram (texto): {e}")
 
 def enviar_telegram_foto(token, chat_id, foto_url, caption):
-    """Envia a imagem como documento para forçar um layout de anexo lateral pequeno."""
+    """Envia o texto com um botão inline abaixo dele para abrir a imagem externa."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        url = f"https://api.telegram.org/bot{token}/sendDocument"
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {
             "chat_id": chat_id,
-            "document": foto_url,
-            "caption": caption,
-            "parse_mode": "HTML"
+            "text": caption,
+            "parse_mode": "HTML",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {"text": "📷 Ver Imagem", "url": foto_url}
+                    ]
+                ]
+            }
         }
         resp = requests.post(url, json=payload, timeout=20)
         if not resp.ok:
-            raise Exception(f"sendDocument retornou {resp.status_code}: {resp.text}")
+            raise Exception(f"sendMessage (botão) retornou {resp.status_code}: {resp.text}")
     except Exception as e:
-        print(f"⚠️ Erro Telegram (documento): {e} — tentando enviar só o texto.")
+        print(f"⚠️ Erro Telegram (botão): {e} — tentando enviar só o texto.")
         enviar_telegram(token, chat_id, caption)
 
 # ============================================================
