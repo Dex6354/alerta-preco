@@ -25,7 +25,7 @@ SHIBATA_HEADERS = {
     "User-Agent": "Mozilla/5.0",
 }
 
-SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/250x250"
+SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 
 # ============================================================
 # HEADERS CENTAURO
@@ -48,14 +48,6 @@ CENTAURO_HEADERS = {
 
 # ============================================================
 # SITES MONITORADOS
-#
-# Cada produto pode ter:
-#   • "url"  (string) → link único, alvo individual
-#   • "urls" (lista)  → vários links com alvo compartilhado;
-#                       alerta único se QUALQUER um atingir o alvo
-#
-# Para a Centauro, "nome" é rótulo de log — o nome real vem de product.name da API.
-# Para o Shibata, a imagem é buscada automaticamente via data.produto.imagem.
 # ============================================================
 SITES = [
     {
@@ -89,7 +81,6 @@ SITES = [
                 "alvo": 40.00,
             },
             {
-                # Alvo compartilhado: dispara se QUALQUER leite atingir R$ 5,00
                 "nome": "Leite UHT 1L",
                 "alvo": 5.00,
                 "urls": [
@@ -124,28 +115,34 @@ def enviar_telegram(token, chat_id, mensagem):
         print(f"⚠️ Erro Telegram (texto): {e}")
 
 def enviar_telegram_foto(token, chat_id, foto_url, caption):
-    """Envia foto com legenda. Faz fallback para texto se falhar."""
+    """Envia texto embutindo a foto ocultamente como miniatura pequena na lateral."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        url = f"https://api.telegram.org/bot{token}/sendPhoto"
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        
+        # Truque: caractere invisível (&#8203;) ancorando a foto para forçar o embed oculto
+        texto_com_embed = f'<a href="{foto_url}">&#8203;</a>{caption}'
+        
         payload = {
             "chat_id": chat_id,
-            "photo": foto_url,
-            "caption": caption,
+            "text": texto_com_embed,
             "parse_mode": "HTML",
+            "link_preview_options": {
+                "prefer_small_media": True,  # Força imagem pequena (estilo thumbnail)
+                "show_above_text": False     # Garante que fique alinhado abaixo/ao lado do texto
+            }
         }
         resp = requests.post(url, json=payload, timeout=20)
         if not resp.ok:
-            raise Exception(f"sendPhoto retornou {resp.status_code}: {resp.text}")
+            raise Exception(f"sendMessage (embed) retornou {resp.status_code}: {resp.text}")
     except Exception as e:
-        print(f"⚠️ Erro Telegram (foto): {e} — tentando enviar só o texto.")
+        print(f"⚠️ Erro Telegram (embed): {e} — tentando enviar só o texto.")
         enviar_telegram(token, chat_id, caption)
 
 # ============================================================
 # CENTAURO — busca de preço via API
-# retorna: (preco: float, nome: str, imagem_url: None)
 # ============================================================
 def extrair_codigo_cor(url_produto):
     codigo_match = re.search(r'-(\d{6,7})\.html', url_produto)
@@ -175,9 +172,7 @@ def buscar_preco_centauro(url_produto, nome_fallback="Produto", max_tentativas=3
             data         = resp.json()
             product_data = data.get("product", {})
 
-            # Nome vindo da API (product.name)
             nome_api = product_data.get("name") or nome_fallback
-
             sizes = product_data.get("sizes", [])
 
             if not sizes and product_data.get("priceInfos"):
@@ -227,7 +222,6 @@ def buscar_preco_centauro(url_produto, nome_fallback="Produto", max_tentativas=3
 
 # ============================================================
 # SHIBATA — busca de preço via API
-# retorna: (preco: float, descricao: str, imagem_url: str | None)
 # ============================================================
 def buscar_preco_shibata(nome, url):
     match_id = re.search(r'/produto/(\d+)/', url)
@@ -254,7 +248,6 @@ def buscar_preco_shibata(nome, url):
     preco     = float(produto.get("preco") or 0)
     descricao = produto.get("descricao") or f"Produto {produto_id}"
 
-    # Monta URL da imagem a partir de data.produto.imagem
     imagem_arquivo = produto.get("imagem")
     imagem_url = f"{SHIBATA_IMG_BASE}/{imagem_arquivo}" if imagem_arquivo else None
 
@@ -266,7 +259,6 @@ def buscar_preco_shibata(nome, url):
 
 # ============================================================
 # BUSCA DE PREÇO — roteador por loja
-# Sempre retorna: (preco: float, nome: str, imagem_url: str | None)
 # ============================================================
 def buscar_preco(loja, nome, url):
     if loja == "centauro":
@@ -340,7 +332,6 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
         time.sleep(2)
 
     if atingiram:
-        # Envia um alerta individual por produto (com foto) ou um resumo em texto
         for p in atingiram:
             caption = (
                 f"<b>{titulo_alerta}</b>\n"
@@ -397,7 +388,6 @@ def main():
     else:
         print("\n✅ Monitoramento concluído sem erros.")
 
-    # Conta todos os links monitorados
     total_links = sum(
         1 if "url" in e else len(e.get("urls", []))
         for s in SITES for e in s["produtos"]
