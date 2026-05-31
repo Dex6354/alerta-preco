@@ -96,8 +96,8 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption):
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
         
-        # Mantém sendDocument, mas usa caractere invisível para ocultar o nome
-        filename = "⠀.jpg"
+        # Nome do arquivo alterado para fixo "item.jpg"
+        filename = "l.jpg"
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
