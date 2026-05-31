@@ -25,7 +25,7 @@ TITULO_ALERTA = "🔥🛒 ALERTA SHIBATA!"
 # ============================================================
 PRODUTOS = [
     (30.00, "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l"),
-    (5.00, 
+    (4.86, 
      "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
      "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
      "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l"),
