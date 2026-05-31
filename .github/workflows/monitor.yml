@@ -28,7 +28,7 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python monitor_centauro.py
+        run: python centauro.py
         continue-on-error: true # Se a Centauro der erro, não para a execução das outras lojas
 
       # ==========================================
@@ -38,7 +38,7 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python monitor_shibata.py
+        run: python shibata.py
         continue-on-error: true
 
       # ==========================================
