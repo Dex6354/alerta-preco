@@ -32,7 +32,7 @@ CENTAURO_HEADERS = {
 }
 
 TITULO_ALERTA = "🔥👕 ALERTA CENTAURO!"
-ARQUIVO_ITENS = "listadeitens.txt"
+ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
