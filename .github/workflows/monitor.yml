@@ -22,27 +22,27 @@ jobs:
         run: pip install curl_cffi requests
 
       # ==========================================
-      # LOJA 1: CENTAURO
+      # CENTAURO
       # ==========================================
       - name: Rodar Monitor Centauro
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python centauro.py
-        continue-on-error: true # Se a Centauro der erro, não para a execução das outras lojas
+        continue-on-error: true # Se der erro, não para a execução das outras lojas
 
       # ==========================================
-      # LOJA 2: NAGUMO
+      # NAGUMO
       # ==========================================
       - name: Rodar Monitor Centauro
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python nagumo.py
-        continue-on-error: true # Se a Centauro der erro, não para a execução das outras lojas
+        continue-on-error: true
 
       # ==========================================
-      # LOJA 3: SHIBATA
+      # SHIBATA
       # ==========================================
       - name: Rodar Monitor Shibata
         env:
