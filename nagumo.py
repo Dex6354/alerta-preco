@@ -59,7 +59,7 @@ def enviar_telegram(token, chat_id, mensagem):
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
+        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
@@ -91,10 +91,13 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
 # API NAGUMO
 # ============================================================
 def buscar_preco_nagumo(url):
-    # Regex corrigida: captura especificamente os dígitos finais antes do .html ou da query string
-    match_id = re.search(r'-(\d+)(?:\.html|\b|$|[?&])', url)
+    # Remove query strings (?pid=...) para garantir que o final termine em .html
+    url_limpa = url.split("?")[0]
+    
+    # Captura estritamente o número após o último hífen e antes de .html no fim da URL
+    match_id = re.search(r'-(\d+)\.html$', url_limpa)
     if not match_id:
-        # Fallback para tentar capturar por parâmetro pid direto se houver
+        # Fallback para query string clássica caso usem a URL direta da API
         match_id = re.search(r'[?&]pid=(\d+)', url)
         
     if not match_id:
