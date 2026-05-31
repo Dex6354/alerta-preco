@@ -19,7 +19,7 @@ SHIBATA_HEADERS = {
 
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 TITULO_ALERTA = "🔥🛒 ALERTA SHIBATA!"
-ARQUIVO_ITENS = "listadeitens.txt"
+ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
