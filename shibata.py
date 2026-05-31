@@ -162,7 +162,7 @@ def monitorar_grupo(alvo, urls, token, chat_id):
         for p in atingiram:
             caption = (
                 f"<b>{TITULO_ALERTA}</b>\n\n"
-                f'👉<a href="{p["url"]}">{p"nome"}</a>\n\n'
+                f'👉<a href="{p["url"]}">"nome"</a>\n\n'
                 f"💰Preço: <b>R$ {p['preco']:.2f}</b>\n"
                 f"🎯Alvo:  <b>R$ {alvo:.2f}</b>"
             )
