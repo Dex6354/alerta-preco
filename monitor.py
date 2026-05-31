@@ -25,7 +25,6 @@ SHIBATA_HEADERS = {
     "User-Agent": "Mozilla/5.0",
 }
 
-# URL original restaurada (sem alteração de tamanho)
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 
 # ============================================================
@@ -48,36 +47,28 @@ CENTAURO_HEADERS = {
 }
 
 # ============================================================
-# SITES MONITORADOS (Estrutura simplificada: (alvo, url1, url2, ...))
+# PRODUTOS MONITORADOS (Adicione preço e links direto aqui)
 # ============================================================
-SITES = [
-    {
-        "loja": "centauro",
-        "titulo_alerta": "🔥 ALERTA CENTAURO!",
-        "produtos": [
-            (300.00, "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31"),
-            (70.00, "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83"),
-            (200.00, "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"),
-        ],
-    },
-    {
-        "loja": "shibata",
-        "titulo_alerta": "🔥 ALERTA SHIBATA!",
-        "produtos": [
-            (40.00, "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l"),
-            (5.00, 
-             "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
-             "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
-             "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l"),
-        ],
-    },
+PRODUTOS = [
+    # Itens Centauro
+    (300.00, "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31"),
+    (70.00, "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83"),
+    (200.00, "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"),
+    
+    # Itens Shibata (Exemplo de link único)
+    (40.00, "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l"),
+    
+    # Itens Shibata (Exemplo de Grupo / Links compartilhados)
+    (5.00, 
+     "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
+     "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
+     "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l"),
 ]
 
 # ============================================================
 # TELEGRAM
 # ============================================================
 def enviar_telegram(token, chat_id, mensagem):
-    """Envia mensagem de text simples."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
@@ -89,7 +80,6 @@ def enviar_telegram(token, chat_id, mensagem):
         print(f"⚠️ Erro Telegram (texto): {e}")
 
 def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
-    """Baixa a imagem e envia como documento renomeado."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
@@ -119,6 +109,24 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
         enviar_telegram(token, chat_id, caption)
 
 # ============================================================
+# LÓGICA DE IDENTIFICAÇÃO AUTOMÁTICA DA LOJA E ALERTA
+# ============================================================
+def obter_titulo_alerta(url):
+    if "centauro.com.br" in url:
+        return "🔥 ALERTA CENTAURO!"
+    elif "shibata.com.br" in url:
+        return "🔥 ALERTA SHIBATA!"
+    return "🔥 ALERTA PRODUTO!"
+
+def buscar_preco(url):
+    if "centauro.com.br" in url:
+        return buscar_preco_centauro(url)
+    elif "shibata.com.br" in url:
+        return buscar_preco_shibata(url)
+    else:
+        raise Exception(f"Loja não identificada ou suportada para a URL: {url}")
+
+# ============================================================
 # CENTAURO — busca de preço via API
 # ============================================================
 def extrair_codigo_cor(url_produto):
@@ -130,10 +138,10 @@ def extrair_codigo_cor(url_produto):
         raise ValueError(f"Parâmetro 'cor' não encontrado na URL: {url_produto}")
     return codigo_match.group(1), cor_match.group(1)
 
-def buscar_preco_centauro(url_produto, nome_fallback="Produto", max_tentativas=3):
+def buscar_preco_centauro(url_produto, nome_fallback="Produto Centauro", max_tentativas=3):
     codigo, cor = extrair_codigo_cor(url_produto)
     api_url = f"{CENTAURO_API_BASE}/{codigo}?color={cor}"
-    print(f"   🔗 API: {api_url}")
+    print(f"   🔗 API Centauro: {api_url}")
 
     for tentativa in range(1, max_tentativas + 1):
         try:
@@ -235,25 +243,15 @@ def buscar_preco_shibata(url):
     return preco, descricao, imagem_url
 
 # ============================================================
-# BUSCA DE PREÇO — roteador por loja
-# ============================================================
-def buscar_preco(loja, url):
-    if loja == "centauro":
-        return buscar_preco_centauro(url)
-    elif loja == "shibata":
-        return buscar_preco_shibata(url)
-    else:
-        raise Exception(f"Loja desconhecida: '{loja}'")
-
-# ============================================================
 # MONITOR — produto com URL única
 # ============================================================
-def monitorar_url_unica(alvo, url, loja, titulo_alerta, token, chat_id):
+def monitorar_url_unica(alvo, url, token, chat_id):
+    titulo_alerta = obter_titulo_alerta(url)
     print(f"\n{'='*60}")
-    print(f"📦 Buscando... | Alvo: R$ {alvo:.2f} | Loja: {loja.upper()}")
+    print(f"🔍 Monitorando Item Único | Alvo: R$ {alvo:.2f}")
     print(f"{'='*60}")
 
-    preco, nome_real, imagem_url = buscar_preco(loja, url)
+    preco, nome_real, imagem_url = buscar_preco(url)
     print(f"\n💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
 
     if preco <= alvo:
@@ -274,9 +272,9 @@ def monitorar_url_unica(alvo, url, loja, titulo_alerta, token, chat_id):
 # ============================================================
 # MONITOR — grupo de URLs com alvo compartilhado
 # ============================================================
-def monitorar_urls_compartilhadas(alvo, urls, loja, titulo_alerta, token, chat_id):
+def monitorar_urls_compartilhadas(alvo, urls, token, chat_id):
     print(f"\n{'='*60}")
-    print(f"📦 GRUPO | Alvo compartilhado: R$ {alvo:.2f} | Loja: {loja.upper()}")
+    print(f"📦 Monitorando GRUPO Compartilhado | Alvo: R$ {alvo:.2f}")
     print(f"{'='*60}")
 
     atingiram = []
@@ -285,10 +283,16 @@ def monitorar_urls_compartilhadas(alvo, urls, loja, titulo_alerta, token, chat_i
     for url in urls:
         print(f"\n   🔍 {url}")
         try:
-            preco, nome_real, imagem_url = buscar_preco(loja, url)
+            preco, nome_real, imagem_url = buscar_preco(url)
             print(f"   💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
             if preco <= alvo:
-                atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url})
+                atingiram.append({
+                    "nome": nome_real, 
+                    "url": url, 
+                    "preco": preco, 
+                    "imagem_url": imagem_url,
+                    "titulo": obter_titulo_alerta(url)
+                })
                 print("   ✅ Abaixo do alvo!")
             else:
                 print("   ℹ️  Acima do alvo.")
@@ -300,7 +304,7 @@ def monitorar_urls_compartilhadas(alvo, urls, loja, titulo_alerta, token, chat_i
     if atingiram:
         for p in atingiram:
             caption = (
-                f"<b>{titulo_alerta}</b>\n\n"
+                f"<b>{p['titulo']}</b>\n\n"
                 f'<a href="{p["url"]}">{p["nome"]}</a>\n\n'
                 f"Preço: <b>R$ {p['preco']:.2f}</b>\n"
                 f"Alvo:  <b>R$ {alvo:.2f}</b>"
@@ -325,40 +329,36 @@ def main():
 
     erros = []
 
-    for site in SITES:
-        loja          = site["loja"]
-        titulo_alerta = site["titulo_alerta"]
+    print(f"\n{'#'*60}")
+    print(f"# INICIANDO MONITORAMENTO AUTOMÁTICO UNIFICADO")
+    print(f"{'#'*60}")
 
-        print(f"\n{'#'*60}")
-        print(f"# {titulo_alerta}")
-        print(f"{'#'*60}")
+    for entrada in PRODUTOS:
+        try:
+            if not isinstance(entrada, (tuple, list)) or len(entrada) < 2:
+                raise Exception(f"Estrutura inválida na entrada: {entrada}")
+            
+            alvo = entrada[0]
+            urls = entrada[1:]
 
-        for entrada in site["produtos"]:
-            try:
-                if not isinstance(entrada, (tuple, list)) or len(entrada) < 2:
-                    raise Exception(f"Estrutura inválida na entrada: {entrada}")
-                
-                alvo = entrada[0]
-                urls = entrada[1:]
-
-                if len(urls) == 1:
-                    monitorar_url_unica(alvo, urls[0], loja, titulo_alerta, token, chat_id)
-                else:
-                    erros_grupo = monitorar_urls_compartilhadas(alvo, urls, loja, titulo_alerta, token, chat_id)
-                    erros.extend(erros_grupo)
-            except Exception as e:
-                print(f"\n❌ ERRO no processamento: {e}")
-                erros.append(("Produto/Grupo", str(e)))
-            time.sleep(2)
+            if len(urls) == 1:
+                monitorar_url_unica(alvo, urls[0], token, chat_id)
+            else:
+                erros_grupo = monitorar_urls_compartilhadas(alvo, urls, token, chat_id)
+                erros.extend(erros_grupo)
+        except Exception as e:
+            print(f"\n❌ ERRO no processamento: {e}")
+            erros.append(("Produto/Grupo", str(e)))
+        time.sleep(2)
 
     if erros:
-        print(f"\n⚠️ {len(erros)} produto(s) com erro:")
+        print(f"\n⚠️ {len(erros)} link(s) com erro:")
         for nome, err in erros:
             print(f"   • {nome}: {err}")
     else:
         print("\n✅ Monitoramento concluído sem erros.")
 
-    total_links = sum(len(e) - 1 for s in SITES for e in s["produtos"])
+    total_links = sum(len(e) - 1 for e in PRODUTOS)
     if erros and len(erros) == total_links:
         sys.exit(1)
 
