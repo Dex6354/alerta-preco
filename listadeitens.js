@@ -1,7 +1,7 @@
 Tênis, 200.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 
-Regata Oxer, 40.00
+Regata Oxer, 90.00
 https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83
 
 Conjunto oxer, 150.00
