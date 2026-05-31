@@ -19,17 +19,51 @@ SHIBATA_HEADERS = {
 
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 TITULO_ALERTA = "🔥🛒 ALERTA SHIBATA!"
+ARQUIVO_ITENS = "listadeitens.txt"
 
 # ============================================================
-# PRODUTOS MONITORADOS (Suporta links únicos e Grupos)
+# CARREGAR PRODUTOS DO ARQUIVO TXT
 # ============================================================
-PRODUTOS = [
-    (35.00, "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l"),
-    (4.86, 
-     "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
-     "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
-     "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l"),
-]
+def carregar_produtos_txt(caminho_arquivo):
+    produtos_carregados = []
+    if not os.path.exists(caminho_arquivo):
+        print(f"⚠️ Arquivo {caminho_arquivo} não encontrado!")
+        return produtos_carregados
+
+    with open(caminho_arquivo, "r", encoding="utf-8") as f:
+        linhas = [linha.strip() for linha in f.readlines()]
+
+    for idx, linha in enumerate(linhas):
+        # Identifica se a linha é um link do Shibata
+        if linha.startswith("http") and "loja.shibata.com.br" in linha:
+            url_shibata = linha
+            alvo = None
+            
+            # Sobe as linhas anteriores para encontrar o preço alvo correspondente
+            for i in range(idx - 1, -1, -1):
+                if not linhas[i].startswith("http") and "," in linhas[i]:
+                    try:
+                        alvo = float(linhas[i].split(",")[1].strip())
+                        break
+                    except ValueError:
+                        continue
+            
+            if alvo is not None:
+                # Procura se já existe um grupo com este preço alvo para agrupar
+                grupo_existente = False
+                for item in produtos_carregados:
+                    if item[0] == alvo:
+                        # Evita duplicar o mesmo link no grupo
+                        if url_shibata not in item[1:]:
+                            item.append(url_shibata)
+                        grupo_existente = True
+                        break
+                
+                if not grupo_existente:
+                    produtos_carregados.append([alvo, url_shibata])
+
+    # Converte as listas internas para tuplas para manter compatibilidade com o core
+    return [tuple(item) for item in produtos_carregados]
 
 # ============================================================
 # TELEGRAM
@@ -140,14 +174,22 @@ def main():
     falhas_totais = 0
 
     print("\n🚀 INICIANDO MONITOR SHIBATA")
-    for entrada in PRODUTOS:
+    
+    # Busca a lista dinâmica mapeada do arquivo de texto
+    produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
+    
+    if not produtos_monitorados:
+        print("❌ Nenhum produto válido do Shibata foi encontrado na lista.")
+        sys.exit(1)
+
+    for entrada in produtos_monitorados:
         alvo = entrada[0]
         urls = entrada[1:]
         falhou = monitorar_grupo(alvo, urls, token, chat_id)
         if falhou:
             falhas_totais += 1
 
-    if falhas_totais == len(PRODUTOS):
+    if falhas_totais == len(produtos_monitorados):
         sys.exit(1)
 
 if __name__ == "__main__":
