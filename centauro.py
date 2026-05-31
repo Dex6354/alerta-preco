@@ -32,17 +32,46 @@ CENTAURO_HEADERS = {
 }
 
 TITULO_ALERTA = "🔥👕 ALERTA CENTAURO!"
+ARQUIVO_ITENS = "listadeitens.txt"
 
 # ============================================================
-# PRODUTOS MONITORADOS (Alvo, URL)
+# CARREGAR PRODUTOS DO ARQUIVO TXT
 # ============================================================
-PRODUTOS = [
-    (200.00, "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31"),
-    (80.00, "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83"),
-    (150.00, 
-     "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
-     "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02"),
-]
+def carregar_produtos_txt(caminho_arquivo):
+    produtos_carregados = []
+    if not os.path.exists(caminho_arquivo):
+        print(f"⚠️ Arquivo {caminho_arquivo} não encontrado!")
+        return produtos_carregados
+
+    with open(caminho_arquivo, "r", encoding="utf-8") as f:
+        linhas = [linha.strip() for linha in f.readlines()]
+
+    for idx, linha in enumerate(linhas):
+        if linha.startswith("http") and "centauro.com.br" in linha:
+            url_centauro = linha
+            alvo = None
+            
+            for i in range(idx - 1, -1, -1):
+                if not linhas[i].startswith("http") and "," in linhas[i]:
+                    try:
+                        alvo = float(linhas[i].split(",")[1].strip())
+                        break
+                    except ValueError:
+                        continue
+            
+            if alvo is not None:
+                grupo_existente = False
+                for item in produtos_carregados:
+                    if item[0] == alvo:
+                        if url_centauro not in item[1:]:
+                            item.append(url_centauro)
+                        grupo_existente = True
+                        break
+                
+                if not grupo_existente:
+                    produtos_carregados.append([alvo, url_centauro])
+
+    return [tuple(item) for item in produtos_carregados]
 
 # ============================================================
 # TELEGRAM
@@ -113,7 +142,6 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
             nome_api = product_data.get("name") or "Produto Centauro"
             sizes = product_data.get("sizes", [])
 
-            # Extração da imagem a partir do formato visualMedias
             visual_medias = product_data.get("visualMedias", [])
             imagem_url = None
             for media in visual_medias:
@@ -185,7 +213,14 @@ def main():
     erros = 0
 
     print("\n🚀 INICIANDO MONITOR CENTAURO")
-    for entrada in PRODUTOS:
+    
+    produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
+    
+    if not produtos_monitorados:
+        print("❌ Nenhum produto válido da Centauro foi encontrado na lista.")
+        sys.exit(1)
+        
+    for entrada in produtos_monitorados:
         alvo = entrada[0]
         urls = entrada[1:]
         for url in urls:
@@ -194,7 +229,7 @@ def main():
                 erros += 1
             time.sleep(2)
 
-    if erros == len(PRODUTOS):
+    if erros == len(produtos_monitorados):
         sys.exit(1)
 
 if __name__ == "__main__":
