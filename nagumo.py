@@ -89,7 +89,7 @@ def buscar_preco_nagumo(url):
     dados = response.json()
     
     preco = 0
-    tipo_preco = "Geral (Todas as lojas)"
+    tipo_preco = "Todas Lojas"
     
     flagtypes = dados.get("flagtypes") or dados.get("product", {}).get("flagtypes") or []
     
@@ -98,7 +98,7 @@ def buscar_preco_nagumo(url):
         flag_type = str(flag.get("flagType", ""))
         if "22" in flag_type and flag.get("valueFlag") is not None:
             preco = float(flag.get("valueFlag"))
-            tipo_preco = "Promocional Filial 22"
+            tipo_preco = "Loja Calmon Viana"
             break
             
     # 2. Se não possuir, o preço é geral para todas as lojas (price.sales.value)
@@ -107,7 +107,7 @@ def buscar_preco_nagumo(url):
         value_price = price_sales.get("value")
         if value_price is not None:
             preco = float(value_price)
-            tipo_preco = "Geral (Todas as lojas)"
+            tipo_preco = "Todas Lojas"
 
     if preco == 0:
         raise Exception(f"Não foi possível obter o preço para o ID {produto_id}")
