@@ -87,7 +87,7 @@ def enviar_telegram(token, chat_id, mensagem):
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
 
-def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
+def enviar_telegram_foto(token, chat_id, foto_url, caption):
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
@@ -95,9 +95,9 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
         img_resp = requests.get(foto_url, timeout=20)
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
-
-        filename_limpo = re.sub(r'[\\/*?:"<>|]', "", item).strip()
-        filename = f"{filename_limpo}.jpg"
+        
+        # Nome do arquivo alterado para fixo "item.jpg"
+        filename = "item.jpg"
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
@@ -196,7 +196,7 @@ def monitorar_url_unica(alvo, url, token, chat_id):
                 f"🎯Alvo:  <b>R$ {alvo:.2f}</b>"
             )
             if imagem_url:
-                enviar_telegram_foto(token, chat_id, imagem_url, caption, nome_real)
+                enviar_telegram_foto(token, chat_id, imagem_url, caption)
             else:
                 enviar_telegram(token, chat_id, caption)
             print("   📤 Alerta enviado!")
