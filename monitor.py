@@ -102,28 +102,49 @@ SITES = [
 # ============================================================
 # TELEGRAM
 # ============================================================
-def enviar_telegram_com_preview(token, chat_id, preview_url, caption):
-    """Envia a mensagem forçando o link preview a carregar a URL indicada de forma pequena na lateral."""
+def enviar_telegram(token, chat_id, mensagem):
+    """Envia mensagem de texto simples."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {
-            "chat_id": chat_id,
-            "text": caption,
-            "parse_mode": "HTML",
-            "link_preview_options": {
-                "url": preview_url,
-                "prefer_small_media": True,
-                "show_above_text": False
-            }
-        }
-        resp = requests.post(url, json=payload, timeout=20)
-        if not resp.ok:
-            raise Exception(f"sendMessage retornou {resp.status_code}: {resp.text}")
+        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
+        requests.post(url, json=payload, timeout=20)
     except Exception as e:
-        print(f"⚠️ Erro Telegram: {e}")
+        print(f"⚠️ Erro Telegram (texto): {e}")
+
+def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_produto):
+    """Baixa a foto, renomeia com o nome do produto e envia como anexo nativo."""
+    if not token or not chat_id:
+        print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
+        return
+    try:
+        # Baixa a imagem para a memória
+        img_resp = requests.get(foto_url, timeout=20)
+        if img_resp.ok:
+            # Sanitiza o nome do produto para criar um nome de arquivo válido
+            nome_valido = re.sub(r'[\\/*?:"<>|]', "", nome_produto).strip().replace(" ", "_")
+            filename = f"{nome_valido}.jpg"
+            
+            url = f"https://api.telegram.org/bot{token}/sendPhoto"
+            files = {"photo": (filename, img_resp.content, "image/jpeg")}
+            payload = {
+                "chat_id": chat_id,
+                "caption": caption,
+                "parse_mode": "HTML"
+            }
+            resp = requests.post(url, data=payload, files=files, timeout=30)
+            if resp.ok:
+                return
+            else:
+                print(f"⚠️ sendPhoto retornou status {resp.status_code}. Tentando fallback por texto.")
+        
+        # Caso falhe o download ou o envio do arquivo, envia apenas o texto
+        enviar_telegram(token, chat_id, caption)
+    except Exception as e:
+        print(f"⚠️ Erro Telegram (foto anexa): {e} — tentando enviar só o texto.")
+        enviar_telegram(token, chat_id, caption)
 
 # ============================================================
 # CENTAURO — busca de preço via API
@@ -237,7 +258,7 @@ def buscar_preco_shibata(nome, url):
 
     print(f"   ✅ {descricao} — R$ {preco:.2f}")
     if imagem_url:
-        print(f"   🖼️  Imagem detectada: {imagem_url}")
+        print(f"   🖼️  Imagem: {imagem_url}")
 
     return preco, descricao, imagem_url
 
@@ -275,9 +296,10 @@ def monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id):
             f"Preço: <b>R$ {preco:.2f}</b>\n"
             f"Alvo:  <b>R$ {alvo:.2f}</b>"
         )
-        # Se a API retornou a URL da imagem (Shibata), forçamos ela no preview, senão usa a URL do produto (Centauro)
-        preview_target = imagem_url if imagem_url else url
-        enviar_telegram_com_preview(token, chat_id, preview_target, caption)
+        if imagem_url:
+            enviar_telegram_foto(token, chat_id, imagem_url, caption, nome_real)
+        else:
+            enviar_telegram(token, chat_id, caption)
         print("📤 Alerta enviado!")
     else:
         print("ℹ️  Preço acima do alvo — sem alerta.")
@@ -322,8 +344,10 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
                 f'<a href="{p["url"]}">{p["nome"]}</a>\n'
                 f"Preço: <b>R$ {p['preco']:.2f}</b>"
             )
-            preview_target = p["imagem_url"] if p["imagem_url"] else p["url"]
-            enviar_telegram_com_preview(token, chat_id, preview_target, caption)
+            if p["imagem_url"]:
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
+            else:
+                enviar_telegram(token, chat_id, caption)
 
         print(f"\n📤 Alerta do grupo '{nome_grupo}' enviado ({len(atingiram)} produto(s) abaixo do alvo)!")
     else:
