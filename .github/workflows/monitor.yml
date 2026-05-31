@@ -1,9 +1,9 @@
-name: Monitorar Preço Centauro
+name: Monitor de Preços Automatizado
 
 on:
   schedule:
-    - cron: '0 */24 * * *'    # A cada 24 horas
-  workflow_dispatch:
+    - cron: '0 */24 * * *'    # Executa a cada 24 horas
+  workflow_dispatch:          # Permite rodar manualmente pelo painel do GitHub
 
 jobs:
   check:
@@ -21,8 +21,32 @@ jobs:
       - name: Instalar dependências
         run: pip install curl_cffi requests
 
-      - name: Rodar Monitor Scrape.do
+      # ==========================================
+      # LOJA 1: CENTAURO
+      # ==========================================
+      - name: Rodar Monitor Centauro
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python monitor.py
+        run: python monitor_centauro.py
+        continue-on-error: true # Se a Centauro der erro, não para a execução das outras lojas
+
+      # ==========================================
+      # LOJA 2: SHIBATA
+      # ==========================================
+      - name: Rodar Monitor Shibata
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python monitor_shibata.py
+        continue-on-error: true
+
+      # ==========================================
+      # ADICIONE AS OUTRAS LOJAS ABAIXO DESSE PONTO
+      # ==========================================
+      # - name: Rodar Monitor Loja3
+      #   env:
+      #     TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      #     CHAT_ID: ${{ secrets.CHAT_ID }}
+      #   run: python monitor_loja3.py
+      #   continue-on-error: true
