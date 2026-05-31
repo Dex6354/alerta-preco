@@ -25,3 +25,12 @@ https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-c
 https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-uht-integral-quat%C3%A1-1l-312738.html
 
+Peito de frango, 17
+https://www.loja.shibata.com.br/produto/16661/peito-de-frango-sem-pele-e-sem-osso-bandeja-com-aprox-12kg
+https://www.nagumo.com.br/categoria/departamentos/acougue/ave/ave-refrigerada/peito-de-frango-sem-osso-resfriado-206396.html
+
+Ovo, 10
+https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-unidades
+https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
+https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
+
