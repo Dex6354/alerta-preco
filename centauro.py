@@ -39,7 +39,10 @@ TITULO_ALERTA = "🔥👕 ALERTA CENTAURO!"
 PRODUTOS = [
     (300.00, "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31"),
     (70.00, "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83"),
-    (200.00, "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"),
+    (200.00, 
+     "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
+     "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02",
+     "https://www.centauro.com.br/camiseta-masculina-new-balance-manga-curta-essentials-992786.html?cor=02"),
 ]
 
 # ============================================================
