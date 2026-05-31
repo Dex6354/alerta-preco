@@ -87,12 +87,21 @@ def buscar_preco_nagumo(url):
 
     dados = response.json()
     
-    # Extração do Preço conforme estrutura informada
+    # Extração do Preço procurando especificamente a flag da loja 22
+    preco = 0
     flagtypes = dados.get("flagtypes", [])
-    if flagtypes:
+    
+    for flag in flagtypes:
+        flag_type = flag.get("flagType", "")
+        if "_22_" in flag_type or flag_type.startswith("NGM_22"):
+            preco = float(flag.get("valueFlag") or 0)
+            break
+            
+    # Fallback caso não encontre a flag da loja 22 na lista
+    if preco == 0 and flagtypes:
         preco = float(flagtypes[0].get("valueFlag") or 0)
-    else:
-        # Fallback padrão para a estrutura do Commerce Cloud se flagtypes estiver vazio
+        
+    if preco == 0:
         preco = float(dados.get("product", {}).get("price", {}).get("sales", {}).get("value") or 0)
 
     if preco == 0:
@@ -102,7 +111,6 @@ def buscar_preco_nagumo(url):
     product_data = dados.get("product", {})
     descricao = product_data.get("productName") or f"Produto {produto_id}"
     
-    # Busca a imagem padrão do produto na resposta da API
     images = product_data.get("images", {}).get("large", [])
     imagem_url = images[0].get("url") if images else None
 
