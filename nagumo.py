@@ -96,12 +96,12 @@ def buscar_preco_nagumo(url):
             preco = float(flag.get("valueFlag"))
             break
             
-    # 2. Se não possuir desconto na loja 22, utiliza o price.sales.decimalPrice
+    # 2. Se não possuir desconto na loja 22, utiliza o price.sales.value
     if preco == 0:
         price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
-        decimal_price = price_sales.get("decimalPrice") or price_sales.get("value")
-        if decimal_price:
-            preco = float(decimal_price)
+        value_price = price_sales.get("value")
+        if value_price is not None:
+            preco = float(value_price)
 
     if preco == 0:
         raise Exception(f"Não foi possível obter o preço para o ID {produto_id}")
