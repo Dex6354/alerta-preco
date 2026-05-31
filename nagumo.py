@@ -59,7 +59,7 @@ def enviar_telegram(token, chat_id, mensagem):
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
+        payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
@@ -91,9 +91,15 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
 # API NAGUMO
 # ============================================================
 def buscar_preco_nagumo(url):
-    match_id = re.search(r'(?:-|\bpid=)(\d+)(?:\.html|\b|$)', url)
+    # Regex corrigida: captura especificamente os dígitos finais antes do .html ou da query string
+    match_id = re.search(r'-(\d+)(?:\.html|\b|$|[?&])', url)
+    if not match_id:
+        # Fallback para tentar capturar por parâmetro pid direto se houver
+        match_id = re.search(r'[?&]pid=(\d+)', url)
+        
     if not match_id:
         raise Exception(f"produto_id não encontrado na URL: {url}")
+        
     produto_id = match_id.group(1)
 
     params = {"pid": produto_id}
@@ -114,7 +120,7 @@ def buscar_preco_nagumo(url):
     response = requests.get(NAGUMO_API_URL, params=params, cookies=cookies, headers=headers, timeout=15)
     
     if response.status_code != 200:
-        raise Exception(f"API Nagumo retornou status {response.status_code}")
+        raise Exception(f"API Nagumo retornou status {response.status_code} para o ID {produto_id}")
 
     dados = response.json()
     
