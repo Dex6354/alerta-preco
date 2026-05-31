@@ -111,6 +111,14 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
             nome_api = product_data.get("name") or "Produto Centauro"
             sizes = product_data.get("sizes", [])
 
+            # Extração da imagem a partir do formato visualMedias
+            visual_medias = product_data.get("visualMedias", [])
+            imagem_url = None
+            for media in visual_medias:
+                if media.get("type") == "image" and media.get("url"):
+                    imagem_url = media.get("url")
+                    break
+
             if not sizes and product_data.get("priceInfos"):
                 sizes = [{"priceInfos": product_data.get("priceInfos"), "hasStock": True}]
 
@@ -131,7 +139,7 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
                     precos.append(float(pi["price"]))
 
             if precos:
-                return min(precos), nome_api, None
+                return min(precos), nome_api, imagem_url
 
             raise Exception("Nenhum preço disponível encontrado")
         except Exception as e:
