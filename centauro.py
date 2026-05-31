@@ -31,7 +31,7 @@ CENTAURO_HEADERS = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
 }
 
-TITULO_ALERTA = "🔥 ALERTA CENTAURO!"
+TITULO_ALERTA = "🔥👕 ALERTA CENTAURO!"
 
 # ============================================================
 # PRODUTOS MONITORADOS (Alvo, URL)
@@ -153,9 +153,9 @@ def monitorar_url_unica(alvo, url, token, chat_id):
         if preco <= alvo:
             caption = (
                 f"<b>{TITULO_ALERTA}</b>\n\n"
-                f'<a href="{url}">{nome_real}</a>\n\n'
-                f"Preço: <b>R$ {preco:.2f}</b>\n"
-                f"Alvo:  <b>R$ {alvo:.2f}</b>"
+                f'👉<a href="{url}">{nome_real}</a>\n\n'
+                f"💰Preço: <b>R$ {preco:.2f}</b>\n"
+                f"🎯Alvo:  <b>R$ {alvo:.2f}</b>"
             )
             if imagem_url:
                 enviar_telegram_foto(token, chat_id, imagem_url, caption, nome_real)
