@@ -114,36 +114,31 @@ def enviar_telegram(token, chat_id, mensagem):
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
 
-def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_produto):
-    """Baixa a foto, renomeia com o nome do produto e envia como anexo nativo."""
+def enviar_telegram_foto(token, chat_id, foto_url, caption):
+    """Envia texto embutindo a foto ocultamente como miniatura pequena na lateral."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        # Baixa a imagem para a memória
-        img_resp = requests.get(foto_url, timeout=20)
-        if img_resp.ok:
-            # Sanitiza o nome do produto para criar um nome de arquivo válido
-            nome_valido = re.sub(r'[\\/*?:"<>|]', "", nome_produto).strip().replace(" ", "_")
-            filename = f"{nome_valido}.jpg"
-            
-            url = f"https://api.telegram.org/bot{token}/sendPhoto"
-            files = {"photo": (filename, img_resp.content, "image/jpeg")}
-            payload = {
-                "chat_id": chat_id,
-                "caption": caption,
-                "parse_mode": "HTML"
-            }
-            resp = requests.post(url, data=payload, files=files, timeout=30)
-            if resp.ok:
-                return
-            else:
-                print(f"⚠️ sendPhoto retornou status {resp.status_code}. Tentando fallback por texto.")
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
         
-        # Caso falhe o download ou o envio do arquivo, envia apenas o texto
-        enviar_telegram(token, chat_id, caption)
+        # Truque: caractere invisível (&#8203;) ancorando a foto para forçar o embed oculto
+        texto_com_embed = f'<a href="{foto_url}">&#8203;</a>{caption}'
+        
+        payload = {
+            "chat_id": chat_id,
+            "text": texto_com_embed,
+            "parse_mode": "HTML",
+            "link_preview_options": {
+                "prefer_small_media": True,  # Força imagem pequena (estilo thumbnail)
+                "show_above_text": False     # Garante que fique alinhado abaixo/ao lado do texto
+            }
+        }
+        resp = requests.post(url, json=payload, timeout=20)
+        if not resp.ok:
+            raise Exception(f"sendMessage (embed) retornou {resp.status_code}: {resp.text}")
     except Exception as e:
-        print(f"⚠️ Erro Telegram (foto anexa): {e} — tentando enviar só o texto.")
+        print(f"⚠️ Erro Telegram (embed): {e} — tentando enviar só o texto.")
         enviar_telegram(token, chat_id, caption)
 
 # ============================================================
@@ -297,7 +292,7 @@ def monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id):
             f"Alvo:  <b>R$ {alvo:.2f}</b>"
         )
         if imagem_url:
-            enviar_telegram_foto(token, chat_id, imagem_url, caption, nome_real)
+            enviar_telegram_foto(token, chat_id, imagem_url, caption)
         else:
             enviar_telegram(token, chat_id, caption)
         print("📤 Alerta enviado!")
@@ -345,7 +340,7 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
                 f"Preço: <b>R$ {p['preco']:.2f}</b>"
             )
             if p["imagem_url"]:
-                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption)
             else:
                 enviar_telegram(token, chat_id, caption)
 
