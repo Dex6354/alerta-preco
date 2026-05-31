@@ -18,7 +18,7 @@ SHIBATA_HEADERS = {
 }
 
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
-TITULO_ALERTA = "🔥 ALERTA SHIBATA!"
+TITULO_ALERTA = "🔥🛒 ALERTA SHIBATA!"
 
 # ============================================================
 # PRODUTOS MONITORADOS (Suporta links únicos e Grupos)
@@ -126,9 +126,9 @@ def monitorar_grupo(alvo, urls, token, chat_id):
         for p in atingiram:
             caption = (
                 f"<b>{TITULO_ALERTA}</b>\n\n"
-                f'<a href="{p["url"]}">{p["nome"]}</a>\n\n'
-                f"Preço: <b>R$ {p['preco']:.2f}</b>\n"
-                f"Alvo:  <b>R$ {alvo:.2f}</b>"
+                f'<a href="👉{p["url"]}">{p["nome"]}</a>\n\n'
+                f"💰Preço: <b>R$ {p['preco']:.2f}</b>\n"
+                f"🎯Alvo:  <b>R$ {alvo:.2f}</b>"
             )
             if p["imagem_url"]:
                 enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
