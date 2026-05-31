@@ -15,6 +15,9 @@ TITULO_ALERTA = "🔥🛒 ALERTA NAGUMO!"
 # ============================================================
 PRODUTOS = [
     (10.00, "https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html"),
+    (50.00,
+     "https://www.nagumo.com.br/categoria/departamentos/frios-e-laticinios/congelados/sorvetes/sorvete-jundia-pote-2lt.-bombom-558617.html",
+     "https://www.nagumo.com.br/categoria/departamentos/frios-e-laticinios/congelados/sorvetes/a%C3%A7a%C3%AD-com-guaran%C3%A1-nagumo-1l-272700.html"),
 ]
 
 # ============================================================
