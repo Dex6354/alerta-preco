@@ -9,7 +9,7 @@ import requests
 # ============================================================
 NAGUMO_API_URL = "https://www.nagumo.com.br/on/demandware.store/Sites-Nagumo-Site/pt_BR/Product-Variation"
 TITULO_ALERTA = "🔥🛒 ALERTA NAGUMO!"
-ARQUIVO_ITENS = "listadeitens.txt"
+ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
