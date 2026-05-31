@@ -9,16 +9,46 @@ import requests
 # ============================================================
 NAGUMO_API_URL = "https://www.nagumo.com.br/on/demandware.store/Sites-Nagumo-Site/pt_BR/Product-Variation"
 TITULO_ALERTA = "🔥🛒 ALERTA NAGUMO!"
+ARQUIVO_ITENS = "listadeitens.txt"
 
 # ============================================================
-# PRODUTOS MONITORADOS (Suporta links únicos e Grupos)
+# CARREGAR PRODUTOS DO ARQUIVO TXT
 # ============================================================
-PRODUTOS = [
-    (10.00, "https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html"),
-    (50.00,
-     "https://www.nagumo.com.br/categoria/departamentos/frios-e-laticinios/congelados/sorvetes/sorvete-jundia-pote-2lt.-bombom-558617.html",
-     "https://www.nagumo.com.br/categoria/departamentos/frios-e-laticinios/congelados/sorvetes/a%C3%A7a%C3%AD-com-guaran%C3%A1-nagumo-1l-272700.html"),
-]
+def carregar_produtos_txt(caminho_arquivo):
+    produtos_carregados = []
+    if not os.path.exists(caminho_arquivo):
+        print(f"⚠️ Arquivo {caminho_arquivo} não encontrado!")
+        return produtos_carregados
+
+    with open(caminho_arquivo, "r", encoding="utf-8") as f:
+        linhas = [linha.strip() for linha in f.readlines()]
+
+    for idx, linha in enumerate(linhas):
+        if linha.startswith("http") and "nagumo.com.br" in linha:
+            url_nagumo = linha
+            alvo = None
+            
+            for i in range(idx - 1, -1, -1):
+                if not linhas[i].startswith("http") and "," in linhas[i]:
+                    try:
+                        alvo = float(linhas[i].split(",")[1].strip())
+                        break
+                    except ValueError:
+                        continue
+            
+            if alvo is not None:
+                grupo_existente = False
+                for item in produtos_carregados:
+                    if item[0] == alvo:
+                        if url_nagumo not in item[1:]:
+                            item.append(url_nagumo)
+                        grupo_existente = True
+                        break
+                
+                if not grupo_existente:
+                    produtos_carregados.append([alvo, url_nagumo])
+
+    return [tuple(item) for item in produtos_carregados]
 
 # ============================================================
 # TELEGRAM
@@ -93,7 +123,6 @@ def buscar_preco_nagumo(url):
     
     flagtypes = dados.get("flagtypes") or dados.get("product", {}).get("flagtypes") or []
     
-    # 1. Se possuir flagtype da loja 22, o item é promocional dela
     for flag in flagtypes:
         flag_type = str(flag.get("flagType", ""))
         if "22" in flag_type and flag.get("valueFlag") is not None:
@@ -101,7 +130,6 @@ def buscar_preco_nagumo(url):
             tipo_preco = "Loja Calmon"
             break
             
-    # 2. Se não possuir, o preço é geral para todas as lojas (price.sales.value)
     if preco == 0:
         price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
         value_price = price_sales.get("value")
@@ -112,14 +140,12 @@ def buscar_preco_nagumo(url):
     if preco == 0:
         raise Exception(f"Não foi possível obter o preço para o ID {produto_id}")
 
-    # Extração do Nome e Imagem do produto
     product_data = dados.get("product", {})
     descricao = product_data.get("productName") or f"Produto {produto_id}"
     
     images = product_data.get("images", {}).get("large", [])
     imagem_url = images[0].get("url") if images else None
 
-    # Correção de URL de imagem malformada/embutida da API do Nagumo
     if imagem_url:
         if "https://" in imagem_url:
             imagem_url = imagem_url[imagem_url.find("https://"):]
@@ -172,14 +198,21 @@ def main():
     falhas_totais = 0
 
     print("\n🚀 INICIANDO MONITOR NAGUMO")
-    for entrada in PRODUTOS:
+    
+    produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
+    
+    if not produtos_monitorados:
+        print("❌ Nenhum produto válido do Nagumo foi encontrado na lista.")
+        sys.exit(1)
+        
+    for entrada in produtos_monitorados:
         alvo = entrada[0]
         urls = entrada[1:]
         falhou = monitorar_grupo(alvo, urls, token, chat_id)
         if falhou:
             falhas_totais += 1
 
-    if falhas_totais == len(PRODUTOS):
+    if falhas_totais == len(produtos_monitorados):
         sys.exit(1)
 
 if __name__ == "__main__":
