@@ -34,10 +34,12 @@ def carregar_produtos_txt(caminho_arquivo):
         linhas = [linha.strip() for linha in f.readlines()]
 
     for idx, linha in enumerate(linhas):
+        # Identifica se a linha é um link do Shibata
         if linha.startswith("http") and "loja.shibata.com.br" in linha:
             url_shibata = linha
             alvo = None
             
+            # Sobe as linhas anteriores para encontrar o preço alvo correspondente
             for i in range(idx - 1, -1, -1):
                 if not linhas[i].startswith("http") and "," in linhas[i]:
                     try:
@@ -47,9 +49,11 @@ def carregar_produtos_txt(caminho_arquivo):
                         continue
             
             if alvo is not None:
+                # Procura se já existe um grupo com este preço alvo para agrupar
                 grupo_existente = False
                 for item in produtos_carregados:
                     if item[0] == alvo:
+                        # Evita duplicar o mesmo link no grupo
                         if url_shibata not in item[1:]:
                             item.append(url_shibata)
                         grupo_existente = True
@@ -58,6 +62,7 @@ def carregar_produtos_txt(caminho_arquivo):
                 if not grupo_existente:
                     produtos_carregados.append([alvo, url_shibata])
 
+    # Converte as listas internas para tuplas para manter compatibilidade com o core
     return [tuple(item) for item in produtos_carregados]
 
 # ============================================================
@@ -83,19 +88,11 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
             
+        filename = "item.jpg"
+
         url = f"https://api.telegram.org/bot{token}/sendDocument"
-        
-        # Enviamos apenas uma única mensagem.
-        # Definimos explicitamente o Content-Type como image/jpeg no cabeçalho do arquivo do multipart.
-        # Isso força o Android a processar os metadados da legenda (caption) na árvore de notificação push.
-        data = {
-            "chat_id": chat_id, 
-            "caption": caption, 
-            "parse_mode": "HTML"
-        }
-        files = {
-            "document": ("item.jpg", img_resp.content, "image/jpeg")
-        }
+        data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
+        files = {"document": (filename, img_resp.content)}
         
         resp = requests.post(url, data=data, files=files, timeout=30)
         if not resp.ok:
@@ -126,6 +123,7 @@ def buscar_preco_shibata(url):
     if not produto:
         raise Exception(f"Produto ID {produto_id} não encontrado")
 
+    # Lógica de fallback para preço original e preço promocional
     preco_original = produto.get("preco_original")
     if preco_original and float(preco_original) > 0:
         preco = float(preco_original)
@@ -182,6 +180,7 @@ def main():
 
     print("\n🚀 INICIANDO MONITOR SHIBATA")
     
+    # Busca a lista dinâmica mapeada do arquivo de texto
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
     if not produtos_monitorados:
