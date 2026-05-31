@@ -8,21 +8,6 @@ import requests
 # CONFIGURAÇÕES NAGUMO
 # ============================================================
 NAGUMO_API_URL = "https://www.nagumo.com.br/on/demandware.store/Sites-Nagumo-Site/pt_BR/Product-Variation"
-
-# O cookie 'dw_store' força a filial desejada (Ex: 22)
-NAGUMO_COOKIES = {
-    "dw_store": "22",
-    "dw_consent": "tracking=false",
-    "__cq_dnt": "1",
-    "dw_dnt": "1"
-}
-
-NAGUMO_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/javascript, */*; q=0.01",
-    "X-Requested-With": "XMLHttpRequest"
-}
-
 TITULO_ALERTA = "🔥🛒 ALERTA NAGUMO!"
 
 # ============================================================
@@ -41,7 +26,7 @@ def enviar_telegram(token, chat_id, mensagem):
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
+        payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
@@ -79,7 +64,22 @@ def buscar_preco_nagumo(url):
     produto_id = match_id.group(1)
 
     params = {"pid": produto_id}
-    response = requests.get(NAGUMO_API_URL, params=params, cookies=NAGUMO_COOKIES, headers=NAGUMO_HEADERS, timeout=15)
+    
+    # Cookies e Headers idênticos ao seu script para fixar a loja 22
+    cookies = {
+        "dw_store": "22",
+        "dw_consent": "tracking=false",
+        "__cq_dnt": "1",
+        "dw_dnt": "1"
+    }
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "X-Requested-With": "XMLHttpRequest"
+    }
+
+    response = requests.get(NAGUMO_API_URL, params=params, cookies=cookies, headers=headers, timeout=15)
     
     if response.status_code != 200:
         raise Exception(f"API Nagumo retornou status {response.status_code}")
@@ -88,9 +88,11 @@ def buscar_preco_nagumo(url):
     
     preco = 0
     tipo_preco = "Geral (Todas as lojas)"
-    flagtypes = dados.get("flagtypes") or []
     
-    # 1. Busca ampla por qualquer flag contendo '22' para garantir a captura da loja correta
+    # Busca por flagtypes na raiz ou dentro do objeto product
+    flagtypes = dados.get("flagtypes") or dados.get("product", {}).get("flagtypes") or []
+    
+    # 1. Se possuir flagtype da loja 22, o item é promocional dela
     for flag in flagtypes:
         flag_type = str(flag.get("flagType", ""))
         if "22" in flag_type and flag.get("valueFlag") is not None:
@@ -98,7 +100,7 @@ def buscar_preco_nagumo(url):
             tipo_preco = "Promocional Filial 22"
             break
             
-    # 2. Se não possuir flagtype para a loja 22, utiliza o preço geral padrão
+    # 2. Se não possuir, o preço é geral para todas as lojas (price.sales.value)
     if preco == 0:
         price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
         value_price = price_sales.get("value")
