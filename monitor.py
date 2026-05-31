@@ -48,54 +48,27 @@ CENTAURO_HEADERS = {
 }
 
 # ============================================================
-# SITES MONITORADOS
+# SITES MONITORADOS (Estrutura simplificada: (alvo, url1, url2, ...))
 # ============================================================
 SITES = [
     {
         "loja": "centauro",
         "titulo_alerta": "🔥 ALERTA CENTAURO!",
         "produtos": [
-            {
-                "nome": "Tênis Masculino Nike Revolution 8",
-                "url": "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31",
-                "alvo": 300.00,
-            },
-            {
-                "nome": "Regata",
-                "url": "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83",
-                "alvo": 70.00,
-            },
-            {
-                "nome": "Conjunto Agasalho Oxer Replayer",
-                "url": "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05",
-                "alvo": 200.00,
-            },
+            (300.00, "https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31"),
+            (70.00, "https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83"),
+            (200.00, "https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05"),
         ],
     },
     {
         "loja": "shibata",
         "titulo_alerta": "🔥 ALERTA SHIBATA!",
         "produtos": [
-            {
-                "nome": "Sorvete Bombom",
-                "url": "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l",
-                "alvo": 40.00,
-            },
-            {
-                "nome": "Leite UHT 1L",
-                "alvo": 5.00,
-                "urls": [
-                    {
-                        "url": "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
-                    },
-                    {
-                        "url": "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
-                    },
-                    {
-                        "url": "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l",
-                    },
-                ],
-            },
+            (40.00, "https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l"),
+            (5.00, 
+             "https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l",
+             "https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l",
+             "https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l"),
         ],
     },
 ]
@@ -104,7 +77,7 @@ SITES = [
 # TELEGRAM
 # ============================================================
 def enviar_telegram(token, chat_id, mensagem):
-    """Envia mensagem de texto simples."""
+    """Envia mensagem de text simples."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
@@ -116,7 +89,7 @@ def enviar_telegram(token, chat_id, mensagem):
         print(f"⚠️ Erro Telegram (texto): {e}")
 
 def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
-    """Baixa a imagem e envia como documento renomeado para forçar anexo lateral pequeno."""
+    """Baixa a imagem e envia como documento renomeado."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
@@ -227,7 +200,7 @@ def buscar_preco_centauro(url_produto, nome_fallback="Produto", max_tentativas=3
 # ============================================================
 # SHIBATA — busca de preço via API
 # ============================================================
-def buscar_preco_shibata(nome, url):
+def buscar_preco_shibata(url):
     match_id = re.search(r'/produto/(\d+)/', url)
     if not match_id:
         raise Exception(f"produto_id não encontrado na URL: {url}")
@@ -264,28 +237,23 @@ def buscar_preco_shibata(nome, url):
 # ============================================================
 # BUSCA DE PREÇO — roteador por loja
 # ============================================================
-def buscar_preco(loja, nome, url):
+def buscar_preco(loja, url):
     if loja == "centauro":
-        return buscar_preco_centauro(url, nome_fallback=nome)
+        return buscar_preco_centauro(url)
     elif loja == "shibata":
-        return buscar_preco_shibata(nome, url)
+        return buscar_preco_shibata(url)
     else:
         raise Exception(f"Loja desconhecida: '{loja}'")
 
 # ============================================================
 # MONITOR — produto com URL única
 # ============================================================
-def monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id):
-    nome = entrada["nome"]
-    url  = entrada["url"]
-    alvo = entrada["alvo"]
-
+def monitorar_url_unica(alvo, url, loja, titulo_alerta, token, chat_id):
     print(f"\n{'='*60}")
-    print(f"📦 {nome}")
-    print(f"   Alvo: R$ {alvo:.2f} | Loja: {loja.upper()}")
+    print(f"📦 Buscando... | Alvo: R$ {alvo:.2f} | Loja: {loja.upper()}")
     print(f"{'='*60}")
 
-    preco, nome_real, imagem_url = buscar_preco(loja, nome, url)
+    preco, nome_real, imagem_url = buscar_preco(loja, url)
     print(f"\n💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
 
     if preco <= alvo:
@@ -306,24 +274,18 @@ def monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id):
 # ============================================================
 # MONITOR — grupo de URLs com alvo compartilhado
 # ============================================================
-def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
-    nome_grupo = entrada["nome"]
-    alvo       = entrada["alvo"]
-    urls       = entrada["urls"]
-
+def monitorar_urls_compartilhadas(alvo, urls, loja, titulo_alerta, token, chat_id):
     print(f"\n{'='*60}")
-    print(f"📦 GRUPO: {nome_grupo}  |  Alvo compartilhado: R$ {alvo:.2f} | Loja: {loja.upper()}")
+    print(f"📦 GRUPO | Alvo compartilhado: R$ {alvo:.2f} | Loja: {loja.upper()}")
     print(f"{'='*60}")
 
     atingiram = []
     erros     = []
 
-    for item in urls:
-        url  = item["url"]
-        nome = item.get("nome", url)
+    for url in urls:
         print(f"\n   🔍 {url}")
         try:
-            preco, nome_real, imagem_url = buscar_preco(loja, nome, url)
+            preco, nome_real, imagem_url = buscar_preco(loja, url)
             print(f"   💰 {nome_real} — R$ {preco:.2f} | Alvo: R$ {alvo:.2f}")
             if preco <= alvo:
                 atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url})
@@ -332,7 +294,7 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
                 print("   ℹ️  Acima do alvo.")
         except Exception as e:
             print(f"   ❌ Erro: {e}")
-            erros.append((nome, str(e)))
+            erros.append((url, str(e)))
         time.sleep(2)
 
     if atingiram:
@@ -348,9 +310,9 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
             else:
                 enviar_telegram(token, chat_id, caption)
 
-        print(f"\n📤 Alerta do grupo '{nome_grupo}' enviado ({len(atingiram)} produto(s) abaixo do alvo)!")
+        print(f"\n📤 Alerta do grupo enviado ({len(atingiram)} produto(s) abaixo do alvo)!")
     else:
-        print(f"\nℹ️  Nenhum produto do grupo '{nome_grupo}' atingiu o alvo.")
+        print("\nℹ️  Nenhum produto do grupo atingiu o alvo.")
 
     return erros
 
@@ -373,16 +335,20 @@ def main():
 
         for entrada in site["produtos"]:
             try:
-                if "url" in entrada:
-                    monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id)
-                elif "urls" in entrada:
-                    erros_grupo = monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id)
-                    erros.extend(erros_grupo)
+                if not isinstance(entrada, (tuple, list)) or len(entrada) < 2:
+                    raise Exception(f"Estrutura inválida na entrada: {entrada}")
+                
+                alvo = entrada[0]
+                urls = entrada[1:]
+
+                if len(urls) == 1:
+                    monitorar_url_unica(alvo, urls[0], loja, titulo_alerta, token, chat_id)
                 else:
-                    raise Exception(f"Entrada sem 'url' nem 'urls': {entrada.get('nome', '?')}")
+                    erros_grupo = monitorar_urls_compartilhadas(alvo, urls, loja, titulo_alerta, token, chat_id)
+                    erros.extend(erros_grupo)
             except Exception as e:
-                print(f"\n❌ ERRO em '{entrada.get('nome', '?')}': {e}")
-                erros.append((entrada.get("nome", "?"), str(e)))
+                print(f"\n❌ ERRO no processamento: {e}")
+                erros.append(("Produto/Grupo", str(e)))
             time.sleep(2)
 
     if erros:
@@ -392,10 +358,7 @@ def main():
     else:
         print("\n✅ Monitoramento concluído sem erros.")
 
-    total_links = sum(
-        1 if "url" in e else len(e.get("urls", []))
-        for s in SITES for e in s["produtos"]
-    )
+    total_links = sum(len(e) - 1 for s in SITES for e in s["produtos"])
     if erros and len(erros) == total_links:
         sys.exit(1)
 
