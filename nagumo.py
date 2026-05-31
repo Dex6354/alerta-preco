@@ -73,7 +73,6 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
 # API NAGUMO
 # ============================================================
 def buscar_preco_nagumo(url):
-    # Captura o ID tanto do formato de URL comum quanto do parâmetro pid=
     match_id = re.search(r'(?:-|\bpid=)(\d+)(?:\.html|\b|$)', url)
     if not match_id:
         raise Exception(f"produto_id não encontrado na URL: {url}")
@@ -87,22 +86,22 @@ def buscar_preco_nagumo(url):
 
     dados = response.json()
     
-    # Extração do Preço procurando especificamente a flag da loja 22
     preco = 0
     flagtypes = dados.get("flagtypes", [])
     
+    # 1. Verifica primeiro se possui a variável flagtypes com desconto para a loja 22
     for flag in flagtypes:
         flag_type = flag.get("flagType", "")
-        if "_22_" in flag_type or flag_type.startswith("NGM_22"):
-            preco = float(flag.get("valueFlag") or 0)
+        if ("_22_" in flag_type or flag_type.startswith("NGM_22")) and flag.get("valueFlag") is not None:
+            preco = float(flag.get("valueFlag"))
             break
             
-    # Fallback caso não encontre a flag da loja 22 na lista
-    if preco == 0 and flagtypes:
-        preco = float(flagtypes[0].get("valueFlag") or 0)
-        
+    # 2. Se não possuir desconto na loja 22, utiliza o price.sales.decimalPrice
     if preco == 0:
-        preco = float(dados.get("product", {}).get("price", {}).get("sales", {}).get("value") or 0)
+        price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
+        decimal_price = price_sales.get("decimalPrice") or price_sales.get("value")
+        if decimal_price:
+            preco = float(decimal_price)
 
     if preco == 0:
         raise Exception(f"Não foi possível obter o preço para o ID {produto_id}")
