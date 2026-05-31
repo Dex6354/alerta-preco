@@ -26,7 +26,7 @@ def enviar_telegram(token, chat_id, mensagem):
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
+        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
@@ -65,7 +65,6 @@ def buscar_preco_nagumo(url):
 
     params = {"pid": produto_id}
     
-    # Cookies e Headers idênticos ao seu script para fixar a loja 22
     cookies = {
         "dw_store": "22",
         "dw_consent": "tracking=false",
@@ -89,7 +88,6 @@ def buscar_preco_nagumo(url):
     preco = 0
     tipo_preco = "Geral (Todas as lojas)"
     
-    # Busca por flagtypes na raiz ou dentro do objeto product
     flagtypes = dados.get("flagtypes") or dados.get("product", {}).get("flagtypes") or []
     
     # 1. Se possuir flagtype da loja 22, o item é promocional dela
@@ -117,6 +115,15 @@ def buscar_preco_nagumo(url):
     
     images = product_data.get("images", {}).get("large", [])
     imagem_url = images[0].get("url") if images else None
+
+    # Correção de URL de imagem malformada/embutida da API do Nagumo
+    if imagem_url:
+        if "https://" in imagem_url:
+            imagem_url = imagem_url[imagem_url.find("https://"):]
+        elif "http://" in imagem_url:
+            imagem_url = imagem_url[imagem_url.find("http://"):]
+        elif imagem_url.startswith("/"):
+            imagem_url = f"https://www.nagumo.com.br{imagem_url}"
 
     return preco, descricao, imagem_url, tipo_preco
 
