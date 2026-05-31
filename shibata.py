@@ -36,7 +36,7 @@ def carregar_produtos_txt(caminho_arquivo):
     for idx, linha in enumerate(linhas):
         # Identifica se a linha é um link do Shibata
         if linha.startswith("http") and "loja.shibata.com.br" in linha:
-            url_shibata = linha
+            url_shibata = Server_linha = linha
             alvo = None
             
             # Sobe as linhas anteriores para encontrar o preço alvo correspondente
@@ -84,25 +84,25 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
+        # 1. Envia primeiro o texto como mensagem normal para garantir a notificação no Android
+        enviar_telegram(token, chat_id, caption)
+        
+        # 2. Baixa e envia o documento mantendo o nome fixo item.jpg
         img_resp = requests.get(foto_url, timeout=20)
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
             
-        # Remove tags HTML para criar um nome de arquivo limpo na notificação do Android
-        notificacao_limpa = re.sub(r'<[^>]*>', '', caption)
+        filename = "item.jpg"
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
-        
-        # Passa o texto limpo no lugar de "item.jpg" para corrigir o Android
-        files = {"document": (f"{notificacao_limpa}.jpg", img_resp.content)}
+        files = {"document": (filename, img_resp.content)}
         
         resp = requests.post(url, data=data, files=files, timeout=30)
         if not resp.ok:
             raise Exception(f"sendDocument retornou {resp.status_code}")
     except Exception as e:
-        print(f"⚠️ Erro Telegram (foto): {e} — enviando apenas texto.")
-        enviar_telegram(token, chat_id, caption)
+        print(f"⚠️ Erro Telegram (foto): {e}")
 
 # ============================================================
 # API SHIBATA
@@ -124,7 +124,7 @@ def buscar_preco_shibata(url):
 
     produto = response.json().get("data", {}).get("produto", {})
     if not produto:
-        raise Exception(f"Produto ID {produto_id} not encontrado")
+        raise Exception(f"Produto ID {produto_id} não encontrado")
 
     # Lógica de fallback para preço original e preço promocional
     preco_original = produto.get("preco_original")
