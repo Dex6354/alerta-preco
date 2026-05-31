@@ -123,7 +123,13 @@ def buscar_preco_shibata(url):
     if not produto:
         raise Exception(f"Produto ID {produto_id} não encontrado")
 
-    preco = float(produto.get("preco") or 0)
+    # Lógica de fallback para preço original e preço promocional
+    preco_original = produto.get("preco_original")
+    if preco_original and float(preco_original) > 0:
+        preco = float(preco_original)
+    else:
+        preco = float(produto.get("preco") or 0)
+
     descricao = produto.get("descricao") or f"Produto {produto_id}"
 
     imagem_arquivo = produto.get("imagem")
