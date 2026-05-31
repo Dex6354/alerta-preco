@@ -87,9 +87,8 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
         img_resp = requests.get(foto_url, timeout=20)
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
-        
-        filename_limpo = re.sub(r'[\\/*?:"<>|]', "", nome_arquivo).strip()
-        filename = f"{filename_limpo}.jpg"
+            
+        filename = "item.jpg"
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
@@ -124,7 +123,13 @@ def buscar_preco_shibata(url):
     if not produto:
         raise Exception(f"Produto ID {produto_id} não encontrado")
 
-    preco = float(produto.get("preco") or 0)
+    # Lógica de fallback para preço original e preço promocional
+    preco_original = produto.get("preco_original")
+    if preco_original and float(preco_original) > 0:
+        preco = float(preco_original)
+    else:
+        preco = float(produto.get("preco") or 0)
+
     descricao = produto.get("descricao") or f"Produto {produto_id}"
 
     imagem_arquivo = produto.get("imagem")
