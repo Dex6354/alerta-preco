@@ -1,17 +1,17 @@
 Tênis, 200.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 
-Regata Oxer, 90.00
+Regata Oxer, 40.00
 https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83
 
 Conjunto oxer, 150.00
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
-Cenoura, 10.00
+Cenoura, 9.00
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html
 
-Sorvete bombom, 40
+Sorvete bombom, 30
 https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l
 https://www.nagumo.com.br/categoria/departamentos/frios-e-laticinios/congelados/sorvetes/sorvete-jundia-pote-2lt.-bombom-558617.html
 
