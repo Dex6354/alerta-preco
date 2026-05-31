@@ -92,7 +92,7 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
-        files = {"document": (filename, img_resp.content)}
+        files = {"document": ("item", img_resp.content)}
         
         resp = requests.post(url, data=data, files=files, timeout=30)
         if not resp.ok:
