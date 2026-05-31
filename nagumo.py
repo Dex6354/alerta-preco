@@ -98,7 +98,7 @@ def buscar_preco_nagumo(url):
         flag_type = str(flag.get("flagType", ""))
         if "22" in flag_type and flag.get("valueFlag") is not None:
             preco = float(flag.get("valueFlag"))
-            tipo_preco = "Loja Calmon Viana"
+            tipo_preco = "Loja Calmon"
             break
             
     # 2. Se não possuir, o preço é geral para todas as lojas (price.sales.value)
