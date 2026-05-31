@@ -87,21 +87,24 @@ def buscar_preco_nagumo(url):
     dados = response.json()
     
     preco = 0
-    flagtypes = dados.get("flagtypes", [])
+    tipo_preco = "Geral (Todas as lojas)"
+    flagtypes = dados.get("flagtypes") or []
     
-    # 1. Verifica primeiro se possui a variável flagtypes com desconto para a loja 22
+    # 1. Busca ampla por qualquer flag contendo '22' para garantir a captura da loja correta
     for flag in flagtypes:
-        flag_type = flag.get("flagType", "")
-        if ("_22_" in flag_type or flag_type.startswith("NGM_22")) and flag.get("valueFlag") is not None:
+        flag_type = str(flag.get("flagType", ""))
+        if "22" in flag_type and flag.get("valueFlag") is not None:
             preco = float(flag.get("valueFlag"))
+            tipo_preco = "Promocional Filial 22"
             break
             
-    # 2. Se não possuir desconto na loja 22, utiliza o price.sales.value
+    # 2. Se não possuir flagtype para a loja 22, utiliza o preço geral padrão
     if preco == 0:
         price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
         value_price = price_sales.get("value")
         if value_price is not None:
             preco = float(value_price)
+            tipo_preco = "Geral (Todas as lojas)"
 
     if preco == 0:
         raise Exception(f"Não foi possível obter o preço para o ID {produto_id}")
@@ -113,7 +116,7 @@ def buscar_preco_nagumo(url):
     images = product_data.get("images", {}).get("large", [])
     imagem_url = images[0].get("url") if images else None
 
-    return preco, descricao, imagem_url
+    return preco, descricao, imagem_url, tipo_preco
 
 # ============================================================
 # MONITOR CORE
@@ -126,10 +129,10 @@ def monitorar_grupo(alvo, urls, token, chat_id):
     for url in urls:
         print(f"   🔍 {url}")
         try:
-            preco, nome_real, imagem_url = buscar_preco_nagumo(url)
-            print(f"   💰 {nome_real} — R$ {preco:.2f}")
+            preco, nome_real, imagem_url, tipo_preco = buscar_preco_nagumo(url)
+            print(f"   💰 {nome_real} — R$ {preco:.2f} [{tipo_preco}]")
             if preco <= alvo:
-                atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url})
+                atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url, "tipo": tipo_preco})
                 print("   ✅ Abaixo do alvo!")
         except Exception as e:
             print(f"   ❌ Erro: {e}")
@@ -141,7 +144,7 @@ def monitorar_grupo(alvo, urls, token, chat_id):
             caption = (
                 f"<b>{TITULO_ALERTA}</b>\n\n"
                 f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
-                f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
+                f"💰 Preço: <b>R$ {p['preco']:.2f}</b> ({p['tipo']})\n"
                 f"🎯 Alvo:  <b>R$ {alvo:.2f}</b>"
             )
             if p["imagem_url"]:
