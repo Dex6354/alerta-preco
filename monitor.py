@@ -115,20 +115,32 @@ def enviar_telegram(token, chat_id, mensagem):
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
 
-def enviar_telegram_foto(token, chat_id, foto_url, caption):
-    """Envia a imagem como documento para forçar um layout de anexo lateral pequeno."""
+def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
+    """Baixa a imagem e envia como documento renomeado para forçar anexo lateral pequeno."""
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
+        # Baixa o conteúdo da imagem
+        img_resp = requests.get(foto_url, timeout=20)
+        if not img_resp.ok:
+            raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
+        
+        # Sanitiza o nome do arquivo para remover caracteres inválidos do SO
+        filename_limpo = re.sub(r'[\\/*?:"<>|]', "", nome_arquivo).strip()
+        filename = f"{filename_limpo}.jpg"
+
         url = f"https://api.telegram.org/bot{token}/sendDocument"
-        payload = {
+        data = {
             "chat_id": chat_id,
-            "document": foto_url,
             "caption": caption,
             "parse_mode": "HTML"
         }
-        resp = requests.post(url, json=payload, timeout=20)
+        files = {
+            "document": (filename, img_resp.content)
+        }
+        
+        resp = requests.post(url, data=data, files=files, timeout=30)
         if not resp.ok:
             raise Exception(f"sendDocument retornou {resp.status_code}: {resp.text}")
     except Exception as e:
@@ -286,7 +298,7 @@ def monitorar_url_unica(entrada, loja, titulo_alerta, token, chat_id):
             f"Alvo:  <b>R$ {alvo:.2f}</b>"
         )
         if imagem_url:
-            enviar_telegram_foto(token, chat_id, imagem_url, caption)
+            enviar_telegram_foto(token, chat_id, imagem_url, caption, nome_real)
         else:
             enviar_telegram(token, chat_id, caption)
         print("📤 Alerta enviado!")
@@ -334,7 +346,7 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
                 f"Preço: <b>R$ {p['preco']:.2f}</b>"
             )
             if p["imagem_url"]:
-                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption)
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
             else:
                 enviar_telegram(token, chat_id, caption)
 
