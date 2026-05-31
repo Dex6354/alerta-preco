@@ -121,12 +121,10 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        # Baixa o conteúdo da imagem
         img_resp = requests.get(foto_url, timeout=20)
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
         
-        # Sanitiza o nome do arquivo para remover caracteres inválidos do SO
         filename_limpo = re.sub(r'[\\/*?:"<>|]', "", nome_arquivo).strip()
         filename = f"{filename_limpo}.jpg"
 
@@ -340,10 +338,10 @@ def monitorar_urls_compartilhadas(entrada, loja, titulo_alerta, token, chat_id):
     if atingiram:
         for p in atingiram:
             caption = (
-                f"<b>{titulo_alerta}</b>\n"
-                f"Grupo: <b>{nome_grupo}</b> | Alvo: <b>R$ {alvo:.2f}</b>\n\n"
-                f'<a href="{p["url"]}">{p["nome"]}</a>\n'
-                f"Preço: <b>R$ {p['preco']:.2f}</b>"
+                f"<b>{titulo_alerta}</b>\n\n"
+                f'<a href="{p["url"]}">{p["nome"]}</a>\n\n'
+                f"Preço: <b>R$ {p['preco']:.2f}</b>\n"
+                f"Alvo:  <b>R$ {alvo:.2f}</b>"
             )
             if p["imagem_url"]:
                 enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
