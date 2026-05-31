@@ -36,7 +36,7 @@ def carregar_produtos_txt(caminho_arquivo):
     for idx, linha in enumerate(linhas):
         # Identifica se a linha é um link do Shibata
         if linha.startswith("http") and "loja.shibata.com.br" in linha:
-            url_shibata = Server_linha = linha
+            url_shibata = linha
             alvo = None
             
             # Sobe as linhas anteriores para encontrar o preço alvo correspondente
@@ -84,10 +84,10 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        # 1. Envia primeiro o texto como mensagem normal para garantir a notificação no Android
+        # 1. Envia o texto principal com som (gera a notificação correta no Android)
         enviar_telegram(token, chat_id, caption)
         
-        # 2. Baixa e envia o documento mantendo o nome fixo item.jpg
+        # 2. Baixa o documento
         img_resp = requests.get(foto_url, timeout=20)
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
@@ -95,7 +95,13 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
         filename = "item.jpg"
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
-        data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
+        # disable_notification=True impede que esta segunda mensagem duplique o alerta sonoro/visual
+        data = {
+            "chat_id": chat_id, 
+            "caption": caption, 
+            "parse_mode": "HTML",
+            "disable_notification": True
+        }
         files = {"document": (filename, img_resp.content)}
         
         resp = requests.post(url, data=data, files=files, timeout=30)
