@@ -97,7 +97,7 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption):
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
         
         # Nome do arquivo alterado para fixo "item.jpg"
-        filename = "l.jpg"
+        filename = "|.jpg"
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
