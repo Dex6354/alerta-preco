@@ -32,7 +32,6 @@ CENTAURO_HEADERS = {
 }
 
 TITULO_ALERTA = "🔥👕 ALERTA CENTAURO!"
-ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
@@ -236,9 +235,6 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        enviar_telegram(token, chat_id, ALERTA_TEXTO)
-        time.sleep(1)
-
         for p in todos_atingidos:
             caption = (
                 f"<b>{TITULO_ALERTA}</b>\n\n"
