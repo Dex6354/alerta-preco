@@ -9,7 +9,9 @@ import requests
 # ============================================================
 NAGUMO_API_URL = "https://www.nagumo.com.br/on/demandware.store/Sites-Nagumo-Site/pt_BR/Product-Variation"
 TITULO_ALERTA = "🔥🛒 ALERTA NAGUMO!"
+ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
+FLAG_ALERTA = "alerta_enviado.txt"  # Arquivo de controle compartilhado no GitHub Actions
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
@@ -90,13 +92,10 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
 # API NAGUMO
 # ============================================================
 def buscar_preco_nagumo(url):
-    # Remove query strings (?pid=...) para garantir que o final termine em .html
     url_limpa = url.split("?")[0]
     
-    # Captura estritamente o número após o último hífen e antes de .html no fim da URL
     match_id = re.search(r'-(\d+)\.html$', url_limpa)
     if not match_id:
-        # Fallback para query string clássica caso usem a URL direta da API
         match_id = re.search(r'[?&]pid=(\d+)', url)
         
     if not match_id:
@@ -167,7 +166,7 @@ def buscar_preco_nagumo(url):
 # ============================================================
 # MONITOR CORE
 # ============================================================
-def monitorar_grupo(alvo, urls, token, chat_id):
+def monitorar_grupo(alvo, urls):
     print(f"\n📦 Monitorando Grupo/Item | Alvo: R$ {alvo:.2f}")
     atingiram = []
     erros = 0
@@ -178,32 +177,20 @@ def monitorar_grupo(alvo, urls, token, chat_id):
             preco, nome_real, imagem_url, tipo_preco = buscar_preco_nagumo(url)
             print(f"   💰 {nome_real} — R$ {preco:.2f} [{tipo_preco}]")
             if preco <= alvo:
-                atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url, "tipo": tipo_preco})
+                atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url, "tipo": tipo_preco, "alvo": alvo})
                 print("   ✅ Abaixo do alvo!")
         except Exception as e:
             print(f"   ❌ Erro: {e}")
             erros += 1
         time.sleep(1.5)
-
-    if atingiram:
-        for p in atingiram:
-            caption = (
-                f"<b>{TITULO_ALERTA}</b>\n\n"
-                f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
-                f"💰 Preço: <b>R$ {p['preco']:.2f}</b> ({p['tipo']})\n"
-                f"🎯 Alvo:  <b>R$ {alvo:.2f}</b>"
-            )
-            if p["imagem_url"]:
-                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
-            else:
-                enviar_telegram(token, chat_id, caption)
     
-    return erros == len(urls)
+    return atingiram, (erros == len(urls))
 
 def main():
     token = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("CHAT_ID")
     falhas_totais = 0
+    todos_atingidos = []
 
     print("\n🚀 INICIANDO MONITOR NAGUMO")
     
@@ -216,9 +203,36 @@ def main():
     for entrada in produtos_monitorados:
         alvo = entrada[0]
         urls = entrada[1:]
-        falhou = monitorar_grupo(alvo, urls, token, chat_id)
+        atingiram, falhou = monitorar_grupo(alvo, urls)
         if falhou:
             falhas_totais += 1
+        todos_atingidos.extend(atingiram)
+
+    # Processamento dos envios para o Telegram
+    if todos_atingidos:
+        # Envia a mensagem principal de alerta apenas se nenhuma outra loja enviou nesta rodada
+        if not os.path.exists(FLAG_ALERTA):
+            enviar_telegram(token, chat_id, ALERTA_TEXTO)
+            try:
+                with open(FLAG_ALERTA, "w", encoding="utf-8") as f:
+                    f.write("enviado")
+            except Exception as e:
+                print(f"⚠️ Erro ao criar arquivo de flag: {e}")
+        time.sleep(1)
+
+        # Envia cada item individualmente em seguida
+        for p in todos_atingidos:
+            caption = (
+                f"<b>{TITULO_ALERTA}</b>\n\n"
+                f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
+                f"💰 Preço: <b>R$ {p['preco']:.2f}</b> ({p['tipo']})\n"
+                f"🎯 Alvo:  <b>R$ {p['alvo']:.2f}</b>"
+            )
+            if p["imagem_url"]:
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
+            else:
+                enviar_telegram(token, chat_id, caption)
+            time.sleep(1)
 
     if falhas_totais == len(produtos_monitorados):
         sys.exit(1)
