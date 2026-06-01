@@ -32,7 +32,6 @@ CENTAURO_HEADERS = {
 }
 
 TITULO_ALERTA = "🔥👕 ALERTA CENTAURO!"
-ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
@@ -227,8 +226,8 @@ def main():
         urls = entrada[2:]
         for url in urls:
             total_links += 1
-            resultado, sucesso = verificar_url_unica(alvo, nome_item, url)
-            if not sucesso:
+            resultado,技术 = verificar_url_unica(alvo, nome_item, url)
+            if not技术:
                 erros += 1
             if resultado:
                 todos_atingidos.append(resultado)
@@ -236,9 +235,6 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        enviar_telegram(token, chat_id, ALERTA_TEXTO)
-        time.sleep(1)
-
         for p in todos_atingidos:
             caption = (
                 f"<b>{TITULO_ALERTA}</b>\n\n"
