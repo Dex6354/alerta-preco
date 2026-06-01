@@ -100,22 +100,22 @@ def enviar_telegram_separado(token, chat_id, foto_url, p):
         
         filename = "item.jpg"
 
-        # Mensagem 1: Apenas o documento com o título e o nome do item na legenda
-        legenda_doc = f"<b>{TITULO_ALERTA}</b>\n\n📦 {p['nome']}"
-        
+        # Mensagem 1: Documento estritamente sozinho (sem legenda/caption)
         url_doc = f"https://api.telegram.org/bot{token}/sendDocument"
-        data_doc = {"chat_id": chat_id, "caption": legenda_doc, "parse_mode": "HTML"}
+        data_doc = {"chat_id": chat_id}
         files = {"document": (filename, img_resp.content)}
         
         resp_doc = requests.post(url_doc, data=data_doc, files=files, timeout=30)
         if not resp_doc.ok:
             raise Exception(f"sendDocument retornou {resp_doc.status_code}")
         
-        # Pequena pausa para garantir a ordem correta das notificações
+        # Pequena pausa para garantir a ordem correta das notificações no celular
         time.sleep(0.5)
 
-        # Mensagem 2: Link, Preço Atual e Alvo enviados separadamente em formato de texto
+        # Mensagem 2: Todo o conteúdo textual agrupado aqui
         texto_detalhes = (
+            f"<b>{TITULO_ALERTA}</b>\n\n"
+            f"📦 <b>{p['nome']}</b>\n\n"
             f'👉 <a href="{p["url"]}">Clique aqui para abrir o link</a>\n\n'
             f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
             f"🎯 Alvo:  <b>R$ {p['alvo']:.2f}</b>"
@@ -243,8 +243,8 @@ def main():
         urls = entrada[1:]
         for url in urls:
             total_links += 1
-            resultado,热情 = verificar_url_unica(alvo, url)
-            if not  热情:
+            resultado, sucesso = verificar_url_unica(alvo, url)
+            if not sucesso:
                 erros += 1
             if resultado:
                 todos_atingidos.append(resultado)
@@ -257,7 +257,7 @@ def main():
 
         for p in todos_atingidos:
             if p["imagem_url"]:
-                # Executa o envio dividido (Documento sozinho / Link e Preço em outra)
+                # Executa o envio dividido (Documento vazio / Conteúdo em outra)
                 enviar_telegram_separado(token, chat_id, p["imagem_url"], p)
             else:
                 # Caso não tenha imagem, envia o texto estruturado direto
