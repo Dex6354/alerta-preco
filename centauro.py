@@ -88,50 +88,27 @@ def enviar_telegram(token, chat_id, mensagem):
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
 
-def enviar_telegram_separado(token, chat_id, foto_url, p):
+def enviar_telegram_foto(token, chat_id, foto_url, caption):
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        # Baixa a imagem para enviar como documento
         img_resp = requests.get(foto_url, timeout=20)
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
         
         filename = "item.jpg"
 
-        # Mensagem 1: Documento estritamente sozinho (sem legenda/caption)
-        url_doc = f"https://api.telegram.org/bot{token}/sendDocument"
-        data_doc = {"chat_id": chat_id}
+        url = f"https://api.telegram.org/bot{token}/sendDocument"
+        data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
         files = {"document": (filename, img_resp.content)}
         
-        resp_doc = requests.post(url_doc, data=data_doc, files=files, timeout=30)
-        if not resp_doc.ok:
-            raise Exception(f"sendDocument retornou {resp_doc.status_code}")
-        
-        # Pequena pausa para garantir a ordem correta das notificações no celular
-        time.sleep(0.5)
-
-        # Mensagem 2: Todo o conteúdo textual agrupado aqui
-        texto_detalhes = (
-            f"<b>{TITULO_ALERTA}</b>\n\n"
-            f"📦 <b>{p['nome']}</b>\n\n"
-            f'👉 <a href="{p["url"]}">Clique aqui para abrir o link</a>\n\n'
-            f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
-            f"🎯 Alvo:  <b>R$ {p['alvo']:.2f}</b>"
-        )
-        enviar_telegram(token, chat_id, texto_detalhes)
-
+        resp = requests.post(url, data=data, files=files, timeout=30)
+        if not resp.ok:
+            raise Exception(f"sendDocument retornou {resp.status_code}")
     except Exception as e:
-        print(f"⚠️ Erro Telegram (foto/separação): {e} — enviando tudo em texto consolidado.")
-        caption_fallback = (
-            f"<b>{TITULO_ALERTA}</b>\n\n"
-            f"📦 {p['nome']}\n\n"
-            f'👉 <a href="{p["url"]}">Clique aqui para abrir o link</a>\n\n'
-            f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
-            f"🎯 Alvo:  <b>R$ {p['alvo']:.2f}</b>"
-        )
-        enviar_telegram(token, chat_id, caption_fallback)
+        print(f"⚠️ Erro Telegram (foto): {e} — enviando apenas texto.")
+        enviar_telegram(token, chat_id, caption)
 
 # ============================================================
 # API SCRAPER
@@ -140,11 +117,9 @@ def extrair_codigo_cor(url_produto):
     codigo_match = re.search(r'-(\d{6,7})\.html', url_produto)
     if not codigo_match:
         raise ValueError(f"Código não encontrado na URL")
-    
     cor_match = re.search(r'[?&]cor=(\w+)', url_produto)
     if not cor_match:
         raise ValueError(f"Parâmetro 'cor' não encontrado")
-    
     return codigo_match.group(1), cor_match.group(1)
 
 def buscar_preco_centauro(url_produto, max_tentativas=3):
@@ -252,22 +227,21 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
+        # Envia o cabeçalho uma única vez para este script
         enviar_telegram(token, chat_id, ALERTA_TEXTO)
         time.sleep(1)
 
+        # Envia os itens qualificados sequencialmente
         for p in todos_atingidos:
+            caption = (
+                f"<b>{TITULO_ALERTA}</b>\n\n"
+                f'👉<a href="{p["url"]}">{p["nome"]}</a>\n\n'
+                f"💰Preço: <b>R$ {p['preco']:.2f}</b>\n"
+                f"🎯Alvo:  <b>R$ {p['alvo']:.2f}</b>"
+            )
             if p["imagem_url"]:
-                # Executa o envio dividido (Documento vazio / Conteúdo em outra)
-                enviar_telegram_separado(token, chat_id, p["imagem_url"], p)
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption)
             else:
-                # Caso não tenha imagem, envia o texto estruturado direto
-                caption = (
-                    f"<b>{TITULO_ALERTA}</b>\n\n"
-                    f"📦 {p['nome']}\n\n"
-                    f'👉 <a href="{p["url"]}">Clique aqui para abrir o link</a>\n\n'
-                    f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
-                    f"🎯 Alvo:  <b>R$ {p['alvo']:.2f}</b>"
-                )
                 enviar_telegram(token, chat_id, caption)
             time.sleep(1)
 
