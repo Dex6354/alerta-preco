@@ -2,6 +2,7 @@ import os
 import re
 import time
 import sys
+import json
 import requests
 
 # ============================================================
@@ -78,7 +79,7 @@ def enviar_telegram(token, chat_id, mensagem, url_produto):
             "chat_id": chat_id, 
             "text": mensagem, 
             "parse_mode": "HTML",
-            "reply_markup": reply_markup
+            "reply_markup": json.dumps(reply_markup)
         }
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
@@ -93,7 +94,6 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo, url_pr
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
             
-        filename = "item.jpg"
         reply_markup = {
             "inline_keyboard": [[
                 {"text": "🛒 Ir para a Loja", "url": url_produto}
@@ -101,22 +101,23 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo, url_pr
         }
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
+        
+        # Dados do formulário (precisam ser strings quando enviados com multipart/form-data)
         data = {
             "chat_id": chat_id, 
             "caption": caption, 
             "parse_mode": "HTML",
-            "reply_markup": json.dumps(reply_markup) if not isinstance(reply_markup, str) else reply_markup
+            "reply_markup": json.dumps(reply_markup)
         }
         
-        # Correção inline para garantir que o reply_markup vá como string JSON no multipart/form-data
-        import json
-        data["reply_markup"] = json.dumps(reply_markup)
-        
-        files = {"document": (filename, img_resp.content)}
+        # Passando a tupla correta para forçar o nome 'item.jpg' e o Content-Type adequado
+        files = {
+            "document": ("item.jpg", img_resp.content, "image/jpeg")
+        }
         
         resp = requests.post(url, data=data, files=files, timeout=30)
         if not resp.ok:
-            raise Exception(f"sendDocument retornou {resp.status_code}")
+            raise Exception(f"sendDocument retornou {resp.status_code} - {resp.text}")
     except Exception as e:
         print(f"⚠️ Erro Telegram (foto): {e} — enviando apenas texto.")
         enviar_telegram(token, chat_id, caption, url_produto)
