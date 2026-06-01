@@ -34,12 +34,10 @@ def carregar_produtos_txt(caminho_arquivo):
         linhas = [linha.strip() for linha in f.readlines()]
 
     for idx, linha in enumerate(linhas):
-        # Identifica se a linha é um link do Shibata
         if linha.startswith("http") and "loja.shibata.com.br" in linha:
             url_shibata = linha
             alvo = None
             
-            # Sobe as linhas anteriores para encontrar o preço alvo correspondente
             for i in range(idx - 1, -1, -1):
                 if not linhas[i].startswith("http") and "," in linhas[i]:
                     try:
@@ -49,11 +47,9 @@ def carregar_produtos_txt(caminho_arquivo):
                         continue
             
             if alvo is not None:
-                # Procura se já existe um grupo com este preço alvo para agrupar
                 grupo_existente = False
                 for item in produtos_carregados:
                     if item[0] == alvo:
-                        # Evita duplicar o mesmo link no grupo
                         if url_shibata not in item[1:]:
                             item.append(url_shibata)
                         grupo_existente = True
@@ -62,24 +58,33 @@ def carregar_produtos_txt(caminho_arquivo):
                 if not grupo_existente:
                     produtos_carregados.append([alvo, url_shibata])
 
-    # Converte as listas internas para tuplas para manter compatibilidade com o core
     return [tuple(item) for item in produtos_carregados]
 
 # ============================================================
 # TELEGRAM
 # ============================================================
-def enviar_telegram(token, chat_id, mensagem):
+def enviar_telegram(token, chat_id, mensagem, url_produto):
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
+        reply_markup = {
+            "inline_keyboard": [[
+                {"text": "🛒 Ir para a Loja", "url": url_produto}
+            ]]
+        }
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
+        payload = {
+            "chat_id": chat_id, 
+            "text": mensagem, 
+            "parse_mode": "HTML",
+            "reply_markup": reply_markup
+        }
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
 
-def enviar_telegram_foto(token, chat_id, foto_url, caption):
+def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo, url_produto):
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
@@ -88,13 +93,25 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption):
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
             
-        # Extrai o nome original do arquivo a partir da URL da imagem
-        filename = foto_url.split("/")[-1]
-        if not filename or "." not in filename:
-            filename = "imagem.jpg"
+        filename = "item.jpg"
+        reply_markup = {
+            "inline_keyboard": [[
+                {"text": "🛒 Ir para a Loja", "url": url_produto}
+            ]]
+        }
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
-        data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
+        data = {
+            "chat_id": chat_id, 
+            "caption": caption, 
+            "parse_mode": "HTML",
+            "reply_markup": json.dumps(reply_markup) if not isinstance(reply_markup, str) else reply_markup
+        }
+        
+        # Correção inline para garantir que o reply_markup vá como string JSON no multipart/form-data
+        import json
+        data["reply_markup"] = json.dumps(reply_markup)
+        
         files = {"document": (filename, img_resp.content)}
         
         resp = requests.post(url, data=data, files=files, timeout=30)
@@ -102,7 +119,7 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption):
             raise Exception(f"sendDocument retornou {resp.status_code}")
     except Exception as e:
         print(f"⚠️ Erro Telegram (foto): {e} — enviando apenas texto.")
-        enviar_telegram(token, chat_id, caption)
+        enviar_telegram(token, chat_id, caption, url_produto)
 
 # ============================================================
 # API SHIBATA
@@ -126,7 +143,6 @@ def buscar_preco_shibata(url):
     if not produto:
         raise Exception(f"Produto ID {produto_id} não encontrado")
 
-    # Lógica de fallback para preço original e preço promocional
     preco_original = produto.get("preco_original")
     if preco_original and float(preco_original) > 0:
         preco = float(preco_original)
@@ -165,14 +181,14 @@ def monitorar_grupo(alvo, urls, token, chat_id):
         for p in atingiram:
             caption = (
                 f"<b>{TITULO_ALERTA}</b>\n\n"
-                f'👉<a href="{p["url"]}">{p["nome"]}</a>\n\n'
+                f"{p['nome']}\n\n"
                 f"💰Preço: <b>R$ {p['preco']:.2f}</b>\n"
                 f"🎯Alvo:  <b>R$ {alvo:.2f}</b>"
             )
             if p["imagem_url"]:
-                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption)
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"], p["url"])
             else:
-                enviar_telegram(token, chat_id, caption)
+                enviar_telegram(token, chat_id, caption, p["url"])
     
     return erros == len(urls)
 
@@ -183,7 +199,6 @@ def main():
 
     print("\n🚀 INICIANDO MONITOR SHIBATA")
     
-    # Busca a lista dinâmica mapeada do arquivo de texto
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
     if not produtos_monitorados:
