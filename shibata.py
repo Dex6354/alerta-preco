@@ -20,6 +20,7 @@ SHIBATA_HEADERS = {
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
+ARQUIVO_TRAVA_ALERTA = "alerta_enviado.tmp"  # Arquivo de controle compartilhado entre as lojas
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
@@ -55,7 +56,7 @@ def carregar_produtos_txt(caminho_arquivo):
                         grupo_existente = True
                         break
                 
-                if not grupo_existente:
+                if not group_existente:
                     produtos_carregados.append([alvo, url_shibata])
 
     return [tuple(item) for item in produtos_carregados]
@@ -178,9 +179,15 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        # Envia a mensagem principal de alerta apenas uma vez
-        enviar_telegram(token, chat_id, ALERTA_TEXTO)
-        time.sleep(1)
+        # Verifica se outra loja já enviou a mensagem de alerta nesta rodada
+        if not os.path.exists(ARQUIVO_TRAVA_ALERTA):
+            enviar_telegram(token, chat_id, ALERTA_TEXTO)
+            # Cria a trava para que os próximos scripts saibam que já foi enviado
+            with open(ARQUIVO_TRAVA_ALERTA, "w") as f:
+                f.write(f"Enviado em: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+            time.sleep(1)
+        else:
+            print("ℹ️ Mensagem de cabeçalho omitida: outra loja já disparou o alerta.")
         
         # Envia cada item individualmente em seguida
         for p in todos_atingidos:
