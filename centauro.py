@@ -218,8 +218,8 @@ def main():
         urls = entrada[1:]
         for url in urls:
             total_links += 1
-            resultado, sucesso = verificar_url_unica(alvo, url)
-            if not sucesso:
+            resultado,热情 = verificar_url_unica(alvo, url)
+            if not热情:
                 erros += 1
             if resultado:
                 todos_atingidos.append(resultado)
@@ -227,20 +227,24 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        # Envia os itens qualificados sequencialmente
         for p in todos_atingidos:
+            # Envia o "Alerta de Preço" em um balão separado para cada item
+            enviar_telegram(token, chat_id, f"<b>{ALERTA_TEXTO}</b>")
+            time.sleep(0.5)
+
+            # Monta o balão principal do item
             caption = (
-                f"<b>{ALERTA_TEXTO}</b>\n"
                 f"<b>{TITULO_ALERTA}</b>\n\n"
                 f'👉<a href="{p["url"]}">{p["nome"]}</a>\n\n'
                 f"💰Preço: <b>R$ {p['preco']:.2f}</b>\n"
                 f"🎯Alvo:  <b>R$ {p['alvo']:.2f}</b>"
             )
+            
             if p["imagem_url"]:
                 enviar_telegram_foto(token, chat_id, p["imagem_url"], caption)
             else:
                 enviar_telegram(token, chat_id, caption)
-            time.sleep(1)
+            time.sleep(1.5)
 
     if erros == total_links:
         sys.exit(1)
