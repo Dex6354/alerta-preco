@@ -220,7 +220,9 @@ def main():
     if todos_atingidos:
         for p in todos_atingidos:
             caption = (
-                f"<b>{TITULO_ALERTA}</b>\n\n"
+                f"<b># =========================</b>\n"
+                f"<b>{TITULO_ALERTA}</b>\n"
+                f"<b># =========================</b>\n"
                 f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
                 f"💰 Preço: <b>R$ {p['preco']:.2f}</b> ({p['tipo']})\n"
                 f"🎯 Alvo:  <b>R$ {p['alvo']:.2f}</b>"
