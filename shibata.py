@@ -185,7 +185,7 @@ def main():
         # Envia cada item individualmente em seguida
         for p in todos_atingidos:
             caption = (
-                f"🔥🛒 ALERTA SHIBATA!</b>"
+                f"🔥🛒 <b>ALERTA SHIBATA!</b>\n"
                 f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
                 f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
                 f"🎯 Alvo: <b>R$ {p['alvo']:.2f}</b>"
