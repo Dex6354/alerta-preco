@@ -2,7 +2,6 @@ import os
 import re
 import time
 import sys
-import json
 import requests
 
 # ============================================================
@@ -35,10 +34,12 @@ def carregar_produtos_txt(caminho_arquivo):
         linhas = [linha.strip() for linha in f.readlines()]
 
     for idx, linha in enumerate(linhas):
+        # Identifica se a linha é um link do Shibata
         if linha.startswith("http") and "loja.shibata.com.br" in linha:
             url_shibata = linha
             alvo = None
             
+            # Sobe as linhas anteriores para encontrar o preço alvo correspondente
             for i in range(idx - 1, -1, -1):
                 if not linhas[i].startswith("http") and "," in linhas[i]:
                     try:
@@ -48,9 +49,11 @@ def carregar_produtos_txt(caminho_arquivo):
                         continue
             
             if alvo is not None:
+                # Procura se já existe um grupo com este preço alvo para agrupar
                 grupo_existente = False
                 for item in produtos_carregados:
                     if item[0] == alvo:
+                        # Evita duplicar o mesmo link no grupo
                         if url_shibata not in item[1:]:
                             item.append(url_shibata)
                         grupo_existente = True
@@ -59,33 +62,24 @@ def carregar_produtos_txt(caminho_arquivo):
                 if not grupo_existente:
                     produtos_carregados.append([alvo, url_shibata])
 
+    # Converte as listas internas para tuplas para manter compatibilidade com o core
     return [tuple(item) for item in produtos_carregados]
 
 # ============================================================
 # TELEGRAM
 # ============================================================
-def enviar_telegram(token, chat_id, mensagem, url_produto):
+def enviar_telegram(token, chat_id, mensagem):
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        reply_markup = {
-            "inline_keyboard": [[
-                {"text": "🛒 Ir para a Loja", "url": url_produto}
-            ]]
-        }
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {
-            "chat_id": chat_id, 
-            "text": mensagem, 
-            "parse_mode": "HTML",
-            "reply_markup": json.dumps(reply_markup)
-        }
+        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
 
-def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo, url_produto):
+def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
@@ -94,33 +88,24 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo, url_pr
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
             
-        reply_markup = {
-            "inline_keyboard": [[
-                {"text": "🛒 Ir para a Loja", "url": url_produto}
-            ]]
-        }
+        filename = "item.jpg"
 
+        # 1. Envia primeiro a mensagem de Alerta isolada
+        enviar_telegram(token, chat_id, f"<b>{TITULO_ALERTA}</b>")
+
+        # 2. Envia o documento com o restante das informações (sem o título duplicado)
         url = f"https://api.telegram.org/bot{token}/sendDocument"
-        
-        # Dados do formulário (precisam ser strings quando enviados com multipart/form-data)
-        data = {
-            "chat_id": chat_id, 
-            "caption": caption, 
-            "parse_mode": "HTML",
-            "reply_markup": json.dumps(reply_markup)
-        }
-        
-        # Passando a tupla correta para forçar o nome 'item.jpg' e o Content-Type adequado
-        files = {
-            "document": ("item.jpg", img_resp.content, "image/jpeg")
-        }
+        data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
+        files = {"document": (filename, img_resp.content)}
         
         resp = requests.post(url, data=data, files=files, timeout=30)
         if not resp.ok:
-            raise Exception(f"sendDocument retornou {resp.status_code} - {resp.text}")
+            raise Exception(f"sendDocument retornou {resp.status_code}")
     except Exception as e:
         print(f"⚠️ Erro Telegram (foto): {e} — enviando apenas texto.")
-        enviar_telegram(token, chat_id, caption, url_produto)
+        # Se falhar o envio do arquivo, junta tudo de volta no texto
+        texto_completo = f"<b>{TITULO_ALERTA}</b>\n\n{caption}"
+        enviar_telegram(token, chat_id, texto_completo)
 
 # ============================================================
 # API SHIBATA
@@ -142,8 +127,9 @@ def buscar_preco_shibata(url):
 
     produto = response.json().get("data", {}).get("produto", {})
     if not produto:
-        raise Exception(f"Produto ID {produto_id} não encontrado")
+        raise Exception(f"Produto ID {produto_id} not encontrado")
 
+    # Lógica de fallback para preço original e preço promocional
     preco_original = produto.get("preco_original")
     if preco_original and float(preco_original) > 0:
         preco = float(preco_original)
@@ -180,16 +166,17 @@ def monitorar_grupo(alvo, urls, token, chat_id):
 
     if atingiram:
         for p in atingiram:
+            # Removido o TITULO_ALERTA daqui para evitar repetição no fluxo de foto
             caption = (
-                f"<b>{TITULO_ALERTA}</b>\n\n"
-                f"{p['nome']}\n\n"
-                f"💰Preço: <b>R$ {p['preco']:.2f}</b>\n"
-                f"🎯Alvo:  <b>R$ {alvo:.2f}</b>"
+                f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
+                f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
+                f"🎯 Alvo:  <b>R$ {alvo:.2f}</b>"
             )
             if p["imagem_url"]:
-                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"], p["url"])
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
             else:
-                enviar_telegram(token, chat_id, caption, p["url"])
+                # Caso não tenha foto, reconcatena o título para a mensagem simples fazer sentido
+                enviar_telegram(token, chat_id, f"<b>{TITULO_ALERTA}</b>\n\n{caption}")
     
     return erros == len(urls)
 
@@ -200,6 +187,7 @@ def main():
 
     print("\n🚀 INICIANDO MONITOR SHIBATA")
     
+    # Busca a lista dinâmica mapeada do arquivo de texto
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
     if not produtos_monitorados:
