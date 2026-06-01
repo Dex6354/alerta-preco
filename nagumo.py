@@ -9,7 +9,6 @@ import requests
 # ============================================================
 NAGUMO_API_URL = "https://www.nagumo.com.br/on/demandware.store/Sites-Nagumo-Site/pt_BR/Product-Variation"
 TITULO_ALERTA = "🔥🛒 ALERTA NAGUMO!"
-ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
@@ -28,11 +27,14 @@ def carregar_produtos_txt(caminho_arquivo):
         if linha.startswith("http") and "nagumo.com.br" in linha:
             url_nagumo = linha
             alvo = None
+            nome_item = "Produto"
             
             for i in range(idx - 1, -1, -1):
                 if not linhas[i].startswith("http") and "," in linhas[i]:
                     try:
-                        alvo = float(linhas[i].split(",")[1].strip())
+                        partes = linhas[i].split(",")
+                        nome_item = partes[0].strip()
+                        alvo = float(partes[1].strip())
                         break
                     except ValueError:
                         continue
@@ -40,14 +42,14 @@ def carregar_produtos_txt(caminho_arquivo):
             if alvo is not None:
                 grupo_existente = False
                 for item in produtos_carregados:
-                    if item[0] == alvo:
-                        if url_nagumo not in item[1:]:
+                    if item[0] == alvo and item[1] == nome_item:
+                        if url_nagumo not in item[2:]:
                             item.append(url_nagumo)
                         grupo_existente = True
                         break
                 
                 if not grupo_existente:
-                    produtos_carregados.append([alvo, url_nagumo])
+                    produtos_carregados.append([alvo, nome_item, url_nagumo])
 
     return [tuple(item) for item in produtos_carregados]
 
@@ -65,7 +67,7 @@ def enviar_telegram(token, chat_id, mensagem):
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
 
-def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
+def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
     if not token or not chat_id:
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
@@ -73,8 +75,6 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
         img_resp = requests.get(foto_url, timeout=20)
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
-            
-        filename = "item.jpg"
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
@@ -165,7 +165,7 @@ def buscar_preco_nagumo(url):
 # ============================================================
 # MONITOR CORE
 # ============================================================
-def monitorar_grupo(alvo, urls):
+def monitorar_grupo(alvo, nome_item, urls):
     print(f"\n📦 Monitorando Grupo/Item | Alvo: R$ {alvo:.2f}")
     atingiram = []
     erros = 0
@@ -176,7 +176,15 @@ def monitorar_grupo(alvo, urls):
             preco, nome_real, imagem_url, tipo_preco = buscar_preco_nagumo(url)
             print(f"   💰 {nome_real} — R$ {preco:.2f} [{tipo_preco}]")
             if preco <= alvo:
-                atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url, "tipo": tipo_preco, "alvo": alvo})
+                atingiram.append({
+                    "nome": nome_real, 
+                    "nome_arquivo": nome_item,
+                    "url": url, 
+                    "preco": preco, 
+                    "imagem_url": imagem_url, 
+                    "tipo": tipo_preco, 
+                    "alvo": alvo
+                })
                 print("   ✅ Abaixo do alvo!")
         except Exception as e:
             print(f"   ❌ Erro: {e}")
@@ -201,19 +209,15 @@ def main():
         
     for entrada in produtos_monitorados:
         alvo = entrada[0]
-        urls = entrada[1:]
-        atingiram, falhou = monitorar_grupo(alvo, urls)
+        nome_item = entrada[1]
+        urls = entrada[2:]
+        atingiram, falhou = monitorar_grupo(alvo, nome_item, urls)
         if falhou:
             falhas_totais += 1
         todos_atingidos.extend(atingiram)
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        # Envia a mensagem principal de alerta apenas uma vez por execução desta loja
-        enviar_telegram(token, chat_id, ALERTA_TEXTO)
-        time.sleep(1)
-
-        # Envia cada item individualmente em seguida
         for p in todos_atingidos:
             caption = (
                 f"<b>{TITULO_ALERTA}</b>\n\n"
@@ -222,7 +226,8 @@ def main():
                 f"🎯 Alvo:  <b>R$ {p['alvo']:.2f}</b>"
             )
             if p["imagem_url"]:
-                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
+                filename = f"Nagumo-{p['nome_arquivo']}-R${p['preco']:.2f}.jpg"
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, filename)
             else:
                 enviar_telegram(token, chat_id, caption)
             time.sleep(1)
