@@ -178,7 +178,7 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        # Envia a mensagem principal de alerta apenas uma vez por execução desta loja
+        # Envia a mensagem principal de alerta apenas uma vez
         enviar_telegram(token, chat_id, ALERTA_TEXTO)
         time.sleep(1)
         
