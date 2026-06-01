@@ -227,13 +227,10 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        # Envia o cabeçalho uma única vez para este script
-        enviar_telegram(token, chat_id, ALERTA_TEXTO)
-        time.sleep(1)
-
         # Envia os itens qualificados sequencialmente
         for p in todos_atingidos:
             caption = (
+                f"<b>{ALERTA_TEXTO}</b>\n"
                 f"<b>{TITULO_ALERTA}</b>\n\n"
                 f'👉<a href="{p["url"]}">{p["nome"]}</a>\n\n'
                 f"💰Preço: <b>R$ {p['preco']:.2f}</b>\n"
