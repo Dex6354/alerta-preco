@@ -18,7 +18,7 @@ SHIBATA_HEADERS = {
 }
 
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
-TITULO_ALERTA = "🔥🛒 ALERTA SHIBATA!"
+ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
@@ -34,12 +34,10 @@ def carregar_produtos_txt(caminho_arquivo):
         linhas = [linha.strip() for linha in f.readlines()]
 
     for idx, linha in enumerate(linhas):
-        # Identifica se a linha é um link do Shibata
         if linha.startswith("http") and "loja.shibata.com.br" in linha:
             url_shibata = linha
             alvo = None
             
-            # Sobe as linhas anteriores para encontrar o preço alvo correspondente
             for i in range(idx - 1, -1, -1):
                 if not linhas[i].startswith("http") and "," in linhas[i]:
                     try:
@@ -49,11 +47,9 @@ def carregar_produtos_txt(caminho_arquivo):
                         continue
             
             if alvo is not None:
-                # Procura se já existe um grupo com este preço alvo para agrupar
                 grupo_existente = False
                 for item in produtos_carregados:
                     if item[0] == alvo:
-                        # Evita duplicar o mesmo link no grupo
                         if url_shibata not in item[1:]:
                             item.append(url_shibata)
                         grupo_existente = True
@@ -62,7 +58,6 @@ def carregar_produtos_txt(caminho_arquivo):
                 if not grupo_existente:
                     produtos_carregados.append([alvo, url_shibata])
 
-    # Converte as listas internas para tuplas para manter compatibilidade com o core
     return [tuple(item) for item in produtos_carregados]
 
 # ============================================================
@@ -90,10 +85,6 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
             
         filename = "item.jpg"
 
-        # 1. Envia primeiro a mensagem de Alerta isolada
-        enviar_telegram(token, chat_id, f"<b>{TITULO_ALERTA}</b>")
-
-        # 2. Envia o documento com o restante das informações (sem o título duplicado)
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
         files = {"document": (filename, img_resp.content)}
@@ -103,9 +94,7 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, nome_arquivo):
             raise Exception(f"sendDocument retornou {resp.status_code}")
     except Exception as e:
         print(f"⚠️ Erro Telegram (foto): {e} — enviando apenas texto.")
-        # Se falhar o envio do arquivo, junta tudo de volta no texto
-        texto_completo = f"<b>{TITULO_ALERTA}</b>\n\n{caption}"
-        enviar_telegram(token, chat_id, texto_completo)
+        enviar_telegram(token, chat_id, caption)
 
 # ============================================================
 # API SHIBATA
@@ -129,7 +118,6 @@ def buscar_preco_shibata(url):
     if not produto:
         raise Exception(f"Produto ID {produto_id} not encontrado")
 
-    # Lógica de fallback para preço original e preço promocional
     preco_original = produto.get("preco_original")
     if preco_original and float(preco_original) > 0:
         preco = float(preco_original)
@@ -146,7 +134,7 @@ def buscar_preco_shibata(url):
 # ============================================================
 # MONITOR CORE
 # ============================================================
-def monitorar_grupo(alvo, urls, token, chat_id):
+def monitorar_grupo(alvo, urls):
     print(f"\n📦 Monitorando Grupo/Item | Alvo: R$ {alvo:.2f}")
     atingiram = []
     erros = 0
@@ -157,37 +145,23 @@ def monitorar_grupo(alvo, urls, token, chat_id):
             preco, nome_real, imagem_url = buscar_preco_shibata(url)
             print(f"   💰 {nome_real} — R$ {preco:.2f}")
             if preco <= alvo:
-                atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url})
+                atingiram.append({"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url, "alvo": alvo})
                 print("   ✅ Abaixo do alvo!")
         except Exception as e:
             print(f"   ❌ Erro: {e}")
             erros += 1
         time.sleep(1.5)
 
-    if atingiram:
-        for p in atingiram:
-            # Removido o TITULO_ALERTA daqui para evitar repetição no fluxo de foto
-            caption = (
-                f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
-                f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
-                f"🎯 Alvo:  <b>R$ {alvo:.2f}</b>"
-            )
-            if p["imagem_url"]:
-                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
-            else:
-                # Caso não tenha foto, reconcatena o título para a mensagem simples fazer sentido
-                enviar_telegram(token, chat_id, f"<b>{TITULO_ALERTA}</b>\n\n{caption}")
-    
-    return erros == len(urls)
+    return atingiram, (erros == len(urls))
 
 def main():
     token = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("CHAT_ID")
     falhas_totais = 0
+    todos_atingidos = []
 
     print("\n🚀 INICIANDO MONITOR SHIBATA")
     
-    # Busca a lista dinâmica mapeada do arquivo de texto
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
     if not produtos_monitorados:
@@ -197,9 +171,29 @@ def main():
     for entrada in produtos_monitorados:
         alvo = entrada[0]
         urls = entrada[1:]
-        falhou = monitorar_grupo(alvo, urls, token, chat_id)
+        atingiram, falhou = monitorar_grupo(alvo, urls)
         if falhou:
             falhas_totais += 1
+        todos_atingidos.extend(atingiram)
+
+    # Processamento dos envios para o Telegram
+    if todos_atingidos:
+        # Envia a mensagem principal de alerta apenas uma vez
+        enviar_telegram(token, chat_id, ALERTA_TEXTO)
+        time.sleep(1)
+        
+        # Envia cada item individualmente em seguida
+        for p in todos_atingidos:
+            caption = (
+                f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
+                f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
+                f"🎯 Alvo: <b>R$ {p['alvo']:.2f}</b>"
+            )
+            if p["imagem_url"]:
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, p["nome"])
+            else:
+                enviar_telegram(token, chat_id, caption)
+            time.sleep(1)
 
     if falhas_totais == len(produtos_monitorados):
         sys.exit(1)
