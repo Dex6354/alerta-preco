@@ -72,7 +72,7 @@ def carregar_produtos_txt(caminho_arquivo):
                         grupo_existente = True
                         break
                 
-                if not group_existente:
+                if not grupo_existente:
                     produtos_carregados.append([alvo, nome_item, url_centauro])
 
     return [tuple(item) for item in produtos_carregados]
@@ -247,7 +247,6 @@ def main():
                 f"🎯Alvo:  <b>R$ {p['alvo']:.2f}</b>"
             )
             if p["imagem_url"]:
-                # Gera o nome dinâmico: Centauro-Nome-R$XX.XX.jpg
                 filename = f"Centauro-{p['nome_arquivo']}-R${p['preco']:.2f}.jpg"
                 enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, filename)
             else:
