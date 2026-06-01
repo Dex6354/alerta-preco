@@ -1,6 +1,8 @@
 Tênis, 300.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
-https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
+https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=32
+https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=33
+https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=01
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
 Leite integral, 4
