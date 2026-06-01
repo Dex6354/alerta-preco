@@ -11,7 +11,6 @@ NAGUMO_API_URL = "https://www.nagumo.com.br/on/demandware.store/Sites-Nagumo-Sit
 TITULO_ALERTA = "🔥🛒 ALERTA NAGUMO!"
 ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
-FLAG_ALERTA = "alerta_enviado.txt"  # Arquivo de controle compartilhado no GitHub Actions
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
@@ -210,14 +209,8 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        # Envia a mensagem principal de alerta apenas se nenhuma outra loja enviou nesta rodada
-        if not os.path.exists(FLAG_ALERTA):
-            enviar_telegram(token, chat_id, ALERTA_TEXTO)
-            try:
-                with open(FLAG_ALERTA, "w", encoding="utf-8") as f:
-                    f.write("enviado")
-            except Exception as e:
-                print(f"⚠️ Erro ao criar arquivo de flag: {e}")
+        # Envia a mensagem principal de alerta apenas uma vez por execução desta loja
+        enviar_telegram(token, chat_id, ALERTA_TEXTO)
         time.sleep(1)
 
         # Envia cada item individualmente em seguida
