@@ -100,7 +100,7 @@ def enviar_telegram_separado(token, chat_id, foto_url, p):
         
         filename = "item.jpg"
 
-        # Mensagem 1: Apenas o Título e o Nome do Item na Legenda do Documento
+        # Mensagem 1: Apenas o documento com o título e o nome do item na legenda
         legenda_doc = f"<b>{TITULO_ALERTA}</b>\n\n📦 {p['nome']}"
         
         url_doc = f"https://api.telegram.org/bot{token}/sendDocument"
@@ -114,7 +114,7 @@ def enviar_telegram_separado(token, chat_id, foto_url, p):
         # Pequena pausa para garantir a ordem correta das notificações
         time.sleep(0.5)
 
-        # Mensagem 2: Link e Preços enviados em uma mensagem de texto separada
+        # Mensagem 2: Link, Preço Atual e Alvo enviados separadamente em formato de texto
         texto_detalhes = (
             f'👉 <a href="{p["url"]}">Clique aqui para abrir o link</a>\n\n'
             f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
@@ -124,10 +124,10 @@ def enviar_telegram_separado(token, chat_id, foto_url, p):
 
     except Exception as e:
         print(f"⚠️ Erro Telegram (foto/separação): {e} — enviando tudo em texto consolidado.")
-        # Fallback caso a API de documento falhe
         caption_fallback = (
             f"<b>{TITULO_ALERTA}</b>\n\n"
-            f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
+            f"📦 {p['nome']}\n\n"
+            f'👉 <a href="{p["url"]}">Clique aqui para abrir o link</a>\n\n'
             f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
             f"🎯 Alvo:  <b>R$ {p['alvo']:.2f}</b>"
         )
@@ -243,8 +243,8 @@ def main():
         urls = entrada[1:]
         for url in urls:
             total_links += 1
-            resultado, sucesso = verificar_url_unica(alvo, url)
-            if not sucesso:
+            resultado,热情 = verificar_url_unica(alvo, url)
+            if not  热情:
                 erros += 1
             if resultado:
                 todos_atingidos.append(resultado)
