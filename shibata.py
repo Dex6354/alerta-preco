@@ -20,7 +20,7 @@ SHIBATA_HEADERS = {
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
-ARQUIVO_TRAVA_ALERTA = "alerta_enviado.tmp"  # Arquivo de controle compartilhado entre as lojas
+FLAG_ALERTA = "alerta_enviado.txt"  # Arquivo de controle compartilhado no GitHub Actions
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
@@ -56,7 +56,7 @@ def carregar_produtos_txt(caminho_arquivo):
                         grupo_existente = True
                         break
                 
-                if not group_existente:
+                if not grupo_existente:
                     produtos_carregados.append([alvo, url_shibata])
 
     return [tuple(item) for item in produtos_carregados]
@@ -179,15 +179,15 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        # Verifica se outra loja já enviou a mensagem de alerta nesta rodada
-        if not os.path.exists(ARQUIVO_TRAVA_ALERTA):
+        # Envia a mensagem principal de alerta apenas se nenhum outro arquivo de outra loja enviou nesta rodada
+        if not os.path.exists(FLAG_ALERTA):
             enviar_telegram(token, chat_id, ALERTA_TEXTO)
-            # Cria a trava para que os próximos scripts saibam que já foi enviado
-            with open(ARQUIVO_TRAVA_ALERTA, "w") as f:
-                f.write(f"Enviado em: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-            time.sleep(1)
-        else:
-            print("ℹ️ Mensagem de cabeçalho omitida: outra loja já disparou o alerta.")
+            try:
+                with open(FLAG_ALERTA, "w", encoding="utf-8") as f:
+                    f.write("enviado")
+            except Exception as e:
+                print(f"⚠️ Erro ao criar arquivo de flag: {e}")
+        time.sleep(1)
         
         # Envia cada item individualmente em seguida
         for p in todos_atingidos:
