@@ -20,7 +20,6 @@ SHIBATA_HEADERS = {
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
-FLAG_ALERTA = "alerta_enviado.txt"  # Arquivo de controle compartilhado no GitHub Actions
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
@@ -179,14 +178,8 @@ def main():
 
     # Processamento dos envios para o Telegram
     if todos_atingidos:
-        # Envia a mensagem principal de alerta apenas se nenhum outro arquivo de outra loja enviou nesta rodada
-        if not os.path.exists(FLAG_ALERTA):
-            enviar_telegram(token, chat_id, ALERTA_TEXTO)
-            try:
-                with open(FLAG_ALERTA, "w", encoding="utf-8") as f:
-                    f.write("enviado")
-            except Exception as e:
-                print(f"⚠️ Erro ao criar arquivo de flag: {e}")
+        # Envia a mensagem principal de alerta apenas uma vez por execução desta loja
+        enviar_telegram(token, chat_id, ALERTA_TEXTO)
         time.sleep(1)
         
         # Envia cada item individualmente em seguida
