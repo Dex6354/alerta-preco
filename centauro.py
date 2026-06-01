@@ -140,11 +140,11 @@ def extrair_codigo_cor(url_produto):
     codigo_match = re.search(r'-(\d{6,7})\.html', url_produto)
     if not codigo_match:
         raise ValueError(f"Código não encontrado na URL")
+    
     cor_match = re.search(r'[?&]cor=(\w+)', url_produto)
-    if not cod_match:
-        cor_match = re.search(r'[?&]cor=(\w+)', url_produto)
     if not cor_match:
         raise ValueError(f"Parâmetro 'cor' não encontrado")
+    
     return codigo_match.group(1), cor_match.group(1)
 
 def buscar_preco_centauro(url_produto, max_tentativas=3):
