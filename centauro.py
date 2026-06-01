@@ -32,6 +32,7 @@ CENTAURO_HEADERS = {
 }
 
 TITULO_ALERTA = "🔥👕 ALERTA CENTAURO!"
+ALERTA_TEXTO = "🔥 Alerta de Preço!"
 ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
@@ -181,35 +182,28 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 # ============================================================
 # MONITOR CORE
 # ============================================================
-def monitorar_url_unica(alvo, url, token, chat_id):
+def verificar_url_unica(alvo, url):
     print(f"\n🔍 Monitorando | Alvo: R$ {alvo:.2f} | {url}")
     try:
         preco, nome_real, imagem_url = buscar_preco_centauro(url)
         print(f"   💰 {nome_real} — R$ {preco:.2f}")
 
         if preco <= alvo:
-            caption = (
-                f"<b>{TITULO_ALERTA}</b>\n\n"
-                f'👉<a href="{url}">{nome_real}</a>\n\n'
-                f"💰Preço: <b>R$ {preco:.2f}</b>\n"
-                f"🎯Alvo:  <b>R$ {alvo:.2f}</b>"
-            )
-            if imagem_url:
-                enviar_telegram_foto(token, chat_id, imagem_url, caption)
-            else:
-                enviar_telegram(token, chat_id, caption)
-            print("   📤 Alerta enviado!")
+            print("   ✅ Abaixo do alvo!")
+            return {"nome": nome_real, "url": url, "preco": preco, "imagem_url": imagem_url, "alvo": alvo}, True
         else:
             print("   ℹ️ Preço acima do alvo.")
+            return None, True
     except Exception as e:
         print(f"   ❌ Erro ao processar link: {e}")
-        return False
-    return True
+        return None, False
 
 def main():
     token = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("CHAT_ID")
     erros = 0
+    total_links = 0
+    todos_atingidos = []
 
     print("\n🚀 INICIANDO MONITOR CENTAURO")
     
@@ -223,12 +217,35 @@ def main():
         alvo = entrada[0]
         urls = entrada[1:]
         for url in urls:
-            sucesso = monitorar_url_unica(alvo, url, token, chat_id)
+            total_links += 1
+            resultado, sucesso = verificar_url_unica(alvo, url)
             if not sucesso:
                 erros += 1
+            if resultado:
+                todos_atingidos.append(resultado)
             time.sleep(2)
 
-    if erros == len(produtos_monitorados):
+    # Processamento dos envios para o Telegram
+    if todos_atingidos:
+        # Envia o cabeçalho uma única vez para este script
+        enviar_telegram(token, chat_id, ALERTA_TEXTO)
+        time.sleep(1)
+
+        # Envia os itens qualificados sequencialmente
+        for p in todos_atingidos:
+            caption = (
+                f"<b>{TITULO_ALERTA}</b>\n\n"
+                f'👉<a href="{p["url"]}">{p["nome"]}</a>\n\n'
+                f"💰Preço: <b>R$ {p['preco']:.2f}</b>\n"
+                f"🎯Alvo:  <b>R$ {p['alvo']:.2f}</b>"
+            )
+            if p["imagem_url"]:
+                enviar_telegram_foto(token, chat_id, p["imagem_url"], caption)
+            else:
+                enviar_telegram(token, chat_id, caption)
+            time.sleep(1)
+
+    if erros == total_links:
         sys.exit(1)
 
 if __name__ == "__main__":
