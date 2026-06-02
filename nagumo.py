@@ -124,10 +124,20 @@ def buscar_preco_nagumo(url):
     dados = response.json()
     
     preco = 0
-    price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
-    value_price = price_sales.get("value")
-    if value_price is not None:
-        preco = float(value_price)
+    
+    flagtypes = dados.get("flagtypes") or dados.get("product", {}).get("flagtypes") or []
+    
+    for flag in flagtypes:
+        flag_type = str(flag.get("flagType", ""))
+        if "22" in flag_type and flag.get("valueFlag") is not None:
+            preco = float(flag.get("valueFlag"))
+            break
+            
+    if preco == 0:
+        price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
+        value_price = price_sales.get("value")
+        if value_price is not None:
+            preco = float(value_price)
 
     if preco == 0:
         raise Exception(f"Não foi possível obter o preço para o ID {produto_id}")
