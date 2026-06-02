@@ -219,6 +219,7 @@ def main():
     if todos_atingidos:
         for p in todos_atingidos:
             caption = (
+                f"<b>━━━━━━━━━━━━━━━━━━━━━</b>\n"
                 f"🛒 <b>NAGUMO</b>: <a href='{p['url']}'>{p['nome']}</a>\n"
                 f"💰 <b>R$ {p['preco']:.2f}</b> | 🎯 <b>R$ {p['alvo']:.2f}</b> ({p['tipo']})\n"
                 f"<b>━━━━━━━━━━━━━━━━━━━━━</b>\n"
