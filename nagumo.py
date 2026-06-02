@@ -8,7 +8,6 @@ import requests
 # CONFIGURAÇÕES NAGUMO
 # ============================================================
 NAGUMO_API_URL = "https://www.nagumo.com.br/on/demandware.store/Sites-Nagumo-Site/pt_BR/Product-Variation"
-TITULO_ALERTA = "🔥🛒 ALERTA NAGUMO!"
 ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
@@ -220,12 +219,10 @@ def main():
     if todos_atingidos:
         for p in todos_atingidos:
             caption = (
-                f"<b>#=========================</b>\n"
-                f"<b>{TITULO_ALERTA}</b>\n"
-                f"<b>#=========================</b>\n"
-                f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
-                f"💰 Preço: <b>R$ {p['preco']:.2f}</b> ({p['tipo']})\n"
-                f"🎯 Alvo:  <b>R$ {p['alvo']:.2f}</b>"
+                f"<b>━━━━━━━━━━━━━━━━━━━━━</b>\n"
+                f"🛒<b>NAGUMO</b>: <a href="{p["url"]}">{p["nome"]}</a>\n"
+                f"💰 <b>R$ {p['preco']:.2f}</b> | 🎯 <b>R$ {p['alvo']:.2f}</b> ({p['tipo']})\n"
+                f"<b>━━━━━━━━━━━━━━━━━━━━━</b>\n"
             )
             if p["imagem_url"]:
                 filename = f"Nagumo-{p['nome_arquivo']}-R${p['preco']:.2f}.jpg"
