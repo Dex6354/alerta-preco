@@ -124,23 +124,10 @@ def buscar_preco_nagumo(url):
     dados = response.json()
     
     preco = 0
-    tipo_preco = "Todas Lojas"
-    
-    flagtypes = dados.get("flagtypes") or dados.get("product", {}).get("flagtypes") or []
-    
-    for flag in flagtypes:
-        flag_type = str(flag.get("flagType", ""))
-        if "22" in flag_type and flag.get("valueFlag") is not None:
-            preco = float(flag.get("valueFlag"))
-            tipo_preco = "Loja Calmon"
-            break
-            
-    if preco == 0:
-        price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
-        value_price = price_sales.get("value")
-        if value_price is not None:
-            preco = float(value_price)
-            tipo_preco = "Todas Lojas"
+    price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
+    value_price = price_sales.get("value")
+    if value_price is not None:
+        preco = float(value_price)
 
     if preco == 0:
         raise Exception(f"Não foi possível obter o preço para o ID {produto_id}")
@@ -159,7 +146,7 @@ def buscar_preco_nagumo(url):
         elif imagem_url.startswith("/"):
             imagem_url = f"https://www.nagumo.com.br{imagem_url}"
 
-    return preco, descricao, imagem_url, tipo_preco
+    return preco, descricao, imagem_url
 
 # ============================================================
 # MONITOR CORE
@@ -172,8 +159,8 @@ def monitorar_grupo(alvo, nome_item, urls):
     for url in urls:
         print(f"   🔍 {url}")
         try:
-            preco, nome_real, imagem_url, tipo_preco = buscar_preco_nagumo(url)
-            print(f"   💰 {nome_real} — R$ {preco:.2f} [{tipo_preco}]")
+            preco, nome_real, imagem_url = buscar_preco_nagumo(url)
+            print(f"   💰 {nome_real} — R$ {preco:.2f}")
             if preco <= alvo:
                 atingiram.append({
                     "nome": nome_real, 
@@ -181,7 +168,6 @@ def monitorar_grupo(alvo, nome_item, urls):
                     "url": url, 
                     "preco": preco, 
                     "imagem_url": imagem_url, 
-                    "tipo": tipo_preco, 
                     "alvo": alvo
                 })
                 print("   ✅ Abaixo do alvo!")
@@ -218,12 +204,10 @@ def main():
     # Processamento dos envios para o Telegram
     if todos_atingidos:
         for p in todos_atingidos:
-            texto_tipo = f" ({p['tipo']})" if "Calmon" in p['tipo'] else ""
-            
             caption = (
                 f"<b>━━━━━━━━━━━━━━━━━━━━━</b>\n"
                 f"🛒 <b>NAGUMO</b>: <a href='{p['url']}'>{p['nome']}</a>\n"
-                f"💰 <b>R$ {p['preco']:.2f}</b> | 🎯 <b>R$ {p['alvo']:.2f}</b>{texto_tipo}\n"
+                f"💰 <b>R$ {p['preco']:.2f}</b> | 🎯 <b>R$ {p['alvo']:.2f}</b>\n"
                 f"<b>━━━━━━━━━━━━━━━━━━━━━</b>\n"
             )
             if p["imagem_url"]:
