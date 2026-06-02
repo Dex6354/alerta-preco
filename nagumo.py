@@ -31,7 +31,7 @@ def carregar_produtos_txt(caminho_arquivo):
             for i in range(idx - 1, -1, -1):
                 if not linhas[i].startswith("http") and "," in linhas[i]:
                     try:
-                        partes = lines[i].split(",")
+                        partes = linhas[i].split(",")
                         nome_item = partes[0].strip()
                         alvo = float(partes[1].strip())
                         break
@@ -218,7 +218,6 @@ def main():
     # Processamento dos envios para o Telegram
     if todos_atingidos:
         for p in todos_atingidos:
-            # Exibe o tipo apenas se for Calmon, caso contrário deixa vazio
             texto_tipo = f" ({p['tipo']})" if "Calmon" in p['tipo'] else ""
             
             caption = (
