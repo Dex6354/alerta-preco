@@ -5,7 +5,7 @@ https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
 Regata Oxer, 50.00
 https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83
 
-Conjunto oxer, 150.00
+Conjunto oxer, 120.00
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
