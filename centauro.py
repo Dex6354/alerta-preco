@@ -31,7 +31,6 @@ CENTAURO_HEADERS = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
 }
 
-TITULO_ALERTA = "🔥👕 ALERTA CENTAURO!"
 ARQUIVO_ITENS = "listadeitens.js"
 
 # ============================================================
@@ -237,10 +236,10 @@ def main():
     if todos_atingidos:
         for p in todos_atingidos:
             caption = (
-                f"<b>{TITULO_ALERTA}</b>\n\n"
-                f'👉<a href="{p["url"]}">{p["nome"]}</a>\n\n'
-                f"💰Preço: <b>R$ {p['preco']:.2f}</b>\n"
-                f"🎯Alvo:  <b>R$ {p['alvo']:.2f}</b>"
+                f"<b>━━━━━━ CENTAURO ━━━━━━━</b>\n"
+                f"👕 <a href='{p['url']}'>{p['nome_arquivo']}</a>\n"
+                f"💰 <b>R$ {p['preco']:.2f}</b> | 🎯 <b>R$ {p['alvo']:.2f}</b>\n"
+                f"<b>━━━━━━━━━━━━━━━━━━━━</b>\n"
             )
             if p["imagem_url"]:
                 filename = f"Centauro-{p['nome_arquivo']}-R${p['preco']:.2f}.jpg"
