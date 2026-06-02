@@ -188,10 +188,10 @@ def main():
     if todos_atingidos:
         for p in todos_atingidos:
             caption = (
-                f"🔥🛒 <b>ALERTA SHIBATA!</b>\n\n"
-                f'👉 <a href="{p["url"]}">{p["nome"]}</a>\n\n'
-                f"💰 Preço: <b>R$ {p['preco']:.2f}</b>\n"
-                f"🎯 Alvo: <b>R$ {p['alvo']:.2f}</b>"
+                f"<b>━━━━━━ SHIBATA ━━━━━━━</b>\n"
+                f"🛒 <a href='{p['url']}'>{p['nome_arquivo']}</a>\n"
+                f"💰 <b>R$ {p['preco']:.2f}</b> | 🎯 <b>R$ {p['alvo']:.2f}</b>\n"
+                f"<b>━━━━━━━━━━━━━━━━━━━━</b>\n"
             )
             if p["imagem_url"]:
                 filename = f"Shibata-{p['nome_arquivo']}-R${p['preco']:.2f}.jpg"
