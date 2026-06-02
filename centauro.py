@@ -242,7 +242,7 @@ def main():
                 f"<b>━━━━━━━━━━━━━━━━━━━━</b>\n"
             )
             if p["imagem_url"]:
-                filename = f"Centauro-{p['nome_arquivo']}-R${p['preco']:.2f}.jpg"
+                filename = f"Centauro-{p['nome_arquivo']}-R${p['preco']:.2f}"
                 enviar_telegram_foto(token, chat_id, p["imagem_url"], caption, filename)
             else:
                 enviar_telegram(token, chat_id, caption)
