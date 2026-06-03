@@ -19,9 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Instalar dependências
-        run: |
-          pip install curl_cffi requests
-          pip install Pillow
+        run: pip install curl_cffi requests
 
       # ==========================================
       # CENTAURO
