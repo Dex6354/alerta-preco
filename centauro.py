@@ -228,7 +228,7 @@ def main():
         urls = entrada[2:]
         for url in urls:
             total_links += 1
-            resultado,热情sucesso = verificar_url_unica(alvo, nome_item, url)
+            resultado, sucesso = verificar_url_unica(alvo, nome_item, url)
             if not sucesso:
                 erros += 1
             if resultado:
