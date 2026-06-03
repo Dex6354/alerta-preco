@@ -2,12 +2,20 @@ import os
 import re
 import time
 import sys
+from io import BytesIO
 
 try:
     from curl_cffi import requests as curl_requests
 except ImportError:
     print("❌ Erro: A biblioteca 'curl_cffi' não está instalada.")
     print("Execute: pip install curl_cffi")
+    sys.exit(1)
+
+try:
+    from PIL import Image
+except ImportError:
+    print("❌ Erro: A biblioteca 'Pillow' não está instalada.")
+    print("Execute: pip install Pillow")
     sys.exit(1)
 
 import requests
@@ -32,6 +40,7 @@ CENTAURO_HEADERS = {
 }
 
 ARQUIVO_ITENS = "listadeitens.js"
+LOGO_CENTAURO_URL = "https://raw.githubusercontent.com/Dex6354/alerta-preco/refs/heads/main/centauro.png"
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
@@ -47,7 +56,7 @@ def carregar_produtos_txt(caminho_arquivo):
 
     for idx, linha in enumerate(linhas):
         if linha.startswith("http") and "centauro.com.br" in linha:
-            url_centauro = linha
+            url_centauro = filename = linha
             alvo = None
             nome_item = "Produto"
             
@@ -76,6 +85,59 @@ def carregar_produtos_txt(caminho_arquivo):
     return [tuple(item) for item in produtos_carregados]
 
 # ============================================================
+# FUNÇÃO DE PROCESSAMENTO DE IMAGEM
+# ============================================================
+def processar_imagem_quadrada(foto_url, logo_url):
+    """Baixa a imagem do produto, torna-a quadrada com fundo branco e adiciona o logo no rodapé."""
+    try:
+        # Baixa a imagem do produto
+        resp_prod = requests.get(foto_url, timeout=20)
+        if not resp_prod.ok:
+            return None
+        img_prod = Image.open(BytesIO(resp_prod.content)).convert("RGBA")
+
+        # Baixa a imagem da logo
+        resp_logo = requests.get(logo_url, timeout=20)
+        if not resp_logo.ok:
+            return None
+        img_logo = Image.open(BytesIO(resp_logo.content)).convert("RGBA")
+
+        # Define tamanho final quadrado com base no maior lado do produto (mínimo 600px)
+        largura, altura = img_prod.size
+        tamanho_quadrado = max(largura, altura, 600)
+
+        # Cria a tela de fundo branca e quadrada
+        fundo_branco = Image.new("RGBA", (tamanho_quadrado, tamanho_quadrado), (255, 255, 255, 255))
+
+        # Centraliza a imagem original do produto no fundo branco
+        offset_x = (tamanho_quadrado - largura) // 2
+        offset_y = (tamanho_quadrado - altura) // 2
+        fundo_branco.paste(img_prod, (offset_x, offset_y), img_prod)
+
+        # Redimensiona a logo proporcionalmente para ocupar 45% da largura da imagem final
+        largura_logo_alvo = int(tamanho_quadrado * 0.45)
+        proporcao_logo = largura_logo_alvo / float(img_logo.size[0])
+        altura_logo_alvo = int(float(img_logo.size[1]) * float(proporcao_logo))
+        img_logo_redimensionada = img_logo.resize((largura_logo_alvo, altura_logo_alvo), Image.Resampling.LANCZOS)
+
+        # Posiciona a logo centralizada horizontalmente no rodapé (com margem de 5% do fundo)
+        pos_logo_x = (tamanho_quadrado - largura_logo_alvo) // 2
+        pos_logo_y = tamanho_quadrado - altura_logo_alvo - int(tamanho_quadrado * 0.05)
+
+        fundo_branco.paste(img_logo_redimensionada, (pos_logo_x, pos_logo_y), img_logo_redimensionada)
+
+        # Converte de volta para RGB para salvar como JPEG de forma compacta
+        imagem_final = fundo_branco.convert("RGB")
+        output = BytesIO()
+        imagem_final.save(output, format="JPEG", quality=90)
+        output.seek(0)
+        
+        return output.getvalue()
+    except Exception as e:
+        print(f"⚠️ Erro ao processar imagem: {e}")
+        return None
+
+# ============================================================
 # TELEGRAM
 # ============================================================
 def enviar_telegram(token, chat_id, mensagem):
@@ -94,19 +156,21 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        img_resp = requests.get(foto_url, timeout=20)
-        if not img_resp.ok:
-            raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
+        # Processa e edita a imagem em memória antes do envio
+        conteudo_imagem = processar_imagem_quadrada(foto_url, LOGO_CENTAURO_URL)
+        
+        if not conteudo_imagem:
+            raise Exception("Não foi possível processar a imagem editada.")
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
-        files = {"document": (filename, img_resp.content)}
+        files = {"document": (filename, conteudo_imagem)}
         
         resp = requests.post(url, data=data, files=files, timeout=30)
         if not resp.ok:
             raise Exception(f"sendDocument retornou {resp.status_code}")
     except Exception as e:
-        print(f"⚠️ Erro Telegram (foto): {e} — enviando apenas texto.")
+        print(f"⚠️ Erro Telegram (foto editada): {e} — enviando apenas texto.")
         enviar_telegram(token, chat_id, caption)
 
 # ============================================================
