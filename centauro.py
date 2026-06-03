@@ -84,7 +84,7 @@ def enviar_telegram(token, chat_id, mensagem):
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
+        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
@@ -113,22 +113,16 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
 # API SCRAPER
 # ============================================================
 def extrair_codigo_cor(url_produto):
-    # Captura o código alfanumérico após o último hífen antes de .html
-    codigo_match = re.search(r'-([a-zA-Z0-9_-]+)\.html', url_produto)
+    # Captura letras e números após o último hífen antes de .html (ignorando opcionalmente -mktp)
+    codigo_match = re.search(r'-([a-zA-Z0-9]+?)(?:-mktp)?\.html', url_produto)
     if not codigo_match:
         raise ValueError(f"Código não encontrado na URL")
     
-    codigo = codigo_match.group(1)
-    
-    # Remove o sufixo -mktp se ele existir no final do código
-    if codigo.endswith("-mktp"):
-        codigo = codigo[:-5]
-        
     cor_match = re.search(r'[?&]cor=(\w+)', url_produto)
     if not cor_match:
         raise ValueError(f"Parâmetro 'cor' não encontrado")
         
-    return codigo, cor_match.group(1)
+    return codigo_match.group(1), cor_match.group(1)
 
 def buscar_preco_centauro(url_produto, max_tentativas=3):
     codigo, cor = extrair_codigo_cor(url_produto)
@@ -234,7 +228,7 @@ def main():
         urls = entrada[2:]
         for url in urls:
             total_links += 1
-            resultado, sucesso = verificar_url_unica(alvo, nome_item, url)
+            resultado,热情sucesso = verificar_url_unica(alvo, nome_item, url)
             if not sucesso:
                 erros += 1
             if resultado:
