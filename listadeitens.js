@@ -14,7 +14,7 @@ https://www.centauro.com.br/camiseta-regata-penalty-treino-essencial-basico-masc
 https://www.centauro.com.br/regata-machao-diadora-big-logo-masculina-m17s69-mktp.html?cor=02
 https://www.centauro.com.br/regata-machao-topper-classic-masculina-m16rj4-mktp.html?cor=02
 
-Conjunto oxer, 112.00
+Conjunto oxer, 113.00
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
