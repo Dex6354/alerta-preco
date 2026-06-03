@@ -54,9 +54,9 @@ def carregar_produtos_txt(caminho_arquivo):
     with open(caminho_arquivo, "r", encoding="utf-8") as f:
         linhas = [linha.strip() for linha in f.readlines()]
 
-    for idx, linha in enumerate(linhas):
-        if linha.startswith("http") and "centauro.com.br" in linha:
-            url_centauro = filename = linha
+    for idx, inline in enumerate(linhas):
+        if inline.startswith("http") and "centauro.com.br" in inline:
+            url_centauro = inline
             alvo = None
             nome_item = "Produto"
             
@@ -88,7 +88,7 @@ def carregar_produtos_txt(caminho_arquivo):
 # FUNÇÃO DE PROCESSAMENTO DE IMAGEM
 # ============================================================
 def processar_imagem_quadrada(foto_url, logo_url):
-    """Baixa a imagem do produto, torna-a quadrada com fundo branco e adiciona o logo no rodapé."""
+    """Baixa a imagem, torna a área do produto quadrada e adiciona a logo abaixo dela."""
     try:
         # Baixa a imagem do produto
         resp_prod = requests.get(foto_url, timeout=20)
@@ -102,31 +102,35 @@ def processar_imagem_quadrada(foto_url, logo_url):
             return None
         img_logo = Image.open(BytesIO(resp_logo.content)).convert("RGBA")
 
-        # Define tamanho final quadrado com base no maior lado do produto (mínimo 600px)
-        largura, altura = img_prod.size
-        tamanho_quadrado = max(largura, altura, 600)
+        # Define o tamanho quadrado do container do produto (mínimo 600px)
+        largura_orig, altura_orig = img_prod.size
+        tamanho_quadrado = max(largura_orig, altura_orig, 600)
 
-        # Cria a tela de fundo branca e quadrada
-        fundo_branco = Image.new("RGBA", (tamanho_quadrado, tamanho_quadrado), (255, 255, 255, 255))
-
-        # Centraliza a imagem original do produto no fundo branco
-        offset_x = (tamanho_quadrado - largura) // 2
-        offset_y = (tamanho_quadrado - altura) // 2
-        fundo_branco.paste(img_prod, (offset_x, offset_y), img_prod)
-
-        # Redimensiona a logo proporcionalmente para ocupar 45% da largura da imagem final
-        largura_logo_alvo = int(tamanho_quadrado * 0.45)
+        # Calcula o tamanho ideal da logo (40% da largura do quadrado)
+        largura_logo_alvo = int(tamanho_quadrado * 0.40)
         proporcao_logo = largura_logo_alvo / float(img_logo.size[0])
         altura_logo_alvo = int(float(img_logo.size[1]) * float(proporcao_logo))
         img_logo_redimensionada = img_logo.resize((largura_logo_alvo, altura_logo_alvo), Image.Resampling.LANCZOS)
 
-        # Posiciona a logo centralizada horizontalmente no rodapé (com margem de 5% do fundo)
+        # Altura extra reservada para a logo no rodapé (altura da logo + margens)
+        espaco_rodape = altura_logo_alvo + int(tamanho_quadrado * 0.05)
+        altura_final_canvas = tamanho_quadrado + espaco_rodape
+
+        # Cria uma tela de fundo branca com espaço extra na altura para a logo
+        fundo_branco = Image.new("RGBA", (tamanho_quadrado, altura_final_canvas), (255, 255, 255, 255))
+
+        # Centraliza a imagem do produto APENAS na área quadrada superior
+        offset_x = (tamanho_quadrado - largura_orig) // 2
+        offset_y = (tamanho_quadrado - altura_orig) // 2
+        fundo_branco.paste(img_prod, (offset_x, offset_y), img_prod)
+
+        # Posiciona a logo no espaço em branco que sobrou abaixo do quadrado do produto
         pos_logo_x = (tamanho_quadrado - largura_logo_alvo) // 2
-        pos_logo_y = tamanho_quadrado - altura_logo_alvo - int(tamanho_quadrado * 0.05)
+        pos_logo_y = tamanho_quadrado + (espaco_rodape - altura_logo_alvo) // 2
 
         fundo_branco.paste(img_logo_redimensionada, (pos_logo_x, pos_logo_y), img_logo_redimensionada)
 
-        # Converte de volta para RGB para salvar como JPEG de forma compacta
+        # Converte para RGB e gera o arquivo JPEG em memória
         imagem_final = fundo_branco.convert("RGB")
         output = BytesIO()
         imagem_final.save(output, format="JPEG", quality=90)
@@ -156,7 +160,6 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        # Processa e edita a imagem em memória antes do envio
         conteudo_imagem = processar_imagem_quadrada(foto_url, LOGO_CENTAURO_URL)
         
         if not conteudo_imagem:
