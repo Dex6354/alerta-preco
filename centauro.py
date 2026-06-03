@@ -180,7 +180,8 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
 # API SCRAPER
 # ============================================================
 def extrair_codigo_cor(url_produto):
-    codigo_match = re.search(r'-(\d{6,7})\.html', url_produto)
+    # Regex atualizado para capturar letras e números no final da URL do produto
+    codigo_match = re.search(r'-([A-Za-z0-9]+)\.html', url_produto)
     if not codigo_match:
         raise ValueError(f"Código não encontrado na URL")
     cor_match = re.search(r'[?&]cor=(\w+)', url_produto)
