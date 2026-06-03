@@ -113,7 +113,7 @@ def processar_imagem_quadrada(foto_url, logo_url):
         img_logo_redimensionada = img_logo.resize((largura_logo_alvo, altura_logo_alvo), Image.Resampling.LANCZOS)
 
         # Redimensiona a imagem do item para ocupar no máximo 70% do quadrado (abre espaço para a logo)
-        limite_item = int(tamanho_quadrado * 0.70)
+        limite_item = int(tamanho_quadrado * 0.90)
         largura_orig, altura_orig = img_prod.size
         proporcao_item = min(limite_item / largura_orig, limite_item / altura_orig)
         
