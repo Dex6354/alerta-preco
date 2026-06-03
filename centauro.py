@@ -52,11 +52,11 @@ def carregar_produtos_txt(caminho_arquivo):
         return produtos_carregados
 
     with open(caminho_arquivo, "r", encoding="utf-8") as f:
-        linhas = [linha.strip() for inline in f.readlines()]
+        linhas = [linha.strip() for linha in f.readlines()]
 
-    for idx, inline in enumerate(linhas):
-        if inline.startswith("http") and "centauro.com.br" in inline:
-            url_centauro = inline
+    for idx, linha in enumerate(linhas):
+        if linha.startswith("http") and "centauro.com.br" in linha:
+            url_centauro = linha
             alvo = None
             nome_item = "Produto"
             
