@@ -2,8 +2,17 @@ Tênis Nike, 200.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
 
-Regata Oxer, 50.00
+Regata Oxer, 40.00
 https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83
+https://www.centauro.com.br/regata-mp-oxer-endeavour-99737G.html?cor=17
+https://www.centauro.com.br/camiseta-regata-masculina-oxer-basic-light-988509.html?cor=02
+
+Regata, 30
+https://www.centauro.com.br/regata-diadora-small-logo-masculina-m17ok4-mktp.html?cor=02
+https://www.centauro.com.br/camiseta-regata-penalty-x-360279-masculina-954177.html?cor=02
+https://www.centauro.com.br/camiseta-regata-penalty-treino-essencial-basico-masculino-m188w3-mktp.html?cor=02
+https://www.centauro.com.br/regata-machao-diadora-big-logo-masculina-m17s69-mktp.html?cor=02
+https://www.centauro.com.br/regata-machao-topper-classic-masculina-m16rj4-mktp.html?cor=02
 
 Conjunto oxer, 120.00
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
