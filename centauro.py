@@ -88,7 +88,7 @@ def carregar_produtos_txt(caminho_arquivo):
 # FUNÇÃO DE PROCESSAMENTO DE IMAGEM
 # ============================================================
 def processar_imagem_quadrada(foto_url, logo_url):
-    """Baixa a imagem, torna-a quadrada e sobrepõe a logo colada na borda inferior com fundo branco."""
+    """Baixa a imagem, torna-a quadrada e sobrepõe uma faixa branca de ponta a ponta no rodapé com a logo à frente."""
     try:
         # Baixa a imagem do produto
         resp_prod = requests.get(foto_url, timeout=20)
@@ -120,15 +120,16 @@ def processar_imagem_quadrada(foto_url, logo_url):
         altura_logo_alvo = int(float(img_logo.size[1]) * float(proporcao_logo))
         img_logo_redimensionada = img_logo.resize((largura_logo_alvo, altura_logo_alvo), Image.Resampling.LANCZOS)
 
-        # Cria uma base totalmente branca do tamanho exato da logo para preencher as laterais e fundo dela
-        fundo_logo_branco = Image.new("RGBA", (largura_logo_alvo, altura_logo_alvo), (255, 255, 255, 255))
-        fundo_logo_branco.paste(img_logo_redimensionada, (0, 0), img_logo_redimensionada)
+        # Cria o bloco branco esticado de ponta a ponta (largura total) na mesma altura que a logo
+        faixa_branca_rodape = Image.new("RGBA", (tamanho_quadrado, altura_logo_alvo), (255, 255, 255, 255))
 
-        # Posiciona a logo centralizada horizontalmente e colada na borda inferior (sem margem)
-        pos_logo_x = (tamanho_quadrado - largura_logo_alvo) // 2
-        pos_logo_y = tamanho_quadrado - altura_logo_alvo
+        # Centraliza a logo dentro dessa faixa branca
+        pos_logo_interna_x = (tamanho_quadrado - largura_logo_alvo) // 2
+        faixa_branca_rodape.paste(img_logo_redimensionada, (pos_logo_interna_x, 0), img_logo_redimensionada)
 
-        fundo_branco.paste(fundo_logo_branco, (pos_logo_x, pos_logo_y), fundo_logo_branco)
+        # Cola a faixa completa (bloco branco + logo) encostada na borda inferior do quadrado principal
+        pos_rodape_y = tamanho_quadrado - altura_logo_alvo
+        fundo_branco.paste(faixa_branca_rodape, (0, pos_rodape_y), faixa_branca_rodape)
 
         # Converte para RGB e gera o arquivo JPEG em memória
         imagem_final = fundo_branco.convert("RGB")
@@ -180,7 +181,6 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
 # API SCRAPER
 # ============================================================
 def extrair_codigo_cor(url_produto):
-    # Regex atualizado para capturar letras e números no final da URL do produto
     codigo_match = re.search(r'-([A-Za-z0-9]+)\.html', url_produto)
     if not codigo_match:
         raise ValueError(f"Código não encontrado na URL")
