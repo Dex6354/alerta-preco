@@ -52,7 +52,7 @@ def carregar_produtos_txt(caminho_arquivo):
         return produtos_carregados
 
     with open(caminho_arquivo, "r", encoding="utf-8") as f:
-        linhas = [linha.strip() for linha in f.readlines()]
+        linhas = [linha.strip() for inline in f.readlines()]
 
     for idx, inline in enumerate(linhas):
         if inline.startswith("http") and "centauro.com.br" in inline:
@@ -88,7 +88,7 @@ def carregar_produtos_txt(caminho_arquivo):
 # FUNÇÃO DE PROCESSAMENTO DE IMAGEM
 # ============================================================
 def processar_imagem_quadrada(foto_url, logo_url):
-    """Baixa a imagem, torna a área do produto quadrada e adiciona a logo abaixo dela."""
+    """Baixa a imagem, encolhe o item para caber no quadrado junto com a logo no rodapé."""
     try:
         # Baixa a imagem do produto
         resp_prod = requests.get(foto_url, timeout=20)
@@ -102,32 +102,36 @@ def processar_imagem_quadrada(foto_url, logo_url):
             return None
         img_logo = Image.open(BytesIO(resp_logo.content)).convert("RGBA")
 
-        # Define o tamanho quadrado do container do produto (mínimo 600px)
-        largura_orig, altura_orig = img_prod.size
-        tamanho_quadrado = max(largura_orig, altura_orig, 600)
+        # Define o tamanho final fixo do quadrado (ex: 700x700 pixels)
+        tamanho_quadrado = 700
+        fundo_branco = Image.new("RGBA", (tamanho_quadrado, tamanho_quadrado), (255, 255, 255, 255))
 
-        # Calcula o tamanho ideal da logo (40% da largura do quadrado)
-        largura_logo_alvo = int(tamanho_quadrado * 0.40)
+        # Redimensiona a logo proporcionalmente (ocupando 35% da largura da imagem)
+        largura_logo_alvo = int(tamanho_quadrado * 0.35)
         proporcao_logo = largura_logo_alvo / float(img_logo.size[0])
         altura_logo_alvo = int(float(img_logo.size[1]) * float(proporcao_logo))
         img_logo_redimensionada = img_logo.resize((largura_logo_alvo, altura_logo_alvo), Image.Resampling.LANCZOS)
 
-        # Altura extra reservada para a logo no rodapé (altura da logo + margens)
-        espaco_rodape = altura_logo_alvo + int(tamanho_quadrado * 0.05)
-        altura_final_canvas = tamanho_quadrado + espaco_rodape
+        # Redimensiona a imagem do item para ocupar no máximo 70% do quadrado (abre espaço para a logo)
+        limite_item = int(tamanho_quadrado * 0.70)
+        largura_orig, altura_orig = img_prod.size
+        proporcao_item = min(limite_item / largura_orig, limite_item / altura_orig)
+        
+        largura_item_nova = int(largura_orig * proporcao_item)
+        altura_item_nova = int(altura_orig * proporcao_item)
+        img_prod_redimensionada = img_prod.resize((largura_item_nova, altura_item_nova), Image.Resampling.LANCZOS)
 
-        # Cria uma tela de fundo branca com espaço extra na altura para a logo
-        fundo_branco = Image.new("RGBA", (tamanho_quadrado, altura_final_canvas), (255, 255, 255, 255))
+        # Centraliza o item reduzido na metade superior do canvas quadrado
+        offset_x = (tamanho_quadrado - largura_item_nova) // 2
+        # Posiciona o item um pouco mais para cima para equilibrar com o rodapé
+        offset_y = (int(tamanho_quadrado * 0.82) - altura_item_nova) // 2
+        if offset_y < 10: 
+            offset_y = 10
+        fundo_branco.paste(img_prod_redimensionada, (offset_x, offset_y), img_prod_redimensionada)
 
-        # Centraliza a imagem do produto APENAS na área quadrada superior
-        offset_x = (tamanho_quadrado - largura_orig) // 2
-        offset_y = (tamanho_quadrado - altura_orig) // 2
-        fundo_branco.paste(img_prod, (offset_x, offset_y), img_prod)
-
-        # Posiciona a logo no espaço em branco que sobrou abaixo do quadrado do produto
+        # Posiciona a logo centralizada no rodapé (com margem de 4% da borda inferior)
         pos_logo_x = (tamanho_quadrado - largura_logo_alvo) // 2
-        pos_logo_y = tamanho_quadrado + (espaco_rodape - altura_logo_alvo) // 2
-
+        pos_logo_y = tamanho_quadrado - altura_logo_alvo - int(tamanho_quadrado * 0.04)
         fundo_branco.paste(img_logo_redimensionada, (pos_logo_x, pos_logo_y), img_logo_redimensionada)
 
         # Converte para RGB e gera o arquivo JPEG em memória
