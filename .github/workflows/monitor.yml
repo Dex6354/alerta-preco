@@ -2,7 +2,7 @@ name: Monitor de Preços Automatizado
 
 on:
   schedule:
-    - cron: '24 09,21 * * *'
+    - cron: '27 12,21 * * *'
   workflow_dispatch:          # Permite rodar manualmente pelo painel do GitHub
     inputs:
       loja:
