@@ -4,6 +4,17 @@ on:
   schedule:
     - cron: '0 10,21 * * *'
   workflow_dispatch:          # Permite rodar manualmente pelo painel do GitHub
+    inputs:
+      loja:
+        description: 'Selecione qual loja deseja monitorar:'
+        required: true
+        type: choice
+        default: 'todas'
+        options:
+          - todas
+          - centauro
+          - nagumo
+          - shibata
 
 jobs:
   check:
@@ -25,6 +36,7 @@ jobs:
       # CENTAURO
       # ==========================================
       - name: Rodar Monitor Centauro
+        if: github.event_name == 'schedule' || github.event.inputs.loja == 'todas' || github.event.inputs.loja == 'centauro'
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
@@ -35,6 +47,7 @@ jobs:
       # NAGUMO
       # ==========================================
       - name: Rodar Monitor Nagumo
+        if: github.event_name == 'schedule' || github.event.inputs.loja == 'todas' || github.event.inputs.loja == 'nagumo'
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
@@ -45,6 +58,7 @@ jobs:
       # SHIBATA
       # ==========================================
       - name: Rodar Monitor Shibata
+        if: github.event_name == 'schedule' || github.event.inputs.loja == 'todas' || github.event.inputs.loja == 'shibata'
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
@@ -55,6 +69,7 @@ jobs:
       # ADICIONE AS OUTRAS LOJAS ABAIXO DESSE PONTO
       # ==========================================
       # - name: Rodar Monitor Loja3
+      #   if: github.event_name == 'schedule' || github.event.inputs.loja == 'todas' || github.event.inputs.loja == 'loja3'
       #   env:
       #     TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
       #     CHAT_ID: ${{ secrets.CHAT_ID }}
