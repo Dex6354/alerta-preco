@@ -248,7 +248,7 @@ def main():
     if todos_atingidos:
         for p in todos_atingidos:
             caption = (
-                f"<b>━━━━ ✅ CENTAURO ━━━━━</b>\n"
+                f"<b>━━━━ ✅ CENTAURO ━━━━━━</b>\n"
                 f"👕 <a href='{p['url']}'>{p['nome_arquivo']}</a>\n"
                 f"💰 <b>R$ {p['preco']:.2f}</b> | 🎯 <b>R$ {p['alvo']:.2f}</b>\n"
                 f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
