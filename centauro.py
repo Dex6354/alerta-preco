@@ -210,7 +210,7 @@ def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
             f"<b>━━━ ❌ ERRO CENTAURO ━━━</b>\n"
             f"👕 <a href='{url}'>{nome_item}</a>\n"
             f"⚠️ {e}\n"
-            f"<b>━━━━━━━━━━━━━━━━━━━━</b>
+            f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
         )
         enviar_telegram(token, chat_id, msg_erro)
         
