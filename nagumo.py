@@ -196,7 +196,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
             erros += 1
             # Dispara alerta de erro para o Telegram
             msg_erro = (
-                f"<b>━━━ ❌ ERRO NAGUMO ━━━</b>\n"
+                f"<b>━━━ ❌ ERRO NAGUMO ━━━━</b>\n"
                 f"🛒 <a href='{url}'>{nome_item}</a>\n"
                 f"⚠️ Falha ao consultar o item\n"
                 f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
