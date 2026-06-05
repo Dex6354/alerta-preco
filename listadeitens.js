@@ -32,7 +32,7 @@ Arroz Camil, 20
 https://www.loja.shibata.com.br/produto/12542/arroz-branco-camil-tipo-1-pacote-5kg
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-branco-tipo-1-camil-5kg-293303.html
 https://www.loja.shibata.com.br/produto/88948/biscoito-de-arroz-recheio-avela-cobertura-chocolate-ao-leite-fit-food-arrozfajor-pacote-26g
-https://www.loja.shibata.com.br/produto/12599/arroz-branco-camkl-tipo-1-pacote-5kg
+https://www.loja.shibata.com.br/produto/89999/arroz-branco-camkl-tipo-1-pacote-5kg
 
 Leite integral, 4.68
 https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l
