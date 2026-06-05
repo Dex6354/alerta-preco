@@ -113,7 +113,6 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
 # API SCRAPER
 # ============================================================
 def extrair_codigo_cor(url_produto):
-    # Captura letras e números após o último hífen antes de .html (ignorando opcionalmente -mktp)
     codigo_match = re.search(r'-([a-zA-Z0-9]+?)(?:-mktp)?\.html', url_produto)
     if not codigo_match:
         raise ValueError(f"Código não encontrado na URL")
@@ -184,7 +183,7 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 # ============================================================
 # MONITOR CORE
 # ============================================================
-def verificar_url_unica(alvo, nome_item, url):
+def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
     print(f"\n🔍 Monitorando | Alvo: R$ {alvo:.2f} | {url}")
     try:
         preco, nome_real, imagem_url = buscar_preco_centauro(url)
@@ -205,6 +204,16 @@ def verificar_url_unica(alvo, nome_item, url):
             return None, True
     except Exception as e:
         print(f"   ❌ Erro ao processar link: {e}")
+        
+        # Envia aviso de erro para o Telegram
+        msg_erro = (
+            f"⚠️ <b>ERRO DE MONITORAMENTO</b>\n"
+            f"👕 Produto: {nome_item}\n"
+            f"🔗 <a href='{url}'>Link do Produto</a>\n"
+            f"❌ Detalhes: {e}"
+        )
+        enviar_telegram(token, chat_id, msg_erro)
+        
         return None, False
 
 def main():
@@ -228,8 +237,8 @@ def main():
         urls = entrada[2:]
         for url in urls:
             total_links += 1
-            resultado, sucesso = verificar_url_unica(alvo, nome_item, url)
-            if not sucesso:
+            resultado, Platform_sucesso = verificar_url_unica(alvo, nome_item, url, token, chat_id)
+            if not Platform_sucesso:
                 erros += 1
             if resultado:
                 todos_atingidos.append(resultado)
