@@ -122,10 +122,15 @@ def buscar_preco_nagumo(url):
         raise Exception(f"API Nagumo retornou status {response.status_code} para o ID {produto_id}")
 
     dados = response.json()
+    product_data = dados.get("product", {})
     
+    # Verifica se o produto está disponível
+    disponivel = product_data.get("available", True)
+    if not disponivel:
+        return None, None, None
+
     preco = 0
-    
-    flagtypes = dados.get("flagtypes") or dados.get("product", {}).get("flagtypes") or []
+    flagtypes = dados.get("flagtypes") or product_data.get("flagtypes") or []
     
     for flag in flagtypes:
         flag_type = str(flag.get("flagType", ""))
@@ -134,7 +139,7 @@ def buscar_preco_nagumo(url):
             break
             
     if preco == 0:
-        price_sales = dados.get("product", {}).get("price", {}).get("sales", {})
+        price_sales = product_data.get("price", {}).get("sales", {})
         value_price = price_sales.get("value")
         if value_price is not None:
             preco = float(value_price)
@@ -142,7 +147,6 @@ def buscar_preco_nagumo(url):
     if preco == 0:
         raise Exception(f"Não foi possível obter o preço para o ID {produto_id}")
 
-    product_data = dados.get("product", {})
     descricao = product_data.get("productName") or f"Produto {produto_id}"
     
     images = product_data.get("images", {}).get("large", [])
@@ -161,7 +165,7 @@ def buscar_preco_nagumo(url):
 # ============================================================
 # MONITOR CORE
 # ============================================================
-def monitorar_grupo(alvo, nome_item, urls):
+def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
     print(f"\n📦 Monitorando Grupo/Item | Alvo: R$ {alvo:.2f}")
     atingiram = []
     erros = 0
@@ -170,6 +174,12 @@ def monitorar_grupo(alvo, nome_item, urls):
         print(f"   🔍 {url}")
         try:
             preco, nome_real, imagem_url = buscar_preco_nagumo(url)
+            
+            # Produto indisponível retorna None e é ignorado silenciosamente
+            if preco is None:
+                print("   💤 Produto indisponível (available: false). Ignorando...")
+                continue
+                
             print(f"   💰 {nome_real} — R$ {preco:.2f}")
             if preco <= alvo:
                 atingiram.append({
@@ -184,6 +194,10 @@ def monitorar_grupo(alvo, nome_item, urls):
         except Exception as e:
             print(f"   ❌ Erro: {e}")
             erros += 1
+            # Dispara alerta de erro para o Telegram
+            msg_erro = f"⚠️ <b>Erro no Monitor Nagumo</b>\n❌ Falha ao consultar o item: <code>{nome_item}</code>\n🔗 URL: {url}\n📝 Erro: {e}"
+            enviar_telegram(token, chat_id, msg_erro)
+            
         time.sleep(1.5)
     
     return atingiram, (erros == len(urls))
@@ -206,7 +220,7 @@ def main():
         alvo = entrada[0]
         nome_item = entrada[1]
         urls = entrada[2:]
-        atingiram, falhou = monitorar_grupo(alvo, nome_item, urls)
+        atingiram, falhou = monitorar_grupo(alvo, nome_item, urls, token, chat_id)
         if falhou:
             falhas_totais += 1
         todos_atingidos.extend(atingiram)
