@@ -170,10 +170,10 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
             erros += 1
             # Dispara alerta de erro no Telegram para problemas na consulta
             msg_erro = (
-                f"<b>⚠️ ERRO MONITOR SHIBATA</b>\n"
-                f"Falha ao consultar o item: <b>{nome_item}</b>\n"
-                f"URL: {url}\n"
-                f"Detalhe: <code>{e}</code>"
+                f"<b>━━━ ❌ ERRO SHIBATA ━━━━</b>\n"
+                f"🛒 <a href='{url}'>{nome_item}</a>\n"
+                f"⚠️ Falha ao consultar o item\n"
+                f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
             )
             enviar_telegram(token, chat_id, msg_erro)
             
