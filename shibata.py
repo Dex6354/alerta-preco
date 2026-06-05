@@ -173,7 +173,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
             print(f"   ❌ Erro: {e}")
             erros += 1
             msg_erro = (
-                f"<b>━━━ ❌ ERRO SHIBATA ━━━━</b>\n"
+                f"<b>━━━━ ❌ ERRO SHIBATA ━━━━</b>\n"
                 f"🛒 <a href='{url}'>{nome_item}</a>\n"
                 f"⚠️ Falha ao consultar o item\n"
                 f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
