@@ -221,7 +221,7 @@ def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
         msg_erro = (
             f"<b>━━━ ❌ ERRO CENTAURO ━━━</b>\n"
             f"👕 <a href='{url}'>{nome_item}</a>\n"
-            f"⚠️ {e}\n"
+            f"⚠️ Falha ao consultar o item\n"
             f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
         )
         enviar_telegram(token, chat_id, msg_erro)
