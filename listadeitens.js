@@ -1,6 +1,7 @@
-Tênis Nike, 200.00
+Tênis Nike, 300.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
+https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-9883k9.html?cor=31
 
 Blusa, 500
 https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02
@@ -17,7 +18,7 @@ https://www.centauro.com.br/camiseta-regata-penalty-treino-essencial-basico-masc
 https://www.centauro.com.br/regata-machao-diadora-big-logo-masculina-m17s69-mktp.html?cor=02
 https://www.centauro.com.br/regata-machao-topper-classic-masculina-m16rj4-mktp.html?cor=02
 
-Conjunto oxer, 130.00
+Conjunto oxer, 110.00
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
