@@ -195,7 +195,12 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
             print(f"   ❌ Erro: {e}")
             erros += 1
             # Dispara alerta de erro para o Telegram
-            msg_erro = f"⚠️ <b>Erro no Monitor Nagumo</b>\n❌ Falha ao consultar o item: <code>{nome_item}</code>\n🔗 URL: {url}\n📝 Erro: {e}"
+            msg_erro = (
+                f"<b>━━━ ❌ ERRO NAGUMO ━━━</b>\n"
+                f"🛒 <a href='{url}'>{nome_item}</a>\n"
+                f"⚠️ Falha ao consultar o item\n"
+                f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
+            )
             enviar_telegram(token, chat_id, msg_erro)
             
         time.sleep(1.5)
