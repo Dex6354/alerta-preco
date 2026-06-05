@@ -75,7 +75,12 @@ def enviar_telegram(token, chat_id, mensagem):
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": mensagem, "parse_mode": "HTML"}
+        payload = {
+            "chat_id": chat_id, 
+            "text": mensagem, 
+            "parse_mode": "HTML",
+            "link_preview_options": {"is_disabled": True}  # Remove o preview do link
+        }
         requests.post(url, json=payload, timeout=20)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
@@ -120,7 +125,7 @@ def buscar_preco_shibata(url):
 
     produto = response.json().get("data", {}).get("produto", {})
     if not produto:
-        raise Exception(f"Produto ID {produto_id} não encontrado no JSON")
+        raise Exception(f"Produto ID {produto_id} not encontrado no JSON")
 
     # Verifica se o produto está indisponível
     if produto.get("disponivel") is False:
@@ -164,11 +169,9 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                 print("   ✅ Abaixo do alvo!")
         except ProdutoIndisponivelException as e:
             print(f"   ⚠️ Ignorado: {e}")
-            # Não conta como erro crítico e pula silenciosamente sem alertar o Telegram
         except Exception as e:
             print(f"   ❌ Erro: {e}")
             erros += 1
-            # Dispara alerta de erro no Telegram para problemas na consulta
             msg_erro = (
                 f"<b>━━━ ❌ ERRO SHIBATA ━━━━</b>\n"
                 f"🛒 <a href='{url}'>{nome_item}</a>\n"
