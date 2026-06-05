@@ -6,7 +6,7 @@ on:
   workflow_dispatch:          # Permite rodar manualmente pelo painel do GitHub
     inputs:
       loja:
-        description: 'Selecione qual loja deseja monitorar:'
+        description: 'Selecione a loja:'
         required: true
         type: choice
         default: 'todas'
