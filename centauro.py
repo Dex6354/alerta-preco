@@ -140,6 +140,11 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 
             data = resp.json()
             product_data = data.get("product", {})
+            
+            # Condição solicitada: Ignorar produto se estiver indisponível
+            if product_data.get("isAvailable") is False:
+                raise ValueError("PRODUTO_INDISPONIVEL")
+
             nome_api = product_data.get("name") or "Produto Centauro"
             sizes = product_data.get("sizes", [])
 
@@ -173,6 +178,9 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
                 return min(precos), nome_api, imagem_url
 
             raise Exception("Nenhum preço disponível encontrado")
+        except ValueError as ve:
+            if str(ve) == "PRODUTO_INDISPONIVEL":
+                raise ve
         except Exception as e:
             print(f"   ❌ Tentativa {tentativa}/{max_tentativas}: {e}")
             if tentativa < max_tentativas:
@@ -201,6 +209,10 @@ def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
             }, True
         else:
             print("   ℹ️ Preço acima do alvo.")
+            return None, True
+    except ValueError as ve:
+        if str(ve) == "PRODUTO_INDISPONIVEL":
+            print("   ℹ️ Produto indisponível (isAvailable: false). Ignorando...")
             return None, True
     except Exception as e:
         print(f"   ❌ Erro ao processar link: {e}")
