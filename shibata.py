@@ -20,6 +20,10 @@ SHIBATA_HEADERS = {
 SHIBATA_IMG_BASE = "https://produto-assets-vipcommerce-com-br.br-se1.magaluobjects.com/500x500"
 ARQUIVO_ITENS = "listadeitens.js"
 
+# Exceção customizada para identificar produto indisponível
+class ProdutoIndisponivelException(Exception):
+    pass
+
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT
 # ============================================================
@@ -116,7 +120,11 @@ def buscar_preco_shibata(url):
 
     produto = response.json().get("data", {}).get("produto", {})
     if not produto:
-        raise Exception(f"Produto ID {produto_id} not encontrado")
+        raise Exception(f"Produto ID {produto_id} não encontrado no JSON")
+
+    # Verifica se o produto está indisponível
+    if produto.get("disponivel") is False:
+        raise ProdutoIndisponivelException(f"Produto {produto_id} está indisponível no momento")
 
     preco_original = produto.get("preco_original")
     if preco_original and float(preco_original) > 0:
@@ -134,7 +142,7 @@ def buscar_preco_shibata(url):
 # ============================================================
 # MONITOR CORE
 # ============================================================
-def monitorar_grupo(alvo, nome_item, urls):
+def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
     print(f"\n📦 Monitorando Grupo/Item | Alvo: R$ {alvo:.2f}")
     atingiram = []
     erros = 0
@@ -154,9 +162,21 @@ def monitorar_grupo(alvo, nome_item, urls):
                     "alvo": alvo
                 })
                 print("   ✅ Abaixo do alvo!")
+        except ProdutoIndisponivelException as e:
+            print(f"   ⚠️ Ignorado: {e}")
+            # Não conta como erro crítico e pula silenciosamente sem alertar o Telegram
         except Exception as e:
             print(f"   ❌ Erro: {e}")
             erros += 1
+            # Dispara alerta de erro no Telegram para problemas na consulta
+            msg_erro = (
+                f"<b>⚠️ ERRO MONITOR SHIBATA</b>\n"
+                f"Falha ao consultar o item: <b>{nome_item}</b>\n"
+                f"URL: {url}\n"
+                f"Detalhe: <code>{e}</code>"
+            )
+            enviar_telegram(token, chat_id, msg_erro)
+            
         time.sleep(1.5)
 
     return atingiram, (erros == len(urls))
@@ -179,12 +199,12 @@ def main():
         alvo = entrada[0]
         nome_item = entrada[1]
         urls = entrada[2:]
-        atingiram, falhou = monitorar_grupo(alvo, nome_item, urls)
+        atingiram, falhou = monitorar_grupo(alvo, nome_item, urls, token, chat_id)
         if falhou:
             falhas_totais += 1
         todos_atingidos.extend(atingiram)
 
-    # Processamento dos envios para o Telegram
+    # Processamento dos envios para o Telegram (Itens abaixo do alvo)
     if todos_atingidos:
         for p in todos_atingidos:
             caption = (
