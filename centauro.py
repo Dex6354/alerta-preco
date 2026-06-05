@@ -178,7 +178,7 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
             if tentativa < max_tentativas:
                 time.sleep(5 * tentativa)
 
-    raise Exception(f"Falha total após {max_tentativas} tentativas")
+    raise Exception(f"Falha após {max_tentativas} tentativas")
 
 # ============================================================
 # MONITOR CORE
