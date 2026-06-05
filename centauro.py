@@ -251,7 +251,7 @@ def main():
                 f"<b>━━━━━━ CENTAURO ━━━━━━</b>\n"
                 f"👕 <a href='{p['url']}'>{p['nome_arquivo']}</a>\n"
                 f"💰 <b>R$ {p['preco']:.2f}</b> | 🎯 <b>R$ {p['alvo']:.2f}</b>\n"
-                f"<b>━━━━━━━━━━━━━━━━━━━━</b>\n"
+                f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
             )
             if p["imagem_url"]:
                 filename = f"Centauro-{p['nome_arquivo']}-R${p['preco']:.2f}.jpg"
