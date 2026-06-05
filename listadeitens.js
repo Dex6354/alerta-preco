@@ -1,6 +1,7 @@
 Tênis Nike, 300.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
+https://www.centauro.com.br/tenis-nike-air-winfl-11-maskulino-988999.html?cor=31
 
 Blusa, 500
 https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02
@@ -31,7 +32,7 @@ https://www.nagumo.com.br/categoria/departamentos/frios-e-laticinios/congelados/
 Arroz Camil, 20
 https://www.loja.shibata.com.br/produto/12542/arroz-branco-camil-tipo-1-pacote-5kg
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-branco-tipo-1-camil-5kg-293303.html
-https://www.loja.shibata.com.br/produto/88948/biscoito-de-arroz-recheio-avela-cobertura-chocolate-ao-leite-fit-food-arrozfajor-pacote-26g
+https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-branco-tipo-1-camkl-5kg-293399.html
 https://www.loja.shibata.com.br/produto/89999/arroz-branco-camkl-tipo-1-pacote-5kg
 
 Leite integral, 4.68
