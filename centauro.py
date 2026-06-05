@@ -208,9 +208,8 @@ def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
         # Envia aviso de erro para o Telegram
         msg_erro = (
             f"⚠️ <b>ERRO DE MONITORAMENTO</b>\n"
-            f"👕 Produto: {nome_item}\n"
-            f"🔗 <a href='{url}'>Link do Produto</a>\n"
-            f"❌ Detalhes: {e}"
+            f"👕 <a href='{url}'>{nome_item}</a>\n"
+            f"❌ {e}"
         )
         enviar_telegram(token, chat_id, msg_erro)
         
