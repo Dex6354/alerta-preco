@@ -53,3 +53,4 @@ https://www.loja.shibata.com.br/produto/89999/arroz-branco-camkk-tipo-1-pacote-5
 https://www.loja.shibata.com.br/produto/88948/biscoito-de-arroz-recheio-avela-cobertura-chocolate-ao-leite-fit-food-arrozfajor-pacote-26g
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-parboilizado-organico-camil-1kg-604208.html
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-parboilizado-organico-cakkl-1kg-899999.html
+https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988kk9.html?cor=31
