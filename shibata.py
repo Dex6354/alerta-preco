@@ -120,7 +120,7 @@ def buscar_preco_shibata(url):
     )
     
     # Exibe a URL da API montada nos logs do GitHub Actions
-    print(f"🔗 API URL: {api_url}")
+    print(f"🔗 API Shibata: {api_url}")
 
     response = requests.get(api_url, headers=SHIBATA_HEADERS, timeout=15)
     if response.status_code != 200:
