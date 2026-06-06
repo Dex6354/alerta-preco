@@ -184,7 +184,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                 continue
 
-            print(f"🛒 {nome_real}")
+            print(f"\n🛒 {nome_real}")
             print(f"💰 R$ {preco:.2f} | 🎯 R$ {alvo:.2f}")
             
             if preco <= alvo:
