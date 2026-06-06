@@ -169,7 +169,7 @@ def buscar_preco_nagumo(url):
 # MONITOR CORE
 # ============================================================
 def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
-    print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print(f"🔍 Monitorando Alvo:")
     print(f"{nome_item}, R$ {alvo:.2f}")
     atingiram = []
@@ -180,7 +180,6 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
         try:
             preco, nome_real, imagem_url = buscar_preco_nagumo(url)
             
-            # Produto indisponível retorna None e é ignorado silenciosamente
             if preco is None:
                 print("💤 Produto indisponível ignorado.")
                 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
