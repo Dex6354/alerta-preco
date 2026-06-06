@@ -177,10 +177,10 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                 print("ℹ️ Acima do alvo")
                 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except ProdutoIndisponivelException as e:
-            print(f"💤 Produto indisponível ignorado.")
+            print(f"\n💤 Produto indisponível ignorado.")
             print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except Exception as e:
-            print(f"❌ Erro: {e}")
+            print(f"\n❌ Erro: {e}")
             print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             erros += 1
             msg_erro = (
