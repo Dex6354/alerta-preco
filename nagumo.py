@@ -104,7 +104,7 @@ def buscar_preco_nagumo(url):
     params = {"pid": produto_id}
     
     # Exibe o link montado da API da Nagumo nos logs do GitHub Actions
-    print(f"🔗 API URL: {NAGUMO_API_URL}?pid={produto_id}")
+    print(f"🔗 API Nagumo: {NAGUMO_API_URL}?pid={produto_id}")
     
     cookies = {
         "dw_store": "22",
