@@ -4,6 +4,7 @@ https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
 
 Blusa, 500
 https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02
+https://www.centauro.com.br/conjuto-de-agasalho-masculino-asics-interlock-bolso-fusionado-976753.html?cor=02
 
 Regata Oxer, 40.00
 https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83
