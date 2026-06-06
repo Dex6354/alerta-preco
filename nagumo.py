@@ -180,6 +180,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
             # Produto indisponível retorna None e é ignorado silenciosamente
             if preco is None:
                 print("💤 Produto indisponível ignorado.")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                 continue
 
             print(f"\n🛒 {nome_real}")
@@ -194,8 +195,10 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                     "alvo": alvo
                 })
                 print("✅ Abaixo do alvo!")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except Exception as e:
             print(f"❌ Erro: {e}")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             erros += 1
             # Dispara alerta de erro para o Telegram
             msg_erro = (
