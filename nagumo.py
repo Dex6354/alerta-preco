@@ -169,12 +169,12 @@ def buscar_preco_nagumo(url):
 # MONITOR CORE
 # ============================================================
 def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
-    print(f"🔍 Monitorando Alvo:")
-    print(f"{nome_item}, R$ {alvo:.2f}")
     atingiram = []
     erros = 0
 
     for url in urls:
+        print(f"🔍 Monitorando Alvo:")
+        print(f"{nome_item}, R$ {alvo:.2f}")
         print(f"\n🛒 Item:\n{url}")
         try:
             preco, nome_real, imagem_url = buscar_preco_nagumo(url)
