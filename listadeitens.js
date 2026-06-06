@@ -50,3 +50,4 @@ https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovo
 
 teste, 10
 https://www.loja.shibata.com.br/produto/89999/arroz-branco-camkk-tipo-1-pacote-5kg
+https://www.loja.shibata.com.br/produto/88948/biscoito-de-arroz-recheio-avela-cobertura-chocolate-ao-leite-fit-food-arrozfajor-pacote-26g
