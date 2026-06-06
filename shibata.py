@@ -171,16 +171,16 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                     "alvo": alvo
                 })
                 print("✅ Abaixo do alvo!")
-                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             else:
                 print("ℹ️ Acima do alvo")
-                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except ProdutoIndisponivelException as e:
             print(f"💤 Produto indisponível ignorado.")
-            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except Exception as e:
             print(f"❌ Erro: {e}")
-            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             erros += 1
             msg_erro = (
                 f"<b>━━━━ ❌ ERRO SHIBATA ━━━━</b>\n"
@@ -225,7 +225,7 @@ def main():
                 f"<b>━━━━ ✅ SHIBATA ━━━━━━━</b>\n"
                 f"🛒 <a href='{p['url']}'>{p['nome_arquivo']}</a>\n"
                 f"💰 <b>R$ {p['preco']:.2f}</b> | 🎯 <b>R$ {p['alvo']:.2f}</b>\n"
-                f"<b>━━━━━━━━━━━━━━━━━━━━</b>\n"
+                f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
             )
             if p["imagem_url"]:
                 filename = f"Shibata-{p['nome_arquivo']}-R${p['preco']:.2f}.jpg"
