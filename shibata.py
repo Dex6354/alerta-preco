@@ -148,15 +148,16 @@ def buscar_preco_shibata(url):
 # MONITOR CORE
 # ============================================================
 def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
-    print(f"\n📦 Monitorando Grupo/Item | Alvo: R$ {alvo:.2f}")
+    print(f"🔍 Monitorando Alvo:")
+    print(f"{nome_item}, R$ {alvo:.2f}")
     atingiram = []
     erros = 0
 
     for url in urls:
-        print(f"   🔍 {url}")
+        print(f"\n🛒 Item:\n{url}")
         try:
             preco, nome_real, imagem_url = buscar_preco_shibata(url)
-            print(f"   💰 {nome_real} — R$ {preco:.2f}")
+            print(f"💰 {nome_real} — R$ {preco:.2f}")
             if preco <= alvo:
                 atingiram.append({
                     "nome": nome_real, 
@@ -166,11 +167,14 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                     "imagem_url": imagem_url, 
                     "alvo": alvo
                 })
-                print("   ✅ Abaixo do alvo!")
+                print("✅ Abaixo do alvo!")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except ProdutoIndisponivelException as e:
-            print(f"   ⚠️ Ignorado: {e}")
+            print(f"⚠️ Ignorado: {e}")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except Exception as e:
-            print(f"   ❌ Erro: {e}")
+            print(f"❌ Erro: {e}")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             erros += 1
             msg_erro = (
                 f"<b>━━━━ ❌ ERRO SHIBATA ━━━━</b>\n"
