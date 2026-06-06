@@ -169,7 +169,6 @@ def buscar_preco_nagumo(url):
 # MONITOR CORE
 # ============================================================
 def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print(f"🔍 Monitorando Alvo:")
     print(f"{nome_item}, R$ {alvo:.2f}")
     atingiram = []
@@ -226,6 +225,7 @@ def main():
     todos_atingidos = []
 
     print("\n🚀 INICIANDO MONITOR NAGUMO\n")
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
