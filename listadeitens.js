@@ -37,6 +37,7 @@ https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-c
 https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l
 https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-uht-integral-quat%C3%A1-1l-312738.html
+https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-integral-3%25-gordura-h%C3%A9rcules-1l-788274.html
 
 Peito de frango, 14
 https://www.loja.shibata.com.br/produto/16661/peito-de-frango-sem-pele-e-sem-osso-bandeja-com-aprox-12kg
