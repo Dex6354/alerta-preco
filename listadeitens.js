@@ -48,3 +48,12 @@ Ovo, 10
 https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-unidades
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
+
+Açúcar, 3
+https://www.loja.shibata.com.br/produto/2966/acucar-refinado-caravelas-pacote-1kg
+https://www.loja.shibata.com.br/produto/11066/acucar-alto-alegre-refinado-pacote-1kg
+https://www.loja.shibata.com.br/produto/12901/acucar-refinado-uniao-pacote-1kg
+https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/acucar/a%C3%A7%C3%BAcar-refinado-tradicional-da-barra-1kg-100069.html
+https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/acucar/a%C3%A7%C3%BAcar-refinado-especial-caravelas-1kg-290418.html
+https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/acucar/a%C3%A7%C3%BAcar-uni%C3%A3o-refinado-1kg-124669.html
+
