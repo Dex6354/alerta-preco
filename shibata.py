@@ -118,6 +118,9 @@ def buscar_preco_shibata(url):
         f"https://services.vipcommerce.com.br/api-admin/v1/org/{SHIBATA_ORG_ID}"
         f"/filial/1/centro_distribuicao/1/loja/produtos/{produto_id}/detalhes"
     )
+    
+    # Exibe a URL da API montada nos logs do GitHub Actions
+    print(f"🔗 API URL: {api_url}")
 
     response = requests.get(api_url, headers=SHIBATA_HEADERS, timeout=15)
     if response.status_code != 200:
@@ -168,6 +171,9 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                     "alvo": alvo
                 })
                 print("✅ Abaixo do alvo!")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            else:
+                print("ℹ️ Acima do alvo")
                 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except ProdutoIndisponivelException as e:
             print(f"⚠️ Ignorado: {e}")
