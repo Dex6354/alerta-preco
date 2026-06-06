@@ -190,7 +190,7 @@ def buscar_preco_centauro(url_produto, codigo, cor, max_tentativas=3):
 # MONITOR CORE
 # ============================================================
 def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
-    print("\n━━━━━━━━━━━━━━━━━━━━")
+    print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print(f"🔍 Monitorando Alvo: R$ {alvo:.2f}")
     print(f"\n👕 Item:\n{url}")
     
@@ -203,7 +203,7 @@ def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
 
         if preco <= alvo:
             print("✅ Abaixo do alvo!")
-            print("━━━━━━━━━━━━━━━━━━━━")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             return {
                 "nome": nome_real, 
                 "nome_arquivo": nome_item,
@@ -214,16 +214,16 @@ def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
             }, True
         else:
             print("ℹ️ Preço acima do alvo.")
-            print("━━━━━━━━━━━━━━━━━━━━")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             return None, True
     except ValueError as ve:
         if str(ve) == "PRODUTO_INDISPONIVEL":
-            print("\nℹ️ Produto indisponível (isAvailable: false). Ignorando...")
-            print("━━━━━━━━━━━━━━━━━━━━")
+            print("\nℹ️ Produto indisponível ignorado.")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             return None, True
     except Exception as e:
         print(f"\n❌ Erro ao processar link: {e}")
-        print("━━━━━━━━━━━━━━━━━━━━")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         
         msg_erro = (
             f"<b>━━━ ❌ ERRO CENTAURO ━━━</b>\n"
