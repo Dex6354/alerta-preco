@@ -160,7 +160,8 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
         print(f"🛒 Item:\n{url}")
         try:
             preco, nome_real, imagem_url = buscar_preco_shibata(url)
-            print(f"💰 {nome_real} — R$ {preco:.2f}")
+            print(f"\n🛒 {nome_real}")
+            print(f"💰 R$ {preco:.2f} | 🎯 R$ {alvo:.2f}")
             if preco <= alvo:
                 atingiram.append({
                     "nome": nome_real, 
