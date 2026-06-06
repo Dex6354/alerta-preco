@@ -190,7 +190,6 @@ def buscar_preco_centauro(url_produto, codigo, cor, max_tentativas=3):
 # MONITOR CORE
 # ============================================================
 def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
-    print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print(f"🔍 Monitorando Alvo:")
     print(f"{nome_item}, R$ {alvo:.2f}")
     print(f"\n👕 Item:\n{url}")
@@ -244,6 +243,7 @@ def main():
     todos_atingidos = []
 
     print("\n🚀 INICIANDO MONITOR CENTAURO")
+    print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
