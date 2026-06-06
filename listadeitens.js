@@ -49,5 +49,7 @@ https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
 
 teste, 10
+https://www.loja.shibata.com.br/produto/89999/arroz-branco-camkk-tipo-1-pacote-5kg
+https://www.loja.shibata.com.br/produto/88948/biscoito-de-arroz-recheio-avela-cobertura-chocolate-ao-leite-fit-food-arrozfajor-pacote-26g
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-parboilizado-organico-camil-1kg-604208.html
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-parboilizado-organico-cakkl-1kg-899999.html
