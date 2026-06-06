@@ -212,7 +212,7 @@ def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
             return None, True
     except ValueError as ve:
         if str(ve) == "PRODUTO_INDISPONIVEL":
-            print("   ℹ️ Produto indisponível (isAvailable: false). Ignorando...")
+            print("   💤 Produto indisponível ignorado.")
             return None, True
     except Exception as e:
         print(f"   ❌ Erro ao processar link: {e}")
