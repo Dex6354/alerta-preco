@@ -120,7 +120,7 @@ def buscar_preco_shibata(url):
     )
     
     # Exibe a URL da API montada nos logs do GitHub Actions
-    print(f"🔗 API Shibata: {api_url}")
+    print(f"🔗 API URL: {api_url}")
 
     response = requests.get(api_url, headers=SHIBATA_HEADERS, timeout=15)
     if response.status_code != 200:
@@ -151,13 +151,13 @@ def buscar_preco_shibata(url):
 # MONITOR CORE
 # ============================================================
 def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
-    print(f"🔍 Monitorando Alvo:")
-    print(f"{nome_item}, R$ {alvo:.2f}")
     atingiram = []
     erros = 0
 
     for url in urls:
-        print(f"\n🛒 Item:\n{url}")
+        print(f"🔍 Monitorando Alvo:")
+        print(f"{nome_item}, R$ {alvo:.2f}\n")
+        print(f"🛒 Item:\n{url}")
         try:
             preco, nome_real, imagem_url = buscar_preco_shibata(url)
             print(f"💰 {nome_real} — R$ {preco:.2f}")
@@ -171,16 +171,16 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                     "alvo": alvo
                 })
                 print("✅ Abaixo do alvo!")
-                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
             else:
                 print("ℹ️ Acima do alvo")
-                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         except ProdutoIndisponivelException as e:
             print(f"💤 Produto indisponível ignorado.")
-            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         except Exception as e:
             print(f"❌ Erro: {e}")
-            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
             erros += 1
             msg_erro = (
                 f"<b>━━━━ ❌ ERRO SHIBATA ━━━━</b>\n"
@@ -201,7 +201,7 @@ def main():
     todos_atingidos = []
 
     print("\n🚀 INICIANDO MONITOR SHIBATA\n")
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
     
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
