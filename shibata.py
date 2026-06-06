@@ -201,7 +201,7 @@ def main():
     todos_atingidos = []
 
     print("\n🚀 INICIANDO MONITOR SHIBATA\n")
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
