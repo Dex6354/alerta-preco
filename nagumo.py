@@ -103,6 +103,9 @@ def buscar_preco_nagumo(url):
 
     params = {"pid": produto_id}
     
+    # Exibe o link montado da API da Nagumo nos logs do GitHub Actions
+    print(f"🔗 API URL: {NAGUMO_API_URL}?pid={produto_id}")
+    
     cookies = {
         "dw_store": "22",
         "dw_consent": "tracking=false",
@@ -183,8 +186,9 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                 continue
 
-            print(f"\n🛒 {nome_real}")
+            print(f"🛒 {nome_real}")
             print(f"💰 R$ {preco:.2f} | 🎯 R$ {alvo:.2f}")
+            
             if preco <= alvo:
                 atingiram.append({
                     "nome": nome_real, 
@@ -195,7 +199,10 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                     "alvo": alvo
                 })
                 print("✅ Abaixo do alvo!")
-                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            else:
+                print("ℹ️ Acima do alvo")
+                
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except Exception as e:
             print(f"❌ Erro: {e}")
             print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
