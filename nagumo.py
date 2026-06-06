@@ -225,7 +225,7 @@ def main():
     falhas_totais = 0
     todos_atingidos = []
 
-    print("\n🚀 INICIANDO MONITOR NAGUMO")
+    print("\n🚀 INICIANDO MONITOR NAGUMO\n")
     
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
