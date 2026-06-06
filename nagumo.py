@@ -166,21 +166,24 @@ def buscar_preco_nagumo(url):
 # MONITOR CORE
 # ============================================================
 def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
-    print(f"\n📦 Monitorando Grupo/Item | Alvo: R$ {alvo:.2f}")
+    print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print(f"🔍 Monitorando Alvo:")
+    print(f"{nome_item}, R$ {alvo:.2f}")
     atingiram = []
     erros = 0
 
     for url in urls:
-        print(f"   🔍 {url}")
+        print(f"\n🛒 Item:\n{url}")
         try:
             preco, nome_real, imagem_url = buscar_preco_nagumo(url)
             
             # Produto indisponível retorna None e é ignorado silenciosamente
             if preco is None:
-                print("   💤 Produto indisponível (available: false). Ignorando...")
+                print("💤 Produto indisponível ignorado.")
                 continue
-                
-            print(f"   💰 {nome_real} — R$ {preco:.2f}")
+
+            print(f"\n🛒 {nome_real}")
+            print(f"💰 R$ {preco:.2f} | 🎯 R$ {alvo:.2f}")
             if preco <= alvo:
                 atingiram.append({
                     "nome": nome_real, 
@@ -190,9 +193,9 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                     "imagem_url": imagem_url, 
                     "alvo": alvo
                 })
-                print("   ✅ Abaixo do alvo!")
+                print("✅ Abaixo do alvo!")
         except Exception as e:
-            print(f"   ❌ Erro: {e}")
+            print(f"❌ Erro: {e}")
             erros += 1
             # Dispara alerta de erro para o Telegram
             msg_erro = (
