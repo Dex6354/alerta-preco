@@ -1,8 +1,8 @@
-Tênis Nike, 300.00
+Tênis Nike, 200.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
 
-Blusa, 500
+Blusa, 150
 https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02
 https://www.centauro.com.br/conjuto-de-agasalho-masculino-asics-interlock-bolso-fusionado-976753.html?cor=02
 
@@ -29,7 +29,7 @@ Sorvete bombom, 30
 https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l
 https://www.nagumo.com.br/categoria/departamentos/frios-e-laticinios/congelados/sorvetes/sorvete-jundia-pote-2lt.-bombom-558617.html
 
-Arroz Camil, 20
+Arroz Camil, 18
 https://www.loja.shibata.com.br/produto/12542/arroz-branco-camil-tipo-1-pacote-5kg
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-branco-tipo-1-camil-5kg-293303.html
 
