@@ -125,7 +125,7 @@ def extrair_codigo_cor(url_produto):
 
 def buscar_preco_centauro(url_produto, codigo, cor, max_tentativas=3):
     api_url = f"{CENTAURO_API_BASE}/{codigo}?color={cor}"
-    print(f"\n🔗 API Centauro:\n{api_url}")
+    print(f"🔗 API Centauro:\n{api_url}")
 
     for tentativa in range(1, max_tentativas + 1):
         try:
