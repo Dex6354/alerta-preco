@@ -180,7 +180,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
             preco, nome_real, imagem_url = buscar_preco_nagumo(url)
             
             if preco is None:
-                print("💤 Produto indisponível ignorado.")
+                print("\n💤 Produto indisponível ignorado.")
                 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                 continue
 
@@ -202,7 +202,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                 
             print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except Exception as e:
-            print(f"❌ Erro: {e}")
+            print(f"\n❌ Erro: {e}")
             print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             erros += 1
             # Dispara alerta de erro para o Telegram
