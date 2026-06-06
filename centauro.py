@@ -123,10 +123,9 @@ def extrair_codigo_cor(url_produto):
         
     return codigo_match.group(1), cor_match.group(1)
 
-def buscar_preco_centauro(url_produto, max_tentativas=3):
-    codigo, cor = extrair_codigo_cor(url_produto)
+def buscar_preco_centauro(url_produto, codigo, cor, max_tentativas=3):
     api_url = f"{CENTAURO_API_BASE}/{codigo}?color={cor}"
-    print(f"   🔗 API Centauro: {api_url}")
+    print(f"\n🔗 API Centauro:\n{api_url}")
 
     for tentativa in range(1, max_tentativas + 1):
         try:
@@ -141,7 +140,6 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
             data = resp.json()
             product_data = data.get("product", {})
             
-            # Condição solicitada: Ignorar produto se estiver indisponível
             if product_data.get("isAvailable") is False:
                 raise ValueError("PRODUTO_INDISPONIVEL")
 
@@ -192,13 +190,20 @@ def buscar_preco_centauro(url_produto, max_tentativas=3):
 # MONITOR CORE
 # ============================================================
 def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
-    print(f"\n🔍 Monitorando | Alvo: R$ {alvo:.2f} | {url}")
+    print("\n━━━━━━━━━━━━━━━━━━━━")
+    print(f"🔍 Monitorando Alvo: R$ {alvo:.2f}")
+    print(f"\n👕 Item:\n{url}")
+    
     try:
-        preco, nome_real, imagem_url = buscar_preco_centauro(url)
-        print(f"   💰 {nome_real} — R$ {preco:.2f}")
+        codigo, cor = extrair_codigo_cor(url)
+        preco, nome_real, imagem_url = buscar_preco_centauro(url, codigo, cor)
+        
+        print(f"\n👕 {nome_real}")
+        print(f"💰 R$ {preco:.2f}")
 
         if preco <= alvo:
-            print("   ✅ Abaixo do alvo!")
+            print("✅ Abaixo do alvo!")
+            print("━━━━━━━━━━━━━━━━━━━━")
             return {
                 "nome": nome_real, 
                 "nome_arquivo": nome_item,
@@ -208,16 +213,18 @@ def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
                 "alvo": alvo
             }, True
         else:
-            print("   ℹ️ Preço acima do alvo.")
+            print("ℹ️ Preço acima do alvo.")
+            print("━━━━━━━━━━━━━━━━━━━━")
             return None, True
     except ValueError as ve:
         if str(ve) == "PRODUTO_INDISPONIVEL":
-            print("   💤 Produto indisponível ignorado.")
+            print("\nℹ️ Produto indisponível (isAvailable: false). Ignorando...")
+            print("━━━━━━━━━━━━━━━━━━━━")
             return None, True
     except Exception as e:
-        print(f"   ❌ Erro ao processar link: {e}")
+        print(f"\n❌ Erro ao processar link: {e}")
+        print("━━━━━━━━━━━━━━━━━━━━")
         
-        # Envia aviso de erro para o Telegram
         msg_erro = (
             f"<b>━━━ ❌ ERRO CENTAURO ━━━</b>\n"
             f"👕 <a href='{url}'>{nome_item}</a>\n"
@@ -256,7 +263,6 @@ def main():
                 todos_atingidos.append(resultado)
             time.sleep(2)
 
-    # Processamento dos envios para o Telegram
     if todos_atingidos:
         for p in todos_atingidos:
             caption = (
