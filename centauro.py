@@ -191,7 +191,8 @@ def buscar_preco_centauro(url_produto, codigo, cor, max_tentativas=3):
 # ============================================================
 def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
     print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print(f"🔍 Monitorando Alvo: R$ {alvo:.2f}")
+    print(f"🔍 Monitorando Alvo:")
+    print(f"{nome_item}, R$ {alvo:.2f}")
     print(f"\n👕 Item:\n{url}")
     
     try:
@@ -199,7 +200,7 @@ def verificar_url_unica(alvo, nome_item, url, token=None, chat_id=None):
         preco, nome_real, imagem_url = buscar_preco_centauro(url, codigo, cor)
         
         print(f"\n👕 {nome_real}")
-        print(f"💰 R$ {preco:.2f}")
+        print(f"💰 R$ {preco:.2f} | 🎯 R$ {alvo:.2f}")
 
         if preco <= alvo:
             print("✅ Abaixo do alvo!")
