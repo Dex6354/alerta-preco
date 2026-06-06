@@ -242,8 +242,8 @@ def main():
     total_links = 0
     todos_atingidos = []
 
-    print("\n🚀 INICIANDO MONITOR CENTAURO")
-    print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print("\n🚀 INICIANDO MONITOR CENTAURO\n")
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
     
