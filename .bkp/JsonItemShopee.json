@@ -1,0 +1,1604 @@
+https://shopee.com.br/Soundbar-S40T-com-2.1-Canais-Dolby-Digital-Sem-Fios-Bluetooth-5.3-Entrada-ptica-HDMI-e-AI-Sound-Pro-300W-RMS-LG-i.1083800536.58259028136?extraParams=%7B%22display_model_id%22%3A229441478391%7D
+
+https://shopee.com.br/api/v4/pdp/get_rw?display_model_id=229441478391&item_id=58259028136&shop_id=1083800536&tz_offset_in_minutes=-180&detail_level=0&incoming_pdp_page_source=0&incoming_pdp_page_scenario=0
+
+{
+  "bff_meta": null,
+  "error": null,
+  "error_msg": null,
+  "data": {
+    "item": {
+      "item_id": 58259028136,
+      "shop_id": 1083800536,
+      "item_status": "normal",
+      "status": 1,
+      "item_type": 0,
+      "reference_item_id": "",
+      "title": "Soundbar S40T com 2.1 Canais, Dolby Digital, Sem Fios, Bluetooth 5.3, Entrada ptica, HDMI e AI Sound Pro 300W RMS LG",
+      "image": "sg-11134201-81zwl-mn4sw9ydq03ld7",
+      "label_ids": [
+        1823810,
+        298818315,
+        1718387984,
+        1000022,
+        844931064601283,
+        700065054,
+        700065053,
+        822062091122182,
+        595433038,
+        998291046,
+        299048468,
+        1823833,
+        997961055,
+        700605236,
+        298643352,
+        998291284,
+        998291285,
+        1718428067,
+        1718428068,
+        1718087960,
+        1428713
+      ],
+      "is_adult": false,
+      "is_preview": false,
+      "flag": 131072,
+      "is_service_by_shopee": false,
+      "condition": 1,
+      "cat_id": 100535,
+      "has_low_fulfillment_rate": false,
+      "is_live_streaming_price": null,
+      "currency": "BRL",
+      "brand": "LG",
+      "brand_id": 1695281,
+      "show_discount": 0,
+      "ctime": 1776371543,
+      "item_rating": {
+        "rating_star": 5
+      },
+      "cb_option": 0,
+      "has_model_with_available_shopee_stock": false,
+      "shop_location": "São Paulo",
+      "attributes": [
+        {
+          "name": "Duração da Garantia",
+          "value": "12 Meses",
+          "id": 100121,
+          "is_timestamp": false,
+          "brand_option": null,
+          "val_id": 822,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": null,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Tipo de Garantia",
+          "value": "Garantia do Fabricante",
+          "id": 100370,
+          "is_timestamp": false,
+          "brand_option": null,
+          "val_id": 2419,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": null,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Função de Bluetooth",
+          "value": "Sim",
+          "id": 100525,
+          "is_timestamp": false,
+          "brand_option": null,
+          "val_id": 2931,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": null,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Tipo de Conexão",
+          "value": "Sem fio (Bluetooth ou Wifi)",
+          "id": 100408,
+          "is_timestamp": false,
+          "brand_option": null,
+          "val_id": 2530,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": null,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Produto personalizado",
+          "value": "Não",
+          "id": 101219,
+          "is_timestamp": false,
+          "brand_option": null,
+          "val_id": 7222,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": null,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Condição",
+          "value": "Novo",
+          "id": 100413,
+          "is_timestamp": false,
+          "brand_option": null,
+          "val_id": 2497,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": null,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        }
+      ],
+      "rich_text_description": null,
+      "invoice_option": null,
+      "is_category_failed": null,
+      "is_prescription_item": false,
+      "preview_info": null,
+      "show_prescription_feed": false,
+      "is_alcohol_product": false,
+      "is_infant_milk_formula_product": false,
+      "is_unavailable": false,
+      "is_partial_fulfilled": false,
+      "is_presale": false,
+      "is_presale_deposit_item": null,
+      "is_presale_deposit_made": null,
+      "description": "A companhia sonora ideal para sua tv Complete sua experincia de entretenimento com o Soundbar LG S40T que se integra perfeitamente ao seu ambiente e  sua TV.\r\n  \r\n  Este equipamento no  apenas um complemento, ele transforma sua sala em um verdadeiro cinema, oferecendo um som envolvente que eleva cada momento assistido.\r\n  \r\n  Seja para um filme emocionante ou uma maratona de sries, o soundbar LG promete elevar sua experincia sonora a um novo patamar.\r\n  \r\n  Som deslumbrante que te envolve\r\n  Prepare-se para ser imerso em um universo de som com a WOW Interface e o sistema de som surround de 2.1 canais.\r\n  \r\n  Com 300W RMS e um subwoofer potente, este soundbar entrega um udio cristalino que preenche todos os cantos do ambiente.\r\n  \r\n  Voc se sentir dentro do filme, com paisagens sonoras realistas que tornam cada cena mais vibrante.\r\n  \r\n  A tecnologia AI Sound Pro garante que cada efeito, msica e voz sejam otimizados, proporcionando uma experincia auditiva nica e impressionante.\r\n  \r\n  Simplicidade e sustentabilidade em um s produto\r\n  Com a WOW Interface, voc controla o equipamento diretamente pela sua tv, ajustando modos de som e perfis com apenas alguns toques.\r\n  \r\n  Alm disso, o compromisso da LG com a sustentabilidade se reflete em seu design: as partes internas do soundbar so feitas com plstico reciclado, enquanto o tecido  confeccionado a partir de garrafas plsticas.\r\n  \r\n  Essa abordagem ecolgica contribui para um planeta mais limpo, e tambm demonstra que tecnologia e responsabilidade ambiental podem caminhar juntas.\r\n  \r\n  Caractersticas Gerais: \r\n  Conexo Bluetooth: tecnologia que permite a comunicao sem fio entre dispositivos, como fones de ouvido e smartphones\r\n  2.1 Canais: sistema de udio com dois canais estreo e um canal de subwoofer, proporcionando uma experincia sonora mais rica\r\n  AI Sound Pro: tecnologia que ajusta automaticamente o som com base no ambiente e no contedo para otimizar a qualidade do udio\r\n  Wow Interface: Interface intuitiva que facilita a navegao e o controle de funes em dispositivos de udio\r\n  Sem fios: refere-se  capacidade de transmitir dados ou energia sem a necessidade de cabos, aumentando a convenincia e mobilidade\r\n  Conexes Mltiplas: Permite a conexo simultnea de vrios dispositivos, facilitando o uso e a troca entre eles sem desconectar\r\n  Dolby Digital:  um formato de udio que proporciona som surround de alta qualidade, usando mltiplos canais para criar uma experincia auditiva imersiva em filmes e msicas\r\n  Formatos compatveis: Dolby Digital, DTS Digital Surround, AAC, FLAC, OGG, WAV, MP3, WMA e LPCM.\r\n  Quantidades de sada HDMI: 1\r\n  Entrada USB: Sim\r\n  Conexo integrada: Bluetooth\r\n  Conexes traseiras: Sada HDMI 1.4 (ARC),Entrada ptica digital\r\n  Potncia total RMS: 300W\r\n  Nmero de canais: 2.1\r\n  Compatvel com Tvs: 46,42,40\r\n  Potncia subwoofer RMS: 200W\r\n  Potncia caixa principal RMS: 100W\r\n  Dimenses unidade principal (LxAxP) mm: 720 x 63 x 87\r\n  Dimenses subwoofer (LxAxP) mm: 171 x 320 x 252\r\n  \r\n  ANATEL / ATENO!: \r\n  E est sujeita s penas previstas na legislao brasileira.\r\n  A venda de produtos para telecomunicaes sem homologao da Anatel  prtica ilegal.\r\n  \r\n  Contedo da embalagem: \r\n  01 Soundbar LG S40T com 2.1 Canais, Dolby Digital, Sem Fios, Bluetooth 5.3, Entrada ptica, HDMI e AI Sound Pro 300W RMS.\r\n  \r\n  Garantia do Fabricante:\r\n  12 meses\r\n  \r\n  Nmero de Homologao Anatel:\r\n  167892301925 | 152292201925 | 152282201925",
+      "categories": [
+        {
+          "catid": 100535,
+          "display_name": "Áudio",
+          "no_sub": false,
+          "is_default_subcat": false
+        },
+        {
+          "catid": 100582,
+          "display_name": "Áudio e Alto Falantes para Casa",
+          "no_sub": false,
+          "is_default_subcat": false
+        },
+        {
+          "catid": 100625,
+          "display_name": "Alto-Falantes",
+          "no_sub": true,
+          "is_default_subcat": false
+        }
+      ],
+      "fe_categories": [
+        {
+          "catid": 11059971,
+          "display_name": "Áudio",
+          "no_sub": false,
+          "is_default_subcat": false
+        },
+        {
+          "catid": 11060003,
+          "display_name": "Áudio e Alto Falantes para Casa",
+          "no_sub": false,
+          "is_default_subcat": false
+        },
+        {
+          "catid": 11060275,
+          "display_name": "Alto-Falantes",
+          "no_sub": true,
+          "is_default_subcat": false
+        }
+      ],
+      "item_has_video": false,
+      "presale_dday_start_time": null,
+      "is_lowest_price_at_shopee": null,
+      "display_description_disclosure_rsku_redirection": null,
+      "display_similar_sold": null,
+      "title_type": 1,
+      "authorized_brand_name": null,
+      "is_sexual": false,
+      "models": [
+        {
+          "item_id": 58259028136,
+          "status": 1,
+          "current_promotion_reserved_stock": null,
+          "name": "Preto,Bivolt",
+          "promotion_id": 0,
+          "price": 109900000,
+          "price_stocks": [
+            {
+              "allocated_stock": null,
+              "stock_breakdown_by_location": null,
+              "promotion_type": 0
+            }
+          ],
+          "current_promotion_has_reserve_stock": false,
+          "normal_stock": null,
+          "extinfo": {
+            "tier_index": [
+              0,
+              0
+            ],
+            "is_pre_order": false,
+            "estimated_days": 2,
+            "sku_image": ""
+          },
+          "price_before_discount": 0,
+          "model_id": 229441478391,
+          "stock": null,
+          "has_gimmick_tag": false,
+          "key_measurement": null,
+          "sold": null,
+          "is_lowest_price_at_shopee": false,
+          "name_tr": null,
+          "is_clickable": true,
+          "is_grayout": false,
+          "has_stock": true
+        }
+      ],
+      "tier_variations": [
+        {
+          "name": "Cor",
+          "options": [
+            "Preto"
+          ],
+          "images": [
+            "sg-11134201-81zvb-mn4sx204iex109"
+          ],
+          "properties": null,
+          "type": 0,
+          "summed_stocks": null,
+          "display_indicators": [
+            0
+          ],
+          "name_tr": null,
+          "options_tr": null,
+          "selling_points": [
+            ""
+          ],
+          "selling_points_tr": null
+        },
+        {
+          "name": "Tam/Vol",
+          "options": [
+            "Bivolt"
+          ],
+          "images": null,
+          "properties": null,
+          "type": 0,
+          "summed_stocks": null,
+          "display_indicators": [
+            0
+          ],
+          "name_tr": null,
+          "options_tr": null,
+          "selling_points": [
+            ""
+          ],
+          "selling_points_tr": null
+        }
+      ],
+      "size_chart": null,
+      "size_chart_info": null,
+      "welcome_package_type": null,
+      "is_free_gift": false,
+      "deep_discount": null,
+      "is_low_price_eligible": null,
+      "bundle_deal_info": null,
+      "add_on_deal_info": null,
+      "shipping_icon_type": 0,
+      "badge_icon_type": 0,
+      "spl_info": null,
+      "estimated_days": 2,
+      "is_pre_order": false,
+      "is_free_shipping": false,
+      "overall_purchase_limit": null,
+      "min_purchase_limit": 0,
+      "is_hide_stock": false,
+      "stock": null,
+      "normal_stock": null,
+      "current_promotion_reserved_stock": null,
+      "can_use_wholesale": false,
+      "wholesale_tier_list": [],
+      "price": 109900000,
+      "raw_discount": 0,
+      "hidden_price_display": null,
+      "price_min": 109900000,
+      "price_max": 109900000,
+      "price_before_discount": 109900000,
+      "price_min_before_discount": 109900000,
+      "price_max_before_discount": 109900000,
+      "other_stock": null,
+      "discount_stock": null,
+      "current_promotion_has_reserve_stock": false,
+      "complaint_policy": null,
+      "show_recycling_info": null,
+      "should_show_amp_tag": true,
+      "all_models_has_pre_order": false,
+      "is_item_inherited": false,
+      "max_quantity": null,
+      "drug_details": null,
+      "selected_real_models": null,
+      "size_tier_variation_idx": null,
+      "is_fashion_item": false,
+      "social_proof_label": null,
+      "title_tr": null,
+      "description_tr": null,
+      "rich_text_description_tr": null,
+      "stock_display": null,
+      "max_quantity_display": "Estoque disponível",
+      "disclaimer": null
+    },
+    "account": {
+      "user_id": null,
+      "is_new_user": null,
+      "default_address": {
+        "state": "São Paulo",
+        "city": "São Paulo",
+        "district": "",
+        "town": "",
+        "zip_code": "01001-000",
+        "address": null,
+        "region": null,
+        "longitude": null,
+        "latitude": null,
+        "vn_data_version": ""
+      },
+      "adult_consent": null,
+      "birth_timestamp": null
+    },
+    "product_images": {
+      "video": null,
+      "images": [
+        "sg-11134201-81zwl-mn4sw9ydq03ld7",
+        "sg-11134201-81zwd-mn4swbg30agxcb",
+        "sg-11134201-81zwi-mn4swd90ra4j9a",
+        "sg-11134201-81zww-mn4swfooc2kk9b",
+        "sg-11134201-81zwn-mn4swherb9j661"
+      ],
+      "first_tier_variations": [
+        {
+          "name": "Preto",
+          "image": "sg-11134201-81zvb-mn4sx204iex109",
+          "summed_stock": null,
+          "display_indicator": 0,
+          "show_find_similar": null,
+          "name_tr": null,
+          "selling_point": "",
+          "selling_point_tr": null,
+          "gallery_image": "sg-11134201-81zvb-mn4sx204iex109"
+        }
+      ],
+      "sorted_variation_image_index_list": [],
+      "overlay": null,
+      "makeup_preview": null,
+      "abnormal_status": "",
+      "promotion_images": [],
+      "long_images": null,
+      "shopee_video_info_list": [],
+      "shopee_video_rcmd_info": null,
+      "shopee_video_req_id": null,
+      "skincam": null,
+      "pdp_top_info_list": null,
+      "has_long_image": false,
+      "show_find_similar": null,
+      "try_it_on": null,
+      "show_find_similar_for_selection": false,
+      "beautycam": null,
+      "unavailable_item_recommendation": null,
+      "models": [
+        {
+          "tier_index": [
+            0,
+            0
+          ],
+          "gallery_image": "sg-11134201-81zvb-mn4sx204iex109"
+        }
+      ],
+      "gallery_contents": [
+        {
+          "image": {
+            "url": "sg-11134201-81zwl-mn4sw9ydq03ld7",
+            "promotion_image_type": null,
+            "label_content": null,
+            "cmt_id": null
+          },
+          "video": null
+        },
+        {
+          "image": {
+            "url": "sg-11134201-81zwd-mn4swbg30agxcb",
+            "promotion_image_type": null,
+            "label_content": null,
+            "cmt_id": null
+          },
+          "video": null
+        },
+        {
+          "image": {
+            "url": "sg-11134201-81zwi-mn4swd90ra4j9a",
+            "promotion_image_type": null,
+            "label_content": null,
+            "cmt_id": null
+          },
+          "video": null
+        },
+        {
+          "image": {
+            "url": "sg-11134201-81zww-mn4swfooc2kk9b",
+            "promotion_image_type": null,
+            "label_content": null,
+            "cmt_id": null
+          },
+          "video": null
+        },
+        {
+          "image": {
+            "url": "sg-11134201-81zwn-mn4swherb9j661",
+            "promotion_image_type": null,
+            "label_content": null,
+            "cmt_id": null
+          },
+          "video": null
+        }
+      ]
+    },
+    "product_price": {
+      "discount": null,
+      "installment_info": null,
+      "spl_installment_info": null,
+      "pack_size": "",
+      "hide_price": false,
+      "price": {
+        "single_value": 96108000,
+        "range_min": -1,
+        "range_max": -1,
+        "price_mask": null
+      },
+      "price_before_discount": {
+        "single_value": 109900000,
+        "range_min": -1,
+        "range_max": -1,
+        "price_mask": null
+      },
+      "presale_price": null,
+      "lowest_past_price": null,
+      "labels": null,
+      "hide_discount": true,
+      "discount_text": null,
+      "show_final_price_indicator": false,
+      "final_price_vouchers": [
+        {
+          "promotion_id": 1431233389932544,
+          "voucher_code": "1358454900",
+          "is_auto_claimed_just_now": null,
+          "groups": null,
+          "voucher_type": 2
+        }
+      ],
+      "has_final_price": true,
+      "final_price_info": {
+        "model_id": 229441478391,
+        "hint_text": "no Pix com cupom >",
+        "show_final_price_indicator": false,
+        "final_price_vouchers": {
+          "platform_voucher": {
+            "promotion_id": 1431233389932544,
+            "voucher_code": "1358454900",
+            "is_auto_claimed_just_now": null,
+            "groups": null,
+            "voucher_discount_type": 1,
+            "voucher_discount": 5000000
+          },
+          "shop_voucher": null
+        },
+        "payment_channel_discount": {
+          "pix_discount": {
+            "discount_id": 449032992535340,
+            "snapshot_id": 297606110720078,
+            "discount_amount": 8792000
+          }
+        }
+      },
+      "price_subtext": null,
+      "price_model": {
+        "price_single_model_id": 229441478391,
+        "price_min_model_id": null,
+        "price_max_model_id": null
+      },
+      "price_promotion": {
+        "price_single_promotion_id": 0,
+        "price_single_promotion_type": 0,
+        "price_min_promotion_id": null,
+        "price_min_promotion_type": null,
+        "price_max_promotion_id": null,
+        "price_max_promotion_type": null
+      }
+    },
+    "flash_sale": null,
+    "flash_sale_booked": null,
+    "flash_sale_preview": null,
+    "deep_discount": null,
+    "exclusive_price": null,
+    "exclusive_price_cta": null,
+    "product_meta": {
+      "show_lowest_price_guarantee": null,
+      "show_original_guarantee": null,
+      "show_best_price_guarantee": false,
+      "show_official_shop_label_in_title": true,
+      "show_shopee_verified_label": false,
+      "show_lowest_installment_guarantee": null,
+      "hide_sharing_button": false,
+      "hide_sold_count": false,
+      "show_description_translation_button": null
+    },
+    "product_review": {
+      "rating_star": 5,
+      "rating_count": [
+        7,
+        0,
+        0,
+        0,
+        0,
+        7
+      ],
+      "total_rating_count": 7,
+      "historical_sold": null,
+      "global_sold": null,
+      "liked": false,
+      "liked_count": 76,
+      "cmt_count": 7,
+      "should_move_ratings_above": null,
+      "review_rcmd_exp_group": null,
+      "display_global_sold": false,
+      "hide_rating": false,
+      "hide_buyer_gallery": false,
+      "hide_reviews": false,
+      "hide_other_product_reviews_in_shop": false,
+      "sold_count_disclosure": null,
+      "historical_sold_display": null,
+      "global_sold_display": null,
+      "sold_count_display": null
+    },
+    "promotion_info": {
+      "spl": null,
+      "spl_lite": null,
+      "installment": null,
+      "wholesale": null,
+      "insurance": null,
+      "item_installment_eligibility": {
+        "is_cc_installment_payment_eligible": false,
+        "is_non_cc_installment_payment_eligible": false
+      }
+    },
+    "age_gate": {
+      "kyc": null,
+      "adult_consent": null
+    },
+    "shipping_meta": null,
+    "product_shipping": {
+      "free_shipping": null,
+      "shipping_fee_info": {
+        "ship_from_location": "São Paulo",
+        "price": {
+          "single_value": 2000000,
+          "range_min": -1,
+          "range_max": -1,
+          "price_mask": null
+        },
+        "shipping_icon_type": 0,
+        "warning": null
+      },
+      "show_shipping_to": true,
+      "ungrouped_channel_infos": [
+        {
+          "channel_id": 90021,
+          "name": "Logística do vendedor",
+          "price": {
+            "single_value": 2000000,
+            "range_min": -1,
+            "range_max": -1,
+            "price_mask": null
+          },
+          "price_before_discount": {
+            "single_value": 6000000,
+            "range_min": -1,
+            "range_max": -1,
+            "price_mask": null
+          },
+          "channel_delivery_info": {
+            "has_edt": true,
+            "display_mode": "edt_by_date",
+            "estimated_delivery_date_from": 1781390775,
+            "estimated_delivery_date_to": 1781649975,
+            "estimated_delivery_time_min": 6,
+            "estimated_delivery_time_max": 9,
+            "delay_message": "",
+            "is_fastest_edt_channel": null,
+            "sla_message": "",
+            "show_edt": true,
+            "edt_text": "Receba entre 13 e 16/jun",
+            "formatted_edt_text": [
+              {
+                "template": "{label_receive_by_date_range}",
+                "format": [],
+                "attributes": [
+                  {
+                    "type": 1,
+                    "key": "label_receive_by_date_range",
+                    "value": {
+                      "value_str": "Chega entre 13 e 16/jun",
+                      "value_int": null
+                    },
+                    "format": [],
+                    "text_color": null,
+                    "text_hex_color": "#000000de",
+                    "url": null
+                  }
+                ],
+                "text_color": null,
+                "text_hex_color": null
+              }
+            ],
+            "formatted_pre_order_text": null,
+            "formatted_fbs_description_text": null,
+            "show_edt_as_header": false
+          },
+          "channel_promotion_infos": [
+            {
+              "rule_id": 366750449484076,
+              "type": 0,
+              "display_mode": 1,
+              "discount_off": 4000000,
+              "min_spend": {
+                "single_value": 0,
+                "range_min": -1,
+                "range_max": -1,
+                "price_mask": ""
+              },
+              "cap": 4000000
+            }
+          ],
+          "warning": {
+            "type": "",
+            "warning_msg": ""
+          },
+          "shipping_icon_type": 0,
+          "lowest_bpsf_promotion_rule": {
+            "min_spend": 0,
+            "discount_value": 4000000,
+            "is_free_shipping": false,
+            "is_item_eligible": true
+          },
+          "service_type_info": "",
+          "is_integrated_channel": false,
+          "late_delivery_compensation": null,
+          "is_sst_included": false,
+          "display_text": {
+            "late_delivery_compensation": null,
+            "direct_delivery": null,
+            "fulfilled_by_shopee": null,
+            "spx_instant_delivery": null
+          },
+          "rule_type": 0,
+          "is_xdd_channel": false,
+          "show_shopee_plus_icon": false,
+          "xdd_value": 0,
+          "hide_shipping_fee": null,
+          "edt_tracking_info": "{\"edt_min\":6,\"edt_max\":9,\"edt_min_hours\":144,\"edt_max_hours\":216,\"edt_display_identifier\":65545,\"buyer_address_hash\":\"Wd2AGxc\",\"is_cache_edt\":false}"
+        }
+      ],
+      "grouped_channel_infos_by_service_type": [],
+      "also_available_channel_name": null,
+      "pre_selected_shipping_channel": {
+        "channel_id": 90021,
+        "name": "Logística do vendedor",
+        "price": {
+          "single_value": 2000000,
+          "range_min": -1,
+          "range_max": -1,
+          "price_mask": null
+        },
+        "price_before_discount": {
+          "single_value": 6000000,
+          "range_min": -1,
+          "range_max": -1,
+          "price_mask": null
+        },
+        "channel_delivery_info": {
+          "has_edt": true,
+          "display_mode": "edt_by_date",
+          "estimated_delivery_date_from": 1781390775,
+          "estimated_delivery_date_to": 1781649975,
+          "estimated_delivery_time_min": 6,
+          "estimated_delivery_time_max": 9,
+          "delay_message": "",
+          "is_fastest_edt_channel": null,
+          "sla_message": "",
+          "show_edt": false,
+          "edt_text": "Receba entre 13 e 16/jun",
+          "formatted_edt_text": [
+            {
+              "template": "{label_receive_by_date_range}",
+              "format": [],
+              "attributes": [
+                {
+                  "type": 1,
+                  "key": "label_receive_by_date_range",
+                  "value": {
+                    "value_str": "Chega entre 13 e 16/jun",
+                    "value_int": null
+                  },
+                  "format": [],
+                  "text_color": null,
+                  "text_hex_color": "#000000de",
+                  "url": null
+                }
+              ],
+              "text_color": null,
+              "text_hex_color": null
+            }
+          ],
+          "formatted_pre_order_text": null,
+          "formatted_fbs_description_text": null,
+          "show_edt_as_header": false
+        },
+        "channel_promotion_infos": [
+          {
+            "rule_id": 366750449484076,
+            "type": 0,
+            "display_mode": 1,
+            "discount_off": 4000000,
+            "min_spend": {
+              "single_value": 0,
+              "range_min": -1,
+              "range_max": -1,
+              "price_mask": ""
+            },
+            "cap": 4000000
+          }
+        ],
+        "warning": {
+          "type": "",
+          "warning_msg": ""
+        },
+        "shipping_icon_type": 0,
+        "lowest_bpsf_promotion_rule": {
+          "min_spend": 0,
+          "discount_value": 4000000,
+          "is_free_shipping": false,
+          "is_item_eligible": true
+        },
+        "service_type_info": "",
+        "is_integrated_channel": false,
+        "late_delivery_compensation": null,
+        "is_sst_included": false,
+        "display_text": {
+          "late_delivery_compensation": null,
+          "direct_delivery": null,
+          "fulfilled_by_shopee": null,
+          "spx_instant_delivery": null
+        },
+        "rule_type": 0,
+        "is_xdd_channel": false,
+        "show_shopee_plus_icon": false,
+        "xdd_value": 0,
+        "hide_shipping_fee": null,
+        "edt_tracking_info": "{\"edt_min\":6,\"edt_max\":9,\"edt_min_hours\":144,\"edt_max_hours\":216,\"edt_display_identifier\":0,\"buyer_address_hash\":\"Wd2AGxc\",\"is_cache_edt\":false}"
+      },
+      "show_grouped_channel_first": false,
+      "is_item_with_price_range": false,
+      "also_available_channel_icon_type": null,
+      "pre_order_text": "",
+      "selected_late_delivery_compensation_for_drawer": null,
+      "shipping_info_text": {
+        "text_template": null,
+        "shipping_fee": null,
+        "edt_from": null,
+        "edt_to": null,
+        "show_shipping_fee_suffix": false,
+        "formatted_text": {
+          "edt": null,
+          "shipping_fee": null,
+          "late_delivery_compensation": null,
+          "fbs_description": null,
+          "display_edt_text_first_line": true,
+          "should_wrap_edt_text_by_attribute": false
+        },
+        "highlight_free_shipping": false
+      },
+      "formatted_pre_order_text": null,
+      "has_free_return": null,
+      "model_id": 229441478391,
+      "delivery_address": {
+        "state": "São Paulo",
+        "city": "São Paulo",
+        "district": null,
+        "town": null,
+        "zip_code": "01001-000",
+        "address": null,
+        "region": null,
+        "longitude": null,
+        "latitude": null,
+        "vn_data_version": null
+      }
+    },
+    "shop_vouchers_meta": null,
+    "shop_vouchers": null,
+    "free_return": null,
+    "coin_info": {
+      "spend_cash_unit": 1000,
+      "coin_earn_items": [
+        {
+          "coin_earn": 500
+        }
+      ],
+      "coin_earn_label": null
+    },
+    "product_attributes": {
+      "attrs": [
+        {
+          "name": "Marca",
+          "value": "LG",
+          "id": null,
+          "is_timestamp": null,
+          "brand_option": null,
+          "val_id": null,
+          "url": "/search?brands=1695281",
+          "brand_id": 1695281,
+          "full_url": "https://shopee.com.br/search?brands=1695281",
+          "type": 1,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Duração da Garantia",
+          "value": "12 Meses",
+          "id": 100121,
+          "is_timestamp": null,
+          "brand_option": null,
+          "val_id": null,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": 5,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Tipo de Garantia",
+          "value": "Garantia do Fabricante",
+          "id": 100370,
+          "is_timestamp": null,
+          "brand_option": null,
+          "val_id": null,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": 5,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Função de Bluetooth",
+          "value": "Sim",
+          "id": 100525,
+          "is_timestamp": null,
+          "brand_option": null,
+          "val_id": null,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": 5,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Tipo de Conexão",
+          "value": "Sem fio (Bluetooth ou Wifi)",
+          "id": 100408,
+          "is_timestamp": null,
+          "brand_option": null,
+          "val_id": null,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": 5,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Produto personalizado",
+          "value": "Não",
+          "id": 101219,
+          "is_timestamp": null,
+          "brand_option": null,
+          "val_id": null,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": 5,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Condição",
+          "value": "Novo",
+          "id": 100413,
+          "is_timestamp": null,
+          "brand_option": null,
+          "val_id": null,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": 5,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        },
+        {
+          "name": "Envio de",
+          "value": "São Paulo",
+          "id": null,
+          "is_timestamp": null,
+          "brand_option": null,
+          "val_id": null,
+          "url": null,
+          "brand_id": null,
+          "full_url": null,
+          "type": 6,
+          "item_attribute_type": null,
+          "name_tr": null,
+          "value_tr": null
+        }
+      ],
+      "categories": [
+        {
+          "catid": 11059971,
+          "display_name": "Áudio",
+          "no_sub": false,
+          "is_default_subcat": false
+        },
+        {
+          "catid": 11060003,
+          "display_name": "Áudio e Alto Falantes para Casa",
+          "no_sub": false,
+          "is_default_subcat": false
+        },
+        {
+          "catid": 11060275,
+          "display_name": "Alto-Falantes",
+          "no_sub": true,
+          "is_default_subcat": false
+        }
+      ],
+      "related_items": []
+    },
+    "shop_detailed": {
+      "shopid": 1083800536,
+      "userid": 1084049969,
+      "last_active_time": 1780872028,
+      "vacation": false,
+      "place": "São Paulo, São Paulo",
+      "account": {
+        "portrait": "br-11134216-7r98o-m5onrbgglgeo78",
+        "username": "casas_bahia_oficial",
+        "status": 1
+      },
+      "is_shopee_verified": false,
+      "is_preferred_plus_seller": false,
+      "is_official_shop": true,
+      "shop_location": "",
+      "item_count": 5190,
+      "rating_star": 4.913779,
+      "response_rate": 51,
+      "session_info": null,
+      "name": "Casas Bahia Oficial",
+      "ctime": 1695993511,
+      "response_time": 1016,
+      "follower_count": 147875,
+      "show_official_shop_label": true,
+      "rating_bad": 978,
+      "rating_good": 134397,
+      "rating_normal": 1842,
+      "session_infos": null,
+      "status": 1,
+      "is_individual_seller": null,
+      "is_mart": false,
+      "favorite_shop_info": null,
+      "is_3pf": false,
+      "sold_total": null,
+      "is_shopee_choice": false,
+      "is_high_end": false,
+      "banner": {
+        "shopee_choice": null
+      },
+      "authorized_brand": null,
+      "is_scs": false,
+      "shop_location_tr": null,
+      "sold_total_display": null,
+      "is_outlet": false,
+      "display_fbs_logo": false,
+      "is_chatroom_online": null,
+      "outlet_shop": null,
+      "vacation_status": null,
+      "display_shopee_choice_tick": false
+    },
+    "age_gate_control": null,
+    "abnormal_popup": null,
+    "return_on_spot": null,
+    "tax_disclaimer": null,
+    "alcohol_disclaimer": null,
+    "live_stream": null,
+    "design_control": {
+      "use_new_revamp_first_screen": true,
+      "display_on_time_delivery_guarantee": false,
+      "disable_price_with_variation": false,
+      "display_direct_delivery": true,
+      "use_new_featured_video_revamp": null,
+      "first_screen_revamp_abtest_group": null,
+      "display_choice_customised_section": false,
+      "is_support_fbs_enabled": true,
+      "top_section_featured_video_ab_test_group": null,
+      "enable_ksp_config": true,
+      "disable_main_page_select_variation": false,
+      "support_shop_review_preview": null,
+      "pdp_revamp_phase1_improvement_ui_review_down": null,
+      "display_fashion_attributes": null,
+      "display_fashion_review_section": null,
+      "display_fashion_first_screen": null,
+      "enable_fashion_review_improvements": null,
+      "display_fbs_floating_counter": null,
+      "display_shipping_drawer_new_free_shipping_text": false,
+      "display_shipping_drawer_new_free_shipping_ui": false,
+      "shift_featured_videos_above_review_ratings_section": null,
+      "enable_fashion_featured_videos_improvements": null,
+      "hide_shipping_channel_promotion_text": false,
+      "expand_size_guide_section_by_default": null
+    },
+    "shopee_free_return": null,
+    "detail_level": 0,
+    "removed_fields": null,
+    "size_guide": null,
+    "designer_info": null,
+    "shipping_info": null,
+    "button_group": {
+      "buy_with_voucher": {
+        "price": 96108000
+      },
+      "ineligible_user_platform_exclusive_sku": null
+    },
+    "ongoing_banner": null,
+    "teaser_banner": null,
+    "price_breakdown": {
+      "price": {
+        "single_value": 96108000,
+        "range_min": -1,
+        "range_max": -1,
+        "price_mask": null
+      },
+      "price_before_discount": {
+        "single_value": 109900000,
+        "range_min": -1,
+        "range_max": -1,
+        "price_mask": null
+      },
+      "discount_breakdown": [
+        {
+          "type": 3,
+          "price_source": "Cupom de desconto",
+          "discount_amount": 5000000,
+          "exclusive_price": null,
+          "shop_voucher": null,
+          "platform_voucher": {
+            "min_spend": 5000000,
+            "discount_type": 1,
+            "discount_value": null,
+            "discount_percentage": "5"
+          }
+        },
+        {
+          "type": 4,
+          "price_source": "Desconto Pix",
+          "discount_amount": 8792000,
+          "exclusive_price": null,
+          "shop_voucher": null,
+          "platform_voucher": null
+        }
+      ]
+    },
+    "promotion_drawer": null,
+    "installment_drawer": {
+      "priority": [
+        1,
+        0
+      ],
+      "spl": null,
+      "bank": {
+        "channels": null
+      },
+      "credit_card": null
+    },
+    "service_entrance": {
+      "services": []
+    },
+    "service_drawer": {
+      "services": []
+    },
+    "membership_exclusive": null,
+    "membership_exclusive_teaser": null,
+    "trade_in": null,
+    "product_description": {
+      "paragraph_list": [
+        {
+          "type": 0,
+          "text": "A companhia sonora ideal para sua tv Complete sua experincia de entretenimento com o Soundbar LG S40T que se integra perfeitamente ao seu ambiente e  sua TV.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Este equipamento no  apenas um complemento, ele transforma sua sala em um verdadeiro cinema, oferecendo um som envolvente que eleva cada momento assistido.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Seja para um filme emocionante ou uma maratona de sries, o soundbar LG promete elevar sua experincia sonora a um novo patamar.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Som deslumbrante que te envolve\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Prepare-se para ser imerso em um universo de som com a WOW Interface e o sistema de som surround de 2.1 canais.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Com 300W RMS e um subwoofer potente, este soundbar entrega um udio cristalino que preenche todos os cantos do ambiente.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Voc se sentir dentro do filme, com paisagens sonoras realistas que tornam cada cena mais vibrante.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  A tecnologia AI Sound Pro garante que cada efeito, msica e voz sejam otimizados, proporcionando uma experincia auditiva nica e impressionante.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Simplicidade e sustentabilidade em um s produto\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Com a WOW Interface, voc controla o equipamento diretamente pela sua tv, ajustando modos de som e perfis com apenas alguns toques.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Alm disso, o compromisso da LG com a sustentabilidade se reflete em seu design: as partes internas do soundbar so feitas com plstico reciclado, enquanto o tecido  confeccionado a partir de garrafas plsticas.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Essa abordagem ecolgica contribui para um planeta mais limpo, e tambm demonstra que tecnologia e responsabilidade ambiental podem caminhar juntas.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Caractersticas Gerais: \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Conexo Bluetooth: tecnologia que permite a comunicao sem fio entre dispositivos, como fones de ouvido e smartphones\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  2.1 Canais: sistema de udio com dois canais estreo e um canal de subwoofer, proporcionando uma experincia sonora mais rica\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  AI Sound Pro: tecnologia que ajusta automaticamente o som com base no ambiente e no contedo para otimizar a qualidade do udio\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Wow Interface: Interface intuitiva que facilita a navegao e o controle de funes em dispositivos de udio\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Sem fios: refere-se  capacidade de transmitir dados ou energia sem a necessidade de cabos, aumentando a convenincia e mobilidade\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Conexes Mltiplas: Permite a conexo simultnea de vrios dispositivos, facilitando o uso e a troca entre eles sem desconectar\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Dolby Digital:  um formato de udio que proporciona som surround de alta qualidade, usando mltiplos canais para criar uma experincia auditiva imersiva em filmes e msicas\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Formatos compatveis: Dolby Digital, DTS Digital Surround, AAC, FLAC, OGG, WAV, MP3, WMA e LPCM.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Quantidades de sada HDMI: 1\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Entrada USB: Sim\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Conexo integrada: Bluetooth\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Conexes traseiras: Sada HDMI 1.4 (ARC),Entrada ptica digital\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Potncia total RMS: 300W\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Nmero de canais: 2.1\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Compatvel com Tvs: 46,42,40\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Potncia subwoofer RMS: 200W\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Potncia caixa principal RMS: 100W\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Dimenses unidade principal (LxAxP) mm: 720 x 63 x 87\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Dimenses subwoofer (LxAxP) mm: 171 x 320 x 252\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  ANATEL / ATENO!: \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  E est sujeita s penas previstas na legislao brasileira.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  A venda de produtos para telecomunicaes sem homologao da Anatel  prtica ilegal.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Contedo da embalagem: \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  01 Soundbar LG S40T com 2.1 Canais, Dolby Digital, Sem Fios, Bluetooth 5.3, Entrada ptica, HDMI e AI Sound Pro 300W RMS.\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Garantia do Fabricante:\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  12 meses\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  \r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  Nmero de Homologao Anatel:\r",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        },
+        {
+          "type": 0,
+          "text": "  167892301925 | 152292201925 | 152282201925",
+          "img_id": null,
+          "ratio": null,
+          "description_type": 1,
+          "empty_paragraph_count": null
+        }
+      ],
+      "source_language": ""
+    },
+    "size_info": null,
+    "size_recommendation": null,
+    "featured_voucher": null,
+    "translation_status": 0,
+    "product_description_tr": null,
+    "bcrs_disclaimer": null
+  }
+}
