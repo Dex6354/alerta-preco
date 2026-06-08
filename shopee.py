@@ -7,16 +7,9 @@ import requests
 # ============================================================
 # CONFIGURAÇÕES SHOPEE
 # ============================================================
-SHOPEE_HEADERS = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    "X-Shopee-Language": "pt-BR",
-    "X-Requested-With": "XMLHttpRequest",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-}
-
 SHOPEE_IMG_BASE = "https://down-br.img.susercontent.com/file"
 ARQUIVO_ITENS = "listadeitens.js"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 class ProdutoIndisponivelException(Exception):
     pass
@@ -116,36 +109,60 @@ def buscar_preco_shopee(url):
     shop_id = match.group(1)
     item_id = match.group(2)
 
-    # Nova API alternativa com menor nível de proteção anti-bot
-    api_url = f"https://shopee.com.br/api/v4/item/get?item_id={item_id}&shop_id={shop_id}"
+    # 1. Cria uma sessão para armazenar e atualizar cookies automaticamente
+    session = requests.Session()
+    session.headers.update({"User-Agent": USER_AGENT})
+    
+    # Visita a home para gerar os cookies necessários (incluindo o csrftoken)
+    try:
+        session.get("https://shopee.com.br/", timeout=10)
+    except Exception:
+        pass
+
+    # Extrai o csrftoken gerado na sessão
+    csrf_token = session.cookies.get("csrftoken", "")
+
+    # 2. Aplica a mesma lógica de cabeçalhos simplificada do navegador
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-Shopee-Language": "pt-BR",
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRFToken": csrf_token,
+        "X-API-SOURCE": "rweb",
+        "User-Agent": USER_AGENT
+    }
+
+    api_url = (
+        f"https://shopee.com.br/api/v4/pdp/get_rw?"
+        f"display_model_id={item_id}&item_id={item_id}&shop_id={shop_id}"
+        f"&tz_offset_in_minutes=-180&detail_level=0&incoming_pdp_page_source=0&incoming_pdp_page_scenario=0"
+    )
     
     print(f"🔗 API URL Shopee: {api_url}")
 
-    response = requests.get(api_url, headers=SHOPEE_HEADERS, timeout=15)
+    response = session.get(api_url, headers=headers, timeout=15)
     
-    if response.status_code == 403 or "error" in response.json():
-        raise Exception("Bloqueio Anti-Bot detectado. Execute o script localmente na sua máquina (fora do GitHub).")
-
     if response.status_code != 200:
         raise Exception(f"API Shopee retornou status {response.status_code}")
 
     res_json = response.json()
+    if "error" in res_json and res_json.get("error") != 0:
+        raise Exception(f"Erro da API Shopee: {res_json.get('error')}")
+
     data = res_json.get("data", {})
-    
-    # Se a estrutura vier aninhada em 'item'
-    item_data = data.get("item") if data.get("item") else data
-    if not item_data:
+    if not data:
         raise Exception(f"Dados do Item {item_id} não encontrados no JSON")
 
-    stock = item_data.get("stock", 1)
+    stock = data.get("stock", 0)
     if stock == 0:
-        raise ProdutoIndisponivelException(f"Produto {item_id} está esgotado.")
+        raise ProdutoIndisponivelException(f"Produto {item_id} está esgotado/indisponível.")
 
-    raw_price = item_data.get("price") or item_data.get("price_min", 0)
+    raw_price = data.get("price") or data.get("price_min", 0)
     preco = float(raw_price) / 100000.0
 
-    descricao = item_data.get("name") or item_data.get("title") or f"Produto {item_id}"
-    imagem_arquivo = item_data.get("image") or (item_data.get("images", [None])[0])
+    descricao = data.get("title") or data.get("name") or f"Produto {item_id}"
+    imagem_arquivo = data.get("image")
     imagem_url = f"{SHOPEE_IMG_BASE}/{imagem_arquivo}" if imagem_arquivo else None
 
     return preco, descricao, imagem_url
@@ -179,7 +196,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
             else:
                 print("ℹ️ Acima do alvo")
                 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        except ProdutoIndisponivelException as e:
+        except ProdutoIndisponivelException:
             print(f"\n💤 Produto indisponível/esgotado ignorado.")
             print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         except Exception as e:
@@ -194,7 +211,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
             )
             enviar_telegram(token, chat_id, msg_erro)
             
-        time.sleep(2.5)
+        time.sleep(3.0)
 
     return atingiram, (erros == len(urls))
 
