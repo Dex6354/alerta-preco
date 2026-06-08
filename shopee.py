@@ -2,7 +2,11 @@ import os
 import re
 import time
 import sys
-import requests
+
+try:
+    from curl_cffi import requests
+except ImportError:
+    raise ImportError("Instale curl_cffi: pip install curl_cffi")
 
 # ============================================================
 # CONFIGURAÇÕES SHOPEE
@@ -10,6 +14,7 @@ import requests
 SHOPEE_IMG_BASE = "https://down-br.img.susercontent.com/file"
 ARQUIVO_ITENS = "listadeitens.js"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+IMPERSONATE = "chrome120"  # Perfil TLS usado pelo curl_cffi
 
 class ProdutoIndisponivelException(Exception):
     pass
@@ -31,7 +36,7 @@ def carregar_produtos_txt(caminho_arquivo):
             url_shopee = linha
             alvo = None
             nome_item = "Produto Shopee"
-            
+
             for i in range(idx - 1, -1, -1):
                 if not linhas[i].startswith("http") and "," in linhas[i]:
                     try:
@@ -41,7 +46,7 @@ def carregar_produtos_txt(caminho_arquivo):
                         break
                     except ValueError:
                         continue
-            
+
             if alvo is not None:
                 grupo_existente = False
                 for item in produtos_carregados:
@@ -50,7 +55,7 @@ def carregar_produtos_txt(caminho_arquivo):
                             item.append(url_shopee)
                         grupo_existente = True
                         break
-                
+
                 if not grupo_existente:
                     produtos_carregados.append([alvo, nome_item, url_shopee])
 
@@ -66,12 +71,12 @@ def enviar_telegram(token, chat_id, mensagem):
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {
-            "chat_id": chat_id, 
-            "text": mensagem, 
+            "chat_id": chat_id,
+            "text": mensagem,
             "parse_mode": "HTML",
             "link_preview_options": {"is_disabled": True}
         }
-        requests.post(url, json=payload, timeout=20)
+        requests.post(url, json=payload, timeout=20, impersonate=IMPERSONATE)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
 
@@ -80,15 +85,15 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
         print("⚠️ Telegram não enviado: Variáveis de ambiente faltando.")
         return
     try:
-        img_resp = requests.get(foto_url, timeout=20)
+        img_resp = requests.get(foto_url, timeout=20, impersonate=IMPERSONATE)
         if not img_resp.ok:
             raise Exception(f"Erro ao baixar imagem: {img_resp.status_code}")
 
         url = f"https://api.telegram.org/bot{token}/sendDocument"
         data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
         files = {"document": (filename, img_resp.content)}
-        
-        resp = requests.post(url, data=data, files=files, timeout=30)
+
+        resp = requests.post(url, data=data, files=files, timeout=30, impersonate=IMPERSONATE)
         if not resp.ok:
             raise Exception(f"sendDocument retornou {resp.status_code}")
     except Exception as e:
@@ -98,26 +103,32 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
 # ============================================================
 # API SHOPEE
 # ============================================================
-def buscar_preco_shopee(url):
-    match = re.search(r'i\.(\d+)\.(\d+)', url)
+def buscar_preco_shopee(url_produto):
+    match = re.search(r'i\.(\d+)\.(\d+)', url_produto)
     if not match:
-        match = re.search(r'product/(\d+)/(\d+)', url)
-        
+        match = re.search(r'product/(\d+)/(\d+)', url_produto)
+
     if not match:
-        raise Exception(f"shop_id e item_id não encontrados na URL: {url}")
-        
+        raise Exception(f"shop_id e item_id não encontrados na URL: {url_produto}")
+
     shop_id = match.group(1)
     item_id = match.group(2)
 
-    session = requests.Session()
-    session.headers.update({"User-Agent": USER_AGENT})
-    
+    # Sessão com impersonação de Chrome — bypassa TLS fingerprinting do Cloudflare
+    session = requests.Session(impersonate=IMPERSONATE)
+
+    # Visita a página principal para obter cookies reais (incluindo csrftoken)
     try:
-        session.get("https://shopee.com.br/", timeout=10)
-    except Exception:
-        pass
+        session.get(
+            "https://shopee.com.br/",
+            headers={"User-Agent": USER_AGENT},
+            timeout=15
+        )
+    except Exception as e:
+        print(f"⚠️ Aviso: não foi possível obter cookies iniciais: {e}")
 
     csrf_token = session.cookies.get("csrftoken", "")
+    print(f"🔑 csrftoken obtido: {'✅ ' + csrf_token[:10] + '...' if csrf_token else '❌ vazio'}")
 
     headers = {
         "Accept": "application/json",
@@ -126,22 +137,24 @@ def buscar_preco_shopee(url):
         "X-Requested-With": "XMLHttpRequest",
         "X-CSRFToken": csrf_token,
         "X-API-SOURCE": "rweb",
-        "User-Agent": USER_AGENT
+        "User-Agent": USER_AGENT,
+        "Referer": url_produto,
     }
 
     api_url = (
         f"https://shopee.com.br/api/v4/pdp/get_rw?"
         f"display_model_id={item_id}&item_id={item_id}&shop_id={shop_id}"
-        f"&tz_offset_in_minutes=-180&detail_level=0&incoming_pdp_page_source=0&incoming_pdp_page_scenario=0"
+        f"&tz_offset_in_minutes=-180&detail_level=0"
+        f"&incoming_pdp_page_source=0&incoming_pdp_page_scenario=0"
     )
-    
+
     print(f"🔗 API URL Shopee: {api_url}")
 
-    response = session.get(api_url, headers=headers, timeout=15)
-    
+    response = session.get(api_url, headers=headers, timeout=20)
+
     if response.status_code == 403:
-        print(f"❌ Resposta Bruta recebida (HTML de Bloqueio do Cloudflare):\n{response.text[:300]}")
-        raise Exception("API Shopee retornou status 403 (Bloqueio Anti-Bot/GitHub Actions)")
+        print(f"❌ Bloqueio 403 — conteúdo: {response.text[:300]}")
+        raise Exception("API Shopee retornou status 403 (bloqueio mesmo com curl_cffi)")
 
     if response.status_code != 200:
         raise Exception(f"API Shopee retornou status {response.status_code}")
@@ -184,11 +197,11 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
             print(f"💰 R$ {preco:.2f} | 🎯 R$ {alvo:.2f}")
             if preco <= alvo:
                 atingiram.append({
-                    "nome": nome_real, 
+                    "nome": nome_real,
                     "nome_arquivo": nome_item,
-                    "url": url, 
-                    "preco": preco, 
-                    "imagem_url": imagem_url, 
+                    "url": url,
+                    "preco": preco,
+                    "imagem_url": imagem_url,
                     "alvo": alvo
                 })
                 print("✅ Abaixo do alvo!")
@@ -210,7 +223,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
                 f"<b>━━━━━━━━━━━━━━━━━━━━</b>"
             )
             enviar_telegram(token, chat_id, msg_erro)
-            
+
         time.sleep(3.0)
 
     return atingiram, (erros == len(urls))
@@ -223,9 +236,9 @@ def main():
 
     print("\n🚀 INICIANDO MONITOR SHOPEE\n")
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    
+
     produtos_monitorados = carregar_produtos_txt(ARQUIVO_ITENS)
-    
+
     if not produtos_monitorados:
         print("❌ Nenhum produto válido da Shopee foi encontrado na lista.")
         sys.exit(1)
