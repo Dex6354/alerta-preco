@@ -67,7 +67,7 @@ def enviar_telegram(token, chat_id, mensagem):
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {
             "chat_id": chat_id, 
-            "text": message_text := mensagem, 
+            "text": mensagem, 
             "parse_mode": "HTML",
             "link_preview_options": {"is_disabled": True}
         }
@@ -109,21 +109,24 @@ def buscar_preco_shopee(url):
     shop_id = match.group(1)
     item_id = match.group(2)
 
-    # Coleta os tokens dinâmicos injetados via GitHub Secrets / Variáveis de Ambiente
-    csrf_token = os.environ.get("SHOPEE_CSRFTOKEN", "")
-    af_ac_enc_dat = os.environ.get("SHOPEE_AF_AC_ENC_DAT", "")
-    x_sap_sec = os.environ.get("SHOPEE_X_SAP_SEC", "")
+    session = requests.Session()
+    session.headers.update({"User-Agent": USER_AGENT})
+    
+    try:
+        session.get("https://shopee.com.br/", timeout=10)
+    except Exception:
+        pass
+
+    csrf_token = session.cookies.get("csrftoken", "")
 
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
         "X-Shopee-Language": "pt-BR",
         "X-Requested-With": "XMLHttpRequest",
-        "X-API-SOURCE": "rweb",
-        "User-Agent": USER_AGENT,
         "X-CSRFToken": csrf_token,
-        "af-ac-enc-dat": af_ac_enc_dat,
-        "x-sap-sec": x_sap_sec
+        "X-API-SOURCE": "rweb",
+        "User-Agent": USER_AGENT
     }
 
     api_url = (
@@ -134,23 +137,19 @@ def buscar_preco_shopee(url):
     
     print(f"🔗 API URL Shopee: {api_url}")
 
-    response = requests.get(api_url, headers=headers, timeout=15)
+    response = session.get(api_url, headers=headers, timeout=15)
     
-    # Detalha o erro da resposta JSON Anti-bot obtida
-    if "error" in response.text:
-        try:
-            res_json = response.json()
-            if res_json.get("error") == 90309999:
-                print(f"❌ Resposta de Bloqueio da API:\n{response.text}")
-                raise Exception("Bloqueio Anti-Bot (Erro 90309999). Atualize os GitHub Secrets SHOPEE_AF_AC_ENC_DAT e SHOPEE_X_SAP_SEC.")
-        except ValueError:
-            pass
+    if response.status_code == 403:
+        print(f"❌ Resposta Bruta recebida (HTML de Bloqueio do Cloudflare):\n{response.text[:300]}")
+        raise Exception("API Shopee retornou status 403 (Bloqueio Anti-Bot/GitHub Actions)")
 
     if response.status_code != 200:
-        print(f"❌ Resposta Bruta com Erro [{response.status_code}]:\n{response.text}")
         raise Exception(f"API Shopee retornou status {response.status_code}")
 
     res_json = response.json()
+    if "error" in res_json and res_json.get("error") != 0:
+        raise Exception(f"Erro da API Shopee: {res_json.get('error')}")
+
     data = res_json.get("data", {})
     if not data:
         raise Exception(f"Dados do Item {item_id} não encontrados no JSON")
