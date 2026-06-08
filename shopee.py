@@ -35,7 +35,7 @@ def carregar_produtos_txt(caminho_arquivo):
             for i in range(idx - 1, -1, -1):
                 if not linhas[i].startswith("http") and "," in linhas[i]:
                     try:
-                        partes = linhas[i].split(",")
+                        partes = lines[i].split(",")
                         nome_item = partes[0].strip()
                         alvo = float(partes[1].strip())
                         break
@@ -51,7 +51,7 @@ def carregar_produtos_txt(caminho_arquivo):
                         grupo_existente = True
                         break
                 
-                if not grupo_existente:
+                if not group_existente:
                     produtos_carregados.append([alvo, nome_item, url_shopee])
 
     return [tuple(item) for item in produtos_carregados]
@@ -109,20 +109,16 @@ def buscar_preco_shopee(url):
     shop_id = match.group(1)
     item_id = match.group(2)
 
-    # 1. Cria uma sessão para armazenar e atualizar cookies automaticamente
     session = requests.Session()
     session.headers.update({"User-Agent": USER_AGENT})
     
-    # Visita a home para gerar os cookies necessários (incluindo o csrftoken)
     try:
         session.get("https://shopee.com.br/", timeout=10)
     except Exception:
         pass
 
-    # Extrai o csrftoken gerado na sessão
     csrf_token = session.cookies.get("csrftoken", "")
 
-    # 2. Aplica a mesma lógica de cabeçalhos simplificada do navegador
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
@@ -143,6 +139,11 @@ def buscar_preco_shopee(url):
 
     response = session.get(api_url, headers=headers, timeout=15)
     
+    # Detalha o erro se receber resposta de bloqueio (HTML) ao invés de JSON
+    if response.status_code == 403:
+        print(f"❌ Resposta Bruta recebida (HTML de Bloqueio do Cloudflare):\n{response.text[:300]}")
+        raise Exception("API Shopee retornou status 403 (Bloqueio Anti-Bot/GitHub Actions)")
+
     if response.status_code != 200:
         raise Exception(f"API Shopee retornou status {response.status_code}")
 
