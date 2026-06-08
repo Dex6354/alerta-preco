@@ -69,10 +69,10 @@ jobs:
       # ==========================================
       # SHOPEE
       # ==========================================
-      - name: Rodar Monitor Shibata
+      - name: Rodar Monitor Shopee
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.loja == 'todas' || github.event.inputs.loja == 'shopee'
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python shibata.py
+        run: python shopee.py
         continue-on-error: true
