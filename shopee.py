@@ -35,7 +35,7 @@ def carregar_produtos_txt(caminho_arquivo):
             for i in range(idx - 1, -1, -1):
                 if not linhas[i].startswith("http") and "," in linhas[i]:
                     try:
-                        partes = lines[i].split(",")
+                        partes = linhas[i].split(",")
                         nome_item = partes[0].strip()
                         alvo = float(partes[1].strip())
                         break
@@ -51,7 +51,7 @@ def carregar_produtos_txt(caminho_arquivo):
                         grupo_existente = True
                         break
                 
-                if not group_existente:
+                if not grupo_existente:
                     produtos_carregados.append([alvo, nome_item, url_shopee])
 
     return [tuple(item) for item in produtos_carregados]
@@ -139,7 +139,6 @@ def buscar_preco_shopee(url):
 
     response = session.get(api_url, headers=headers, timeout=15)
     
-    # Detalha o erro se receber resposta de bloqueio (HTML) ao invés de JSON
     if response.status_code == 403:
         print(f"❌ Resposta Bruta recebida (HTML de Bloqueio do Cloudflare):\n{response.text[:300]}")
         raise Exception("API Shopee retornou status 403 (Bloqueio Anti-Bot/GitHub Actions)")
