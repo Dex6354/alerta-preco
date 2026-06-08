@@ -57,3 +57,5 @@ https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/acucar/a%C3%A7%C3%BAcar-refinado-especial-caravelas-1kg-290418.html
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/acucar/a%C3%A7%C3%BAcar-uni%C3%A3o-refinado-1kg-124669.html
 
+Soundbar, 1000
+https://shopee.com.br/Soundbar-S40T-com-2.1-Canais-Dolby-Digital-Sem-Fios-Bluetooth-5.3-Entrada-ptica-HDMI-e-AI-Sound-Pro-300W-RMS-LG-i.1083800536.58259028136?extraParams=%7B%22display_model_id%22%3A229441478391%7D
