@@ -16,8 +16,8 @@ ARQUIVO_ITENS = "listadeitens.js"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 IMPERSONATE = "chrome120"
 
-# 💡 INSIRA SEUS COOKIES DO NAVEGADOR AQUI (F12 -> Network -> Clique em qualquer requisição -> Copie o valor de 'cookie')
-SHOPEE_COOKIES = "COLE_AQUI_TODO_O_CONTEUDO_DO_SEU_COOKIE_DO_NAVEGADOR"
+# Busca automaticamente das variáveis de ambiente do seu sistema/GitHub Actions
+SHOPEE_COOKIES = os.environ.get("SHOPEE_COOKIES", "").strip()
 
 class ProdutoIndisponivelException(Exception):
     pass
@@ -117,14 +117,12 @@ def buscar_preco_shopee(url_produto):
     shop_id = match.group(1)
     item_id = match.group(2)
 
-    # Extrai o display_model_id dinamicamente dos parâmetros da URL (caso exista)
     model_match = re.search(r'display_model_id(?:%22%3A|%3D|=)(\d+)', url_produto)
     display_model_id = model_match.group(1) if model_match else item_id
 
-    if not SHOPEE_COOKIES or SHOPEE_COOKIES == "COLE_AQUI_TODO_O_CONTEUDO_DO_SEU_COOKIE_DO_NAVEGADOR":
-        raise Exception("❌ ERRO: Você precisa colar os COOKIES do seu navegador na variável SHOPEE_COOKIES para evitar o bloqueio.")
+    if not SHOPEE_COOKIES:
+        raise Exception("❌ ERRO: A variável de ambiente SHOPEE_COOKIES está vazia. Configure-a para evitar o bloqueio 403.")
 
-    # Extrai o csrftoken direto da string de cookies fornecida
     csrf_match = re.search(r'csrftoken=([^;]+)', SHOPEE_COOKIES)
     csrf_token = csrf_match.group(1) if csrf_match else ""
     print(f"🔑 csrftoken obtido: {'✅ ' + csrf_token[:10] + '...' if csrf_token else '❌ não encontrado nos cookies'}")
@@ -156,7 +154,7 @@ def buscar_preco_shopee(url_produto):
 
     if response.status_code == 403:
         print(f"❌ Bloqueio 403 — conteúdo: {response.text[:300]}")
-        raise Exception("API Shopee retornou status 403 (Sua string de COOKIES expirou ou está incorreta)")
+        raise Exception("API Shopee retornou status 403 (Os COOKIES configurados estão incorretos ou expiraram)")
 
     if response.status_code != 200:
         raise Exception(f"API Shopee retornou status {response.status_code}")
