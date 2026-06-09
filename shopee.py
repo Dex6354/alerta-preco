@@ -13,14 +13,16 @@ except ImportError:
 # ============================================================
 SHOPEE_IMG_BASE = "https://down-br.img.susercontent.com/file"
 ARQUIVO_ITENS = "listadeitens.js"
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-IMPERSONATE = "chrome120"
+IMPERSONATE = "chrome120"  # Perfil TLS usado pelo curl_cffi
 
-# Busca automaticamente das variáveis de ambiente do seu sistema/GitHub Actions
-SHOPEE_COOKIES = os.environ.get("SHOPEE_COOKIES", "").strip()
+# 💡 Cole seus cookies do navegador aqui para evitar o erro 90309999
+# F12 → Network → qualquer página da Shopee → header "Cookie"
+SHOPEE_COOKIES = os.environ.get("SHOPEE_COOKIES", "")
+
 
 class ProdutoIndisponivelException(Exception):
     pass
+
 
 # ============================================================
 # CARREGAR PRODUTOS DO ARQUIVO TXT / JS
@@ -64,6 +66,7 @@ def carregar_produtos_txt(caminho_arquivo):
 
     return [tuple(item) for item in produtos_carregados]
 
+
 # ============================================================
 # TELEGRAM
 # ============================================================
@@ -82,6 +85,7 @@ def enviar_telegram(token, chat_id, mensagem):
         requests.post(url, json=payload, timeout=20, impersonate=IMPERSONATE)
     except Exception as e:
         print(f"⚠️ Erro Telegram (texto): {e}")
+
 
 def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
     if not token or not chat_id:
@@ -103,47 +107,67 @@ def enviar_telegram_foto(token, chat_id, foto_url, caption, filename):
         print(f"⚠️ Erro Telegram (foto): {e} — enviando apenas texto.")
         enviar_telegram(token, chat_id, caption)
 
+
 # ============================================================
-# API SHOPEE
+# API SHOPEE  —  espelha o fetch() do JS com credentials:"include"
 # ============================================================
+def _get_csrf_token_from_cookies(raw_cookies: str) -> str:
+    """
+    Replica o getCookie("csrftoken") do JS:
+        const match = document.cookie.match(/(^| )csrftoken=([^;]+)/);
+    """
+    match = re.search(r'(?:^|;)\s*csrftoken=([^;]+)', raw_cookies)
+    return match.group(1) if match else ""
+
+
 def buscar_preco_shopee(url_produto):
+    # --- extrai shop_id e item_id da URL (igual ao JS que usa a URL atual da aba) ---
     match = re.search(r'i\.(\d+)\.(\d+)', url_produto)
     if not match:
         match = re.search(r'product/(\d+)/(\d+)', url_produto)
-
     if not match:
         raise Exception(f"shop_id e item_id não encontrados na URL: {url_produto}")
 
     shop_id = match.group(1)
     item_id = match.group(2)
 
-    model_match = re.search(r'display_model_id(?:%22%3A|%3D|=)(\d+)', url_produto)
-    display_model_id = model_match.group(1) if model_match else item_id
-
-    if not SHOPEE_COOKIES:
-        raise Exception("❌ ERRO: A variável de ambiente SHOPEE_COOKIES está vazia. Configure-a para evitar o bloqueio 403.")
-
-    csrf_match = re.search(r'csrftoken=([^;]+)', SHOPEE_COOKIES)
-    csrf_token = csrf_match.group(1) if csrf_match else ""
-    print(f"🔑 csrftoken obtido: {'✅ ' + csrf_token[:10] + '...' if csrf_token else '❌ não encontrado nos cookies'}")
-
+    # --- monta sessão com impersonação TLS (curl_cffi) ---
     session = requests.Session(impersonate=IMPERSONATE)
 
+    # Equivalente a credentials:"include" — injeta todos os cookies ativos
+    if SHOPEE_COOKIES:
+        for cookie in SHOPEE_COOKIES.split(";"):
+            if "=" in cookie:
+                k, v = cookie.strip().split("=", 1)
+                session.cookies.set(k.strip(), v.strip(), domain=".shopee.com.br")
+    else:
+        # Fallback sem cookies: sujeito ao erro 90309999 (anti-bot)
+        try:
+            session.get("https://shopee.com.br/", timeout=15)
+        except Exception as e:
+            print(f"⚠️ Aviso: não foi possível obter cookies iniciais: {e}")
+
+    # --- obtém csrftoken do cookie, exatamente como o getCookie() do JS ---
+    raw_cookies = "; ".join(
+        f"{c.name}={c.value}" for c in session.cookies
+    )
+    csrf_token = _get_csrf_token_from_cookies(raw_cookies)
+    print(f"🔑 csrftoken: {'✅ ' + csrf_token[:10] + '...' if csrf_token else '❌ vazio'}")
+
+    # --- headers idênticos ao fetch() do JS (sem User-Agent/Referer explícitos) ---
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "X-CSRFToken": csrf_token,
+        "X-CSRFToken": csrf_token,          # ← mesmo que o JS
         "X-Requested-With": "XMLHttpRequest",
         "X-Shopee-Language": "pt-BR",
         "X-API-SOURCE": "rweb",
-        "User-Agent": USER_AGENT,
-        "Referer": url_produto,
-        "Cookie": SHOPEE_COOKIES
     }
 
+    # --- URL igual à usada no JS ---
     api_url = (
         f"https://shopee.com.br/api/v4/pdp/get_rw?"
-        f"display_model_id={display_model_id}&item_id={item_id}&shop_id={shop_id}"
+        f"display_model_id={item_id}&item_id={item_id}&shop_id={shop_id}"
         f"&tz_offset_in_minutes=-180&detail_level=0"
         f"&incoming_pdp_page_source=0&incoming_pdp_page_scenario=0"
     )
@@ -154,18 +178,23 @@ def buscar_preco_shopee(url_produto):
 
     if response.status_code == 403:
         print(f"❌ Bloqueio 403 — conteúdo: {response.text[:300]}")
-        raise Exception("API Shopee retornou status 403 (Os COOKIES configurados estão incorretos ou expiraram)")
+        raise Exception("API Shopee retornou status 403 (bloqueio de IP ou token expirado)")
 
     if response.status_code != 200:
         raise Exception(f"API Shopee retornou status {response.status_code}")
 
     res_json = response.json()
+
+    # Validação do erro 90309999 (anti-bot) — igual ao check do JS
     if "error" in res_json and res_json.get("error") != 0:
-        raise Exception(f"Erro da API Shopee: {res_json.get('error')} (Anti-bot detectado. Atualize os COOKIES)")
+        raise Exception(
+            f"Erro da API Shopee: {res_json.get('error')} "
+            f"(Anti-bot ativo. Atualize os COOKIES)"
+        )
 
     data = res_json.get("data", {})
     if not data:
-        raise Exception(f"Dados do Item {item_id} não encontrados no JSON")
+        raise Exception(f"Dados do item {item_id} não encontrados no JSON")
 
     stock = data.get("stock", 0)
     if stock == 0:
@@ -179,6 +208,7 @@ def buscar_preco_shopee(url_produto):
     imagem_url = f"{SHOPEE_IMG_BASE}/{imagem_arquivo}" if imagem_arquivo else None
 
     return preco, descricao, imagem_url
+
 
 # ============================================================
 # MONITOR CORE
@@ -228,6 +258,7 @@ def monitorar_grupo(alvo, nome_item, urls, token, chat_id):
 
     return atingiram, (erros == len(urls))
 
+
 def main():
     token = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("CHAT_ID")
@@ -269,6 +300,7 @@ def main():
 
     if falhas_totais == len(produtos_monitorados):
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
