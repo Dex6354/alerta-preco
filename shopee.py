@@ -14,11 +14,10 @@ except ImportError:
 SHOPEE_IMG_BASE = "https://down-br.img.susercontent.com/file"
 ARQUIVO_ITENS = "listadeitens.js"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-IMPERSONATE = "chrome120"  # Perfil TLS usado pelo curl_cffi
+IMPERSONATE = "chrome120"
 
-# 💡 COLE SEUS COOKIES DO NAVEGADOR AQUI PARA EVITAR O ERRO 90309999
-# (Pode pegar no F12 -> Network -> carregar qualquer página da shopee -> Copiar o valor do header 'Cookie')
-SHOPEE_COOKIES = os.environ.get("SHOPEE_COOKIES", "")
+# 💡 INSIRA SEUS COOKIES DO NAVEGADOR AQUI (F12 -> Network -> Clique em qualquer requisição -> Copie o valor de 'cookie')
+SHOPEE_COOKIES = "COLE_AQUI_TODO_O_CONTEUDO_DO_SEU_COOKIE_DO_NAVEGADOR"
 
 class ProdutoIndisponivelException(Exception):
     pass
@@ -118,23 +117,19 @@ def buscar_preco_shopee(url_produto):
     shop_id = match.group(1)
     item_id = match.group(2)
 
+    # Extrai o display_model_id dinamicamente dos parâmetros da URL (caso exista)
+    model_match = re.search(r'display_model_id(?:%22%3A|%3D|=)(\d+)', url_produto)
+    display_model_id = model_match.group(1) if model_match else item_id
+
+    if not SHOPEE_COOKIES or SHOPEE_COOKIES == "COLE_AQUI_TODO_O_CONTEUDO_DO_SEU_COOKIE_DO_NAVEGADOR":
+        raise Exception("❌ ERRO: Você precisa colar os COOKIES do seu navegador na variável SHOPEE_COOKIES para evitar o bloqueio.")
+
+    # Extrai o csrftoken direto da string de cookies fornecida
+    csrf_match = re.search(r'csrftoken=([^;]+)', SHOPEE_COOKIES)
+    csrf_token = csrf_match.group(1) if csrf_match else ""
+    print(f"🔑 csrftoken obtido: {'✅ ' + csrf_token[:10] + '...' if csrf_token else '❌ não encontrado nos cookies'}")
+
     session = requests.Session(impersonate=IMPERSONATE)
-
-    # Injeta os cookies da sessão ativa do navegador (imita o credentials: "include" do JS)
-    if SHOPEE_COOKIES:
-        for cookie in SHOPEE_COOKIES.split(";"):
-            if "=" in cookie:
-                k, v = cookie.strip().split("=", 1)
-                session.cookies.set(k, v, domain=".shopee.com.br")
-    else:
-        # Fallback caso não tenha fornecido cookies (sujeito ao erro 90309999)
-        try:
-            session.get("https://shopee.com.br/", headers={"User-Agent": USER_AGENT}, timeout=15)
-        except Exception as e:
-            print(f"⚠️ Aviso: não foi possível obter cookies iniciais: {e}")
-
-    csrf_token = session.cookies.get("csrftoken", domain=".shopee.com.br") or session.cookies.get("csrftoken", "")
-    print(f"🔑 csrftoken obtido: {'✅ ' + csrf_token[:10] + '...' if csrf_token else '❌ vazio'}")
 
     headers = {
         "Accept": "application/json",
@@ -145,11 +140,12 @@ def buscar_preco_shopee(url_produto):
         "X-API-SOURCE": "rweb",
         "User-Agent": USER_AGENT,
         "Referer": url_produto,
+        "Cookie": SHOPEE_COOKIES
     }
 
     api_url = (
         f"https://shopee.com.br/api/v4/pdp/get_rw?"
-        f"display_model_id={item_id}&item_id={item_id}&shop_id={shop_id}"
+        f"display_model_id={display_model_id}&item_id={item_id}&shop_id={shop_id}"
         f"&tz_offset_in_minutes=-180&detail_level=0"
         f"&incoming_pdp_page_source=0&incoming_pdp_page_scenario=0"
     )
@@ -160,16 +156,14 @@ def buscar_preco_shopee(url_produto):
 
     if response.status_code == 403:
         print(f"❌ Bloqueio 403 — conteúdo: {response.text[:300]}")
-        raise Exception("API Shopee retornou status 403 (bloqueio de IP ou Token expirado)")
+        raise Exception("API Shopee retornou status 403 (Sua string de COOKIES expirou ou está incorreta)")
 
     if response.status_code != 200:
         raise Exception(f"API Shopee retornou status {response.status_code}")
 
     res_json = response.json()
-    
-    # Validação do erro 90309999 capturado no JavaScript
     if "error" in res_json and res_json.get("error") != 0:
-        raise Exception(f"Erro da API Shopee: {res_json.get('error')} (Anti-bot ativo. Atualize os COOKIES)")
+        raise Exception(f"Erro da API Shopee: {res_json.get('error')} (Anti-bot detectado. Atualize os COOKIES)")
 
     data = res_json.get("data", {})
     if not data:
