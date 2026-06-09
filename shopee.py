@@ -16,6 +16,10 @@ ARQUIVO_ITENS = "listadeitens.js"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 IMPERSONATE = "chrome120"  # Perfil TLS usado pelo curl_cffi
 
+# 💡 COLE SEUS COOKIES DO NAVEGADOR AQUI PARA EVITAR O ERRO 90309999
+# (Pode pegar no F12 -> Network -> carregar qualquer página da shopee -> Copiar o valor do header 'Cookie')
+SHOPEE_COOKIES = os.environ.get("SHOPEE_COOKIES", "")
+
 class ProdutoIndisponivelException(Exception):
     pass
 
@@ -114,28 +118,30 @@ def buscar_preco_shopee(url_produto):
     shop_id = match.group(1)
     item_id = match.group(2)
 
-    # Sessão com impersonação de Chrome — bypassa TLS fingerprinting do Cloudflare
     session = requests.Session(impersonate=IMPERSONATE)
 
-    # Visita a página principal para obter cookies reais (incluindo csrftoken)
-    try:
-        session.get(
-            "https://shopee.com.br/",
-            headers={"User-Agent": USER_AGENT},
-            timeout=15
-        )
-    except Exception as e:
-        print(f"⚠️ Aviso: não foi possível obter cookies iniciais: {e}")
+    # Injeta os cookies da sessão ativa do navegador (imita o credentials: "include" do JS)
+    if SHOPEE_COOKIES:
+        for cookie in SHOPEE_COOKIES.split(";"):
+            if "=" in cookie:
+                k, v = cookie.strip().split("=", 1)
+                session.cookies.set(k, v, domain=".shopee.com.br")
+    else:
+        # Fallback caso não tenha fornecido cookies (sujeito ao erro 90309999)
+        try:
+            session.get("https://shopee.com.br/", headers={"User-Agent": USER_AGENT}, timeout=15)
+        except Exception as e:
+            print(f"⚠️ Aviso: não foi possível obter cookies iniciais: {e}")
 
-    csrf_token = session.cookies.get("csrftoken", "")
+    csrf_token = session.cookies.get("csrftoken", domain=".shopee.com.br") or session.cookies.get("csrftoken", "")
     print(f"🔑 csrftoken obtido: {'✅ ' + csrf_token[:10] + '...' if csrf_token else '❌ vazio'}")
 
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "X-Shopee-Language": "pt-BR",
-        "X-Requested-With": "XMLHttpRequest",
         "X-CSRFToken": csrf_token,
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Shopee-Language": "pt-BR",
         "X-API-SOURCE": "rweb",
         "User-Agent": USER_AGENT,
         "Referer": url_produto,
@@ -154,14 +160,16 @@ def buscar_preco_shopee(url_produto):
 
     if response.status_code == 403:
         print(f"❌ Bloqueio 403 — conteúdo: {response.text[:300]}")
-        raise Exception("API Shopee retornou status 403 (bloqueio mesmo com curl_cffi)")
+        raise Exception("API Shopee retornou status 403 (bloqueio de IP ou Token expirado)")
 
     if response.status_code != 200:
         raise Exception(f"API Shopee retornou status {response.status_code}")
 
     res_json = response.json()
+    
+    # Validação do erro 90309999 capturado no JavaScript
     if "error" in res_json and res_json.get("error") != 0:
-        raise Exception(f"Erro da API Shopee: {res_json.get('error')}")
+        raise Exception(f"Erro da API Shopee: {res_json.get('error')} (Anti-bot ativo. Atualize os COOKIES)")
 
     data = res_json.get("data", {})
     if not data:
