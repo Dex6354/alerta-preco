@@ -15,7 +15,6 @@ on:
           - centauro
           - nagumo
           - shibata
-          - shopee
 
 jobs:
   check:
@@ -64,15 +63,4 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python shibata.py
-        continue-on-error: true
-
-      # ==========================================
-      # SHOPEE
-      # ==========================================
-      - name: Rodar Monitor Shopee
-        if: github.event_name != 'workflow_dispatch' || github.event.inputs.loja == 'todas' || github.event.inputs.loja == 'shopee'
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python shopee.py
         continue-on-error: true
