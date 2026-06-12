@@ -22,7 +22,7 @@ Conjunto oxer, 110.00
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
-Cenoura, 10.97
+Cenoura, 10
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html
 
 Sorvete bombom, 30
@@ -40,22 +40,19 @@ https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parma
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-uht-integral-quat%C3%A1-1l-312738.html
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-integral-3%25-gordura-h%C3%A9rcules-1l-788274.html
 
-Peito de frango, 14
+Peito de frango, 15
 https://www.loja.shibata.com.br/produto/16661/peito-de-frango-sem-pele-e-sem-osso-bandeja-com-aprox-12kg
 https://www.nagumo.com.br/categoria/departamentos/acougue/ave/ave-refrigerada/peito-de-frango-sem-osso-resfriado-206396.html
 
-Ovo, 10
+Ovo, 10.91
 https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-unidades
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
 
-Açúcar, 3
+Açúcar, 2.80
 https://www.loja.shibata.com.br/produto/2966/acucar-refinado-caravelas-pacote-1kg
 https://www.loja.shibata.com.br/produto/11066/acucar-alto-alegre-refinado-pacote-1kg
 https://www.loja.shibata.com.br/produto/12901/acucar-refinado-uniao-pacote-1kg
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/acucar/a%C3%A7%C3%BAcar-refinado-tradicional-da-barra-1kg-100069.html
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/acucar/a%C3%A7%C3%BAcar-refinado-especial-caravelas-1kg-290418.html
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/acucar/a%C3%A7%C3%BAcar-uni%C3%A3o-refinado-1kg-124669.html
-
-Soundbar, 1000
-https://shopee.com.br/Soundbar-S40T-com-2.1-Canais-Dolby-Digital-Sem-Fios-Bluetooth-5.3-Entrada-ptica-HDMI-e-AI-Sound-Pro-300W-RMS-LG-i.1083800536.58259028136?extraParams=%7B%22display_model_id%22%3A229441478391%7D
