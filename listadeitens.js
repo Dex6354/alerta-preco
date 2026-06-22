@@ -16,12 +16,10 @@ Blusa, 150
 https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02
 https://www.centauro.com.br/conjuto-de-agasalho-masculino-asics-interlock-bolso-fusionado-976753.html?cor=02
 
-Regata Oxer, 26.00
+Regata, 26
 https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83
 https://www.centauro.com.br/regata-mp-oxer-endeavour-99737G.html?cor=17
 https://www.centauro.com.br/camiseta-regata-masculina-oxer-basic-light-988509.html?cor=02
-
-Regata, 30
 https://www.centauro.com.br/regata-diadora-small-logo-masculina-m17ok4-mktp.html?cor=02
 https://www.centauro.com.br/camiseta-regata-penalty-x-360279-masculina-954177.html?cor=02
 https://www.centauro.com.br/camiseta-regata-penalty-treino-essencial-basico-masculino-m188w3-mktp.html?cor=02
