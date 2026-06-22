@@ -2,8 +2,9 @@ Tênis Nike, 200.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
 
-Cueca, 50
+Cueca, 54
 https://www.centauro.com.br/kit-de-cuecas-boxer-sem-costura-puma-com-2-unidades-adulto-954445.html?cor=29
+https://www.centauro.com.br/kit-de-2-cuecas-lupo-boxer-sem-costura-988571.html?cor=63
 
 Bermuda, 30
 https://www.centauro.com.br/bermuda-masculina-oxer-training-7-tecido-plano-981429.html?cor=02
@@ -12,7 +13,7 @@ Blusa, 150
 https://www.centauro.com.br/conjunto-de-agasalho-masculino-asics-com-capuz-interlock-fechado-976758.html?cor=02
 https://www.centauro.com.br/conjuto-de-agasalho-masculino-asics-interlock-bolso-fusionado-976753.html?cor=02
 
-Regata Oxer, 30.00
+Regata Oxer, 26.00
 https://www.centauro.com.br/regata-oxer-regata-respirabilidade-mas-984829.html?cor=83
 https://www.centauro.com.br/regata-mp-oxer-endeavour-99737G.html?cor=17
 https://www.centauro.com.br/camiseta-regata-masculina-oxer-basic-light-988509.html?cor=02
@@ -28,7 +29,7 @@ Conjunto oxer, 110.00
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
-Cenoura, 10
+Cenoura, 9.90
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html
 
 Sorvete bombom, 30
