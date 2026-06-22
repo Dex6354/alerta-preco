@@ -48,9 +48,19 @@ https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parma
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-uht-integral-quat%C3%A1-1l-312738.html
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-integral-3%25-gordura-h%C3%A9rcules-1l-788274.html
 
-Peito de frango, 15
+Peito de frango, 16.98
 https://www.loja.shibata.com.br/produto/16661/peito-de-frango-sem-pele-e-sem-osso-bandeja-com-aprox-12kg
 https://www.nagumo.com.br/categoria/departamentos/acougue/ave/ave-refrigerada/peito-de-frango-sem-osso-resfriado-206396.html
+
+Óleo, 6.78
+https://www.loja.shibata.com.br/produto/8726/oleo-de-soja-tipo-1-liza-garrafa-900ml
+https://www.loja.shibata.com.br/produto/1553/oleo-de-soja-tipo-1-coamo-garrafa-900ml
+https://www.loja.shibata.com.br/produto/5118/oleo-soja-suavit-garrafa-900ml
+https://www.loja.shibata.com.br/produto/11823/oleo-de-soja-vitaliv-garrafa-900ml
+https://www.nagumo.com.br/oleo-de-soja-vila-velha-900ml.-330527.html
+https://www.loja.shibata.com.br/produto/1550/oleo-de-soja-soya-garrafa-900ml
+https://www.nagumo.com.br/%C3%B3leo-soja-soya-900ml-113090.html
+https://www.nagumo.com.br/%C3%B3leo-de-soja-liza-900-ml-159623.html
 
 Ovo, 10.91
 https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-unidades
