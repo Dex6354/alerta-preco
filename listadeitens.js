@@ -62,6 +62,11 @@ https://www.loja.shibata.com.br/produto/1550/oleo-de-soja-soya-garrafa-900ml
 https://www.nagumo.com.br/%C3%B3leo-soja-soya-900ml-113090.html
 https://www.nagumo.com.br/%C3%B3leo-de-soja-liza-900-ml-159623.html
 
+Sabonete, 4.40
+https://www.nagumo.com.br/categoria/higiene-e-perfumaria/corpo-e-banho/sabonete-barra/sabonete-davene-aveia-90g.macadama-267988.html
+https://www.nagumo.com.br/categoria/higiene-e-perfumaria/corpo-e-banho/sabonete-barra/sabonete-em-barra-original-dove-90g-617321.html
+https://www.loja.shibata.com.br/produto/12886/sabonete-em-barra-original-dove-caixa-90g
+
 Ovo, 10.91
 https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-unidades
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
