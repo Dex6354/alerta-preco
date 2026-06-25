@@ -75,6 +75,10 @@ https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovo
 Feijão Shibata, 10.88
 https://www.loja.shibata.com.br/produto/20246/feijao-shibata-carioca-tipo-i-pacote-1kg
 
+Banana, 3.99
+https://www.loja.shibata.com.br/produto/16286/banana-nanica-14kg-aprox-6-unidades
+https://www.nagumo.com.br/categoria/departamentos/hortifruti/frutas/fruta-tradicional/banana-nanica-2004.html
+
 Açúcar, 2.80
 https://www.loja.shibata.com.br/produto/2966/acucar-refinado-caravelas-pacote-1kg
 https://www.loja.shibata.com.br/produto/11066/acucar-alto-alegre-refinado-pacote-1kg
