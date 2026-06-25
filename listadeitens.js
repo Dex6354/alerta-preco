@@ -83,6 +83,10 @@ Bolo Aipim, 6.49
 https://www.loja.shibata.com.br/produto/12340/mistura-para-bolo-aipim-macaxeira-dona-benta-sache-450g
 https://www.nagumo.com.br/categoria/mercearia-salgada/confeitaria-e-preparo/mistura-bolo/mistura-para-bolo-de-aipim-dona-benta-450g-420334.html
 
+Acém, 35
+https://www.loja.shibata.com.br/produto/16231/pedaco-de-acem-friboi-reserva-aprox-700g
+https://www.nagumo.com.br/categoria/departamentos/acougue/bovino/bovino-manipulado/carne-ac%C3%A9m-picado-252404.html
+
 Açúcar, 2.80
 https://www.loja.shibata.com.br/produto/2966/acucar-refinado-caravelas-pacote-1kg
 https://www.loja.shibata.com.br/produto/11066/acucar-alto-alegre-refinado-pacote-1kg
