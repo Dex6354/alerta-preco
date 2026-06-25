@@ -2,7 +2,7 @@ Tênis Nike, 200.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
 
-Cueca, 54
+Cueca, 53
 https://www.centauro.com.br/kit-de-cuecas-boxer-sem-costura-puma-com-2-unidades-adulto-954445.html?cor=29
 https://www.centauro.com.br/kit-de-2-cuecas-lupo-boxer-sem-costura-988571.html?cor=63
 
@@ -71,6 +71,9 @@ Ovo, 10.91
 https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-unidades
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
+
+Feijão Shibata, 10.88
+https://www.loja.shibata.com.br/produto/20246/feijao-shibata-carioca-tipo-i-pacote-1kg
 
 Açúcar, 2.80
 https://www.loja.shibata.com.br/produto/2966/acucar-refinado-caravelas-pacote-1kg
