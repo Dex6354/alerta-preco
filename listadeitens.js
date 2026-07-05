@@ -81,7 +81,7 @@ Banana, 3.99
 https://www.loja.shibata.com.br/produto/16286/banana-nanica-14kg-aprox-6-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/frutas/fruta-tradicional/banana-nanica-2004.html
 
-Bolo Aipim, 6.49
+Bolo Aipim, 6.48
 https://www.loja.shibata.com.br/produto/12340/mistura-para-bolo-aipim-macaxeira-dona-benta-sache-450g
 https://www.nagumo.com.br/categoria/mercearia-salgada/confeitaria-e-preparo/mistura-bolo/mistura-para-bolo-de-aipim-dona-benta-450g-420334.html
 
