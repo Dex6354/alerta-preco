@@ -30,7 +30,7 @@ Conjunto oxer, 110.00
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
-Cenoura, 7
+Cenoura, 6.99
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html
 https://www.loja.shibata.com.br/produto/44861/cenoura-maeda-pacote-1kg
 https://www.loja.shibata.com.br/produto/16720/cenoura-1-unidade
@@ -43,7 +43,7 @@ Arroz Camil, 18
 https://www.loja.shibata.com.br/produto/12542/arroz-branco-camil-tipo-1-pacote-5kg
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-branco-tipo-1-camil-5kg-293303.html
 
-Leite integral, 4.68
+Leite integral, 5
 https://www.loja.shibata.com.br/produto/15500/leite-uht-integral-jussara-caixa-com-tampa-1l
 https://www.loja.shibata.com.br/produto/12987/leite-longa-vida-batavo-integral-caixa-com-tampa-1l
 https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parmalat-caixa-1l
