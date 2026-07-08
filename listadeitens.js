@@ -89,7 +89,7 @@ Acém, 35
 https://www.loja.shibata.com.br/produto/16231/pedaco-de-acem-friboi-reserva-aprox-700g
 https://www.nagumo.com.br/categoria/departamentos/acougue/bovino/bovino-manipulado/carne-ac%C3%A9m-picado-252404.html
 
-Açúcar, 2.80
+Açúcar, 2.60
 https://www.loja.shibata.com.br/produto/2966/acucar-refinado-caravelas-pacote-1kg
 https://www.loja.shibata.com.br/produto/11066/acucar-alto-alegre-refinado-pacote-1kg
 https://www.loja.shibata.com.br/produto/12901/acucar-refinado-uniao-pacote-1kg
