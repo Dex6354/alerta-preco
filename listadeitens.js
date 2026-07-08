@@ -39,7 +39,7 @@ Sorvete bombom, 30
 https://www.loja.shibata.com.br/produto/11622/sorvete-bombom-jundia-pote-2l
 https://www.nagumo.com.br/categoria/departamentos/frios-e-laticinios/congelados/sorvetes/sorvete-jundia-pote-2lt.-bombom-558617.html
 
-Arroz Camil, 18
+Arroz Camil, 17
 https://www.loja.shibata.com.br/produto/12542/arroz-branco-camil-tipo-1-pacote-5kg
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/arroz/arroz-branco-tipo-1-camil-5kg-293303.html
 
