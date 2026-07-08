@@ -69,7 +69,7 @@ https://www.nagumo.com.br/categoria/higiene-e-perfumaria/corpo-e-banho/sabonete-
 https://www.nagumo.com.br/categoria/higiene-e-perfumaria/corpo-e-banho/sabonete-barra/sabonete-em-barra-original-dove-90g-617321.html
 https://www.loja.shibata.com.br/produto/12886/sabonete-em-barra-original-dove-caixa-90g
 
-Ovo, 10.91
+Ovo, 10
 https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-unidades
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
