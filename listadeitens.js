@@ -9,7 +9,7 @@ https://www.centauro.com.br/kit-de-2-cuecas-lupo-boxer-sem-costura-988571.html?c
 Chinelo, 32
 https://www.centauro.com.br/chinelo-masculino-havaianas-track-waves-995894.html?cor=02
 
-Bermuda, 30
+Bermuda, 20
 https://www.centauro.com.br/bermuda-masculina-oxer-training-7-tecido-plano-981429.html?cor=02
 
 Blusa, 150
