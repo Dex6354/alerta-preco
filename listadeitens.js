@@ -2,7 +2,7 @@ Tênis Nike, 200.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
 
-Cueca, 53
+Cueca, 45
 https://www.centauro.com.br/kit-de-cuecas-boxer-sem-costura-puma-com-2-unidades-adulto-954445.html?cor=29
 https://www.centauro.com.br/kit-de-2-cuecas-lupo-boxer-sem-costura-988571.html?cor=63
 
@@ -30,7 +30,7 @@ Conjunto oxer, 110.00
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
-Cenoura, 6.98
+Cenoura, 6
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html
 https://www.loja.shibata.com.br/produto/44861/cenoura-maeda-pacote-1kg
 https://www.loja.shibata.com.br/produto/16720/cenoura-1-unidade
@@ -74,7 +74,7 @@ https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-un
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
 
-Feijão Shibata, 10.88
+Feijão Shibata, 9.70
 https://www.loja.shibata.com.br/produto/20246/feijao-shibata-carioca-tipo-i-pacote-1kg
 
 Banana, 3.99
