@@ -74,7 +74,7 @@ https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-un
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
 
-Feijão Shibata, 9.70
+Feijão Shibata, 8.91
 https://www.loja.shibata.com.br/produto/20246/feijao-shibata-carioca-tipo-i-pacote-1kg
 
 Banana, 3.99
