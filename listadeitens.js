@@ -26,7 +26,7 @@ https://www.centauro.com.br/camiseta-regata-penalty-treino-essencial-basico-masc
 https://www.centauro.com.br/regata-machao-diadora-big-logo-masculina-m17s69-mktp.html?cor=02
 https://www.centauro.com.br/regata-machao-topper-classic-masculina-m16rj4-mktp.html?cor=02
 
-Conjunto oxer, 110.00
+Conjunto oxer, 105
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
@@ -74,7 +74,7 @@ https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-un
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
 
-Feijão Shibata, 8.91
+Feijão Shibata, 8.70
 https://www.loja.shibata.com.br/produto/20246/feijao-shibata-carioca-tipo-i-pacote-1kg
 
 Banana, 3.99
