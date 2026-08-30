@@ -30,7 +30,7 @@ Conjunto oxer, 105
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=05
 https://www.centauro.com.br/conjunto-de-agasalho-oxer-replayer-981478.html?cor=02
 
-Cenoura, 6
+Cenoura, 5
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/legumes/tuberculos/cenoura-13772.html
 https://www.loja.shibata.com.br/produto/44861/cenoura-maeda-pacote-1kg
 https://www.loja.shibata.com.br/produto/16720/cenoura-1-unidade
@@ -50,7 +50,7 @@ https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parma
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-uht-integral-quat%C3%A1-1l-312738.html
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-integral-3%25-gordura-h%C3%A9rcules-1l-788274.html
 
-Peito de frango, 16.98
+Peito de frango, 16
 https://www.loja.shibata.com.br/produto/16661/peito-de-frango-sem-pele-e-sem-osso-bandeja-com-aprox-12kg
 https://www.nagumo.com.br/categoria/departamentos/acougue/ave/ave-refrigerada/peito-de-frango-sem-osso-resfriado-206396.html
 
@@ -74,7 +74,7 @@ https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-un
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
 
-Feijão Shibata, 8.70
+Feijão Shibata, 8.61
 https://www.loja.shibata.com.br/produto/20246/feijao-shibata-carioca-tipo-i-pacote-1kg
 
 Banana, 3.99
