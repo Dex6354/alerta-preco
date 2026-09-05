@@ -50,7 +50,7 @@ https://www.loja.shibata.com.br/produto/11158/leite-uht-com-tampa-integral-parma
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-uht-integral-quat%C3%A1-1l-312738.html
 https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities/leite-uht/leite-integral-3%25-gordura-h%C3%A9rcules-1l-788274.html
 
-Peito de frango, 16
+Peito de frango, 14.91
 https://www.loja.shibata.com.br/produto/16661/peito-de-frango-sem-pele-e-sem-osso-bandeja-com-aprox-12kg
 https://www.nagumo.com.br/categoria/departamentos/acougue/ave/ave-refrigerada/peito-de-frango-sem-osso-resfriado-206396.html
 
@@ -74,7 +74,7 @@ https://www.loja.shibata.com.br/produto/15362/ovo-mantiqueira-extra-branco-20-un
 https://www.loja.shibata.com.br/produto/89076/ovos-brancos-da-granja-shida-extra-pvc-20-unidades
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/granjeiros/ovos/ovos-branco-extra-grande-20un-274901.html
 
-Feijão Shibata, 8.61
+Feijão Shibata, 8.41
 https://www.loja.shibata.com.br/produto/20246/feijao-shibata-carioca-tipo-i-pacote-1kg
 
 Banana, 3.99
