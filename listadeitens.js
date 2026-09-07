@@ -100,3 +100,6 @@ https://www.nagumo.com.br/categoria/departamentos/basicos-e-matinais/commodities
 Laranja Pera, 2.77
 https://www.nagumo.com.br/categoria/departamentos/hortifruti/frutas/fruta-citrica/laranja-pera-2097.html
 https://www.loja.shibata.com.br/produto/16723/laranja-pera-1-unidade
+
+Sabão Líquido, 33
+https://www.loja.shibata.com.br/produto/4724/sabao-liquido-tixan-ype-primavera-galao-3-litros-gratis-10-de-desconto
