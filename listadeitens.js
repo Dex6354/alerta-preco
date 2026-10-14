@@ -2,7 +2,7 @@ Tênis Nike, 200.00
 https://www.centauro.com.br/tenis-masculino-nike-revolution-8-995996.html?cor=31
 https://www.centauro.com.br/tenis-nike-air-winfl-11-masculino-988389.html?cor=31
 
-Cueca, 45
+Cueca, 44
 https://www.centauro.com.br/kit-de-cuecas-boxer-sem-costura-puma-com-2-unidades-adulto-954445.html?cor=29
 https://www.centauro.com.br/kit-de-2-cuecas-lupo-boxer-sem-costura-988571.html?cor=63
 
